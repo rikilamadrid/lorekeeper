@@ -1,2 +1,14 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Transient workspace state.
+# Never ignore context/ wholesale — it holds durable project truth.
 context/current-feature.md
 context/handoff.md
+
+# Editor and OS
+.DS_Store

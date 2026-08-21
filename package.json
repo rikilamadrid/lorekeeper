@@ -19,11 +19,13 @@
     "format:check": "biome format .",
     "build": "tsc --build",
     "clean": "tsc --build --clean",
-    "typecheck": "tsc --build --dry"
+    "typecheck": "tsc --build --dry",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.10",
     "@types/node": "24.13.3",
-    "typescript": "7.0.2"
+    "typescript": "7.0.2",
+    "vitest": "4.1.11"
   }
 }

@@ -13,6 +13,7 @@
   },
   "scripts": {
     "build": "tsc --build",
-    "clean": "tsc --build --clean"
+    "clean": "tsc --build --clean",
+    "test": "vitest run"
   }
 }

@@ -19,6 +19,7 @@
   "scripts": {
     "build": "tsc --build",
     "clean": "tsc --build --clean",
-    "prepare": "tsc --build"
+    "prepare": "tsc --build",
+    "test": "vitest run"
   }
 }

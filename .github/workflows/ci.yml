@@ -1,0 +1,52 @@
+name: CI
+
+# The Feature requires CI on pull requests. Trunk-based development with
+# squash merges means main can still break after a merge, but adding a push
+# trigger is a workflow decision that belongs to the human, not to this file.
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: verify (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # macOS and Linux only. Windows is explicitly out of scope for v0.1.
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Matches the engines floor in package.json.
+          node-version: 24
+          cache: npm
+
+      # This also runs the prepare script in packages/cli, which builds and
+      # links the lore binary.
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify the built binary runs
+        run: |
+          ./node_modules/.bin/lore --version
+          ./node_modules/.bin/lore --help

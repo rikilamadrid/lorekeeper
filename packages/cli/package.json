@@ -1,0 +1,25 @@
+{
+  "name": "create-lorekeeper",
+  "version": "0.0.0",
+  "description": "Deterministic CLI over a directory of plain Markdown files with validated frontmatter.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "lore": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "dependencies": {
+    "@lorekeeper/core": "0.0.0"
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "tsc --build --clean",
+    "prepare": "tsc --build",
+    "test": "vitest run"
+  }
+}

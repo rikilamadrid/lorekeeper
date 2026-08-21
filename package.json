@@ -19,7 +19,6 @@
     "format:check": "biome format .",
     "build": "tsc --build",
     "clean": "tsc --build --clean",
-    "typecheck": "tsc --build --dry",
     "test": "vitest run"
   },
   "devDependencies": {

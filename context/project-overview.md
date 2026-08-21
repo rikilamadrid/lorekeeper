@@ -147,19 +147,19 @@ actually has.
 | Backend/application | `None` | v0.1 has no server |
 | Data storage and access | Plain Markdown files with YAML frontmatter on local disk | Durability and user ownership |
 | Auth | `None` | No accounts, no server |
-| Testing | `TBD` — Vitest expected | Confirm at first Feature |
-| Build and package tooling | `TBD` — npm workspaces expected | Confirm at first Feature |
+| Testing | Vitest | Runs per package and from the root over npm workspaces |
+| Build and package tooling | npm workspaces | Three packages, one lockfile, no extra tooling layer |
 
 ## Commands
 
 The commands an agent runs to verify its own work.
 
 ```text
-install: TBD
-run/dev: TBD
-test: TBD
-lint/static analysis: TBD
-build/package: TBD
+install: npm ci
+run/dev: no dev server; `npm run build` then `lore --help`
+test: npm test
+lint/static analysis: npm run lint
+build/package: npm run build
 ```
 
 ## Delivery Workflow

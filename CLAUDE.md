@@ -13,9 +13,10 @@ Lorekeeper is the companion product to Pathfinder. Pathfinder finds the way;
 Lorekeeper remembers the journey. Pathfinder is movement, direction, and
 execution; Lorekeeper is memory, provenance, and connection.
 
-The CLI binary name `brain` is a placeholder. Do not rename it, and do not
-rewrite domain vocabulary into lore terminology, as a side effect of other
-work — both are open decisions recorded in `context/project-overview.md`.
+The CLI binary name is `lore`, resolved 2026-08-21. The command vocabulary
+below it is not settled, and domain vocabulary does not adopt lore terminology
+by default. Do not rename subcommands or concepts as a side effect of other
+work — both remain open decisions recorded in `context/project-overview.md`.
 
 Three surfaces stay cleanly separated:
 

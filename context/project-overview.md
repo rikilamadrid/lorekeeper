@@ -14,7 +14,7 @@ Leave nothing blank. A blank field is indistinguishable from an abandoned one.
 
 ## Project
 
-- Name: `Lorekeeper` — companion product to `Pathfinder`. Pathfinder finds the way; Lorekeeper remembers the journey. The CLI binary name `brain` remains a placeholder and is deliberately unresolved.
+- Name: `Lorekeeper` — companion product to `Pathfinder`. Pathfinder finds the way; Lorekeeper remembers the journey. The CLI binary name is `lore`, resolved 2026-08-21.
 - Stage: `idea`
 - Repo type: `monorepo` — smallest sensible shape: `apps/docs`, `packages/cli`, `packages/core`. Split further only when a real boundary requires it
 - Primary goal: A person's durable knowledge, and the AI capabilities they work with, live in plain Markdown files they own, and both a human and their coding agents can retrieve exactly the relevant part on demand.
@@ -23,7 +23,7 @@ Leave nothing blank. A blank field is indistinguishable from an abandoned one.
 
 - Problem: Knowledge accumulated across notes, videos, articles, and AI conversations is not retrievable when it is needed. Agent users re-paste the same context repeatedly; note-takers pile up notes they never find again. Existing answers require becoming an expert in a specific application first, and couple the knowledge to that application.
 - Primary user: A developer who already uses coding agents (Claude Code and similar) and wants accumulated knowledge and reusable agent capabilities retrievable by those agents without manual pasting. The non-expert knowledge worker is an explicit later audience, not a v0.1 audience.
-- First useful outcome: A generated or adopted brain plus a working `brain search` that an agent invokes to answer a question from the user's own notes instead of asking the user to supply context.
+- First useful outcome: A generated or adopted brain plus a working `lore search` that an agent invokes to answer a question from the user's own notes instead of asking the user to supply context.
 - Distinctive quality: Durable, machine-readable provenance from source artifacts to synthesized knowledge, over plain Markdown, with a deterministic retrieval layer that requires no AI vendor. Identity evokes folklore, accumulated wisdom, maps and exploration, constellations and connection, field journals, archival knowledge, and subtle mysticism, expressed through modern developer tooling.
 - Avoid becoming: An Obsidian template bundle; a vault-shaped dumping ground of transcripts; a one-time scaffold that cannot be updated; a system that stops working when an AI provider changes. In identity terms, avoid a generic productivity app, an "AI brain" gimmick, cyberpunk or neon AI styling, a clone of Pathfinder, or a clone of any existing second-brain project.
 
@@ -32,10 +32,10 @@ Leave nothing blank. A blank field is indistinguishable from an abandoned one.
 ### In
 
 - Generate a brain: thin folder set plus validated frontmatter schema.
-- `brain capture` — deterministic, self-describing capture into the inbox.
-- `brain search` — lexical, metadata-aware, span-level retrieval. One retrieval concept in v0.1.
+- `lore capture` — deterministic, self-describing capture into the inbox.
+- `lore search` — lexical, metadata-aware, span-level retrieval. One retrieval concept in v0.1.
 - Source → knowledge provenance contract, expressed in frontmatter.
-- Managed manifest recording toolkit-owned vs user-owned files, and `brain update` honoring it.
+- Managed manifest recording toolkit-owned vs user-owned files, and `lore update` honoring it.
 - Adoption of an existing Markdown or Obsidian vault: read and index arbitrary Markdown, manage only manifest-owned files, never migrate.
 - Minimal agent-facing integration artifact so a calling agent knows Lorekeeper is available and how to query it.
 - Public documentation website shipped as an installable PWA, docs-first and narrow: thesis, concepts, installation, quick start, knowledge structure, capture, retrieval, existing-vault adoption, agent integration, provenance concepts, CLI reference, troubleshooting.
@@ -99,7 +99,8 @@ human resolves it.
 | Constraint | Solo maintainer at v0.1 | Scope and tooling must stay proportionate |
 | Constraint | Sync provider must remain swappable | iCloud, Obsidian Sync, Git all viable; none assumed |
 | Requirement | Product name is Lorekeeper; identity direction is recorded in Durable Decisions | Resolved 2026-08-21 |
-| Open decision | CLI binary name and command vocabulary | `TBD` — `brain` is a placeholder; `lore` and `lorekeeper` are candidates. Do not rename as a side effect of other work |
+| Requirement | The CLI binary name is `lore` | Resolved 2026-08-21. Replaces the `brain` placeholder |
+| Open decision | Command vocabulary below the binary name | `TBD` — the subcommand names are not settled; do not rename them as a side effect of other work |
 | Open decision | Visual identity, logo, typography, palette, CLI voice | `TBD` — direction recorded, design deliberately not started |
 | Open decision | Whether internal domain vocabulary adopts lore terminology | `TBD` — terminology must earn its place; do not rename concepts merely to match the product name |
 | Open decision | Mobile capture path under local-first | `TBD` — spike required; see Durable Decisions |
@@ -117,7 +118,7 @@ human resolves it.
 Record only important project-wide architecture and constraints.
 
 - Architecture: A deterministic Node CLI operating on a directory of Markdown files with validated YAML frontmatter. A shared schema package defines the contracts and is consumed by both the CLI and the docs site. A separate static docs PWA documents the product and holds no brain data. Three cleanly separated surfaces: public toolkit repository, private generated brain, public documentation site.
-- Main components: `cli` (capture, search, recall, init, update); `schema` (frontmatter contracts, validation, managed manifest format); `templates` (generated brain structure); `docs-pwa` (static documentation, installable).
+- Main components: `cli` (capture, search, init, update); `schema` (frontmatter contracts, validation, managed manifest format); `templates` (generated brain structure); `docs-pwa` (static documentation, installable).
 - Constraints: The CLI must run offline with no credentials. The generated brain must remain valid Markdown readable without any tooling. Managed and user-owned files must be distinguishable before any write. Writes must preserve user-authored Markdown and frontmatter representation; reads may parse freely.
 
 Conceptual lifecycle, with the v0.1 boundary marked:
@@ -225,7 +226,7 @@ anything a prototype proved must not reach production.
 | 2026-08-21 | Mobile capture identified as an unresolved architectural risk | A PWA on a phone cannot write to a local folder; the real path is a sync provider or share-sheet drop. Spike before designing the mobile surface |
 | 2026-08-21 | Product name is Lorekeeper | Companion to Pathfinder from the same creator: Pathfinder finds the way, Lorekeeper remembers the journey. Pathfinder is movement, direction, and execution; Lorekeeper is memory, provenance, and connection. Spiritual siblings, clearly distinct products |
 | 2026-08-21 | Identity direction: folklore, accumulated wisdom, maps and exploration, stars and constellations, archival knowledge, field journals, subtle mysticism, modern developer tooling | Recorded as direction only. Visual design deliberately not started; naming must not consume architecture time |
-| 2026-08-21 | CLI binary name stays the placeholder `brain` for now | Command vocabulary is a separate decision from the product name and must not be changed as a side effect |
+| 2026-08-21 | CLI binary name resolved as `lore` | Supersedes the earlier decision to keep the `brain` placeholder. Command vocabulary below the binary name remains a separate, unresolved decision and must not be changed as a side effect |
 | 2026-08-21 | Domain vocabulary does not adopt lore terminology by default | Terminology earns its place by clarity, not by matching the product name |
 | 2026-08-21 | Provenance and aboutness are two distinct edge types, not one chain | `derived_from` is immutable historical fact resolved by ID; `about` is mutable judgment resolved by name. Collapsing them into `source -> note -> entity` was a category error |
 | 2026-08-21 | Edges point from the derived artifact to its origin; inverse edges are never stored | Storing children causes write amplification, sync merge conflicts, and a second copy of the truth. Backlinks are computed by the index |

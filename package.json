@@ -16,10 +16,14 @@
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
-    "format:check": "biome format ."
+    "format:check": "biome format .",
+    "build": "tsc --build",
+    "clean": "tsc --build --clean",
+    "typecheck": "tsc --build --dry"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.10",
+    "@types/node": "24.13.3",
     "typescript": "7.0.2"
   }
 }

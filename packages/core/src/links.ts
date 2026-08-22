@@ -60,7 +60,11 @@ export interface DocumentIndex {
   resolveId(id: string): LoreDocument | null;
   /** Resolve a name-based link through the documented fallback order. */
   resolveName(name: string): NameResolution;
-  /** IDs claimed by more than one document. Ordinary notes have no ID at all. */
+  /**
+   * IDs claimed by more than one document, as first written. Comparison is by
+   * {@link normalizeId}, so two spellings of the same canonical id collide.
+   * Ordinary notes have no ID at all.
+   */
   readonly duplicateIds: readonly string[];
 }
 
@@ -107,18 +111,43 @@ export function normalizeName(name: string): string {
   return name.normalize('NFC').trim().replace(/\s+/g, ' ').toLowerCase();
 }
 
+/**
+ * The comparison key for ID-based resolution.
+ *
+ * Unicode form is normalized for the same reason names are: canonically
+ * equivalent text must compare equal, or one file's id and another file's edge
+ * to it look unrelated. Case is *not* folded — an ID is an exact token, and two
+ * ids differing only in case are two ids.
+ *
+ * This is a comparison key, never a value to store. The id as the author wrote
+ * it is what stays in the file and what findings quote back.
+ */
+export function normalizeId(id: string): string {
+  return id.normalize('NFC').trim();
+}
+
 /** Build a resolver over a set of documents. */
 export function indexDocuments(
   documents: readonly LoreDocument[],
 ): DocumentIndex {
-  const byId = new Map<string, LoreDocument[]>();
+  // Keyed by comparison form, holding the id as first written so reports quote
+  // the author's own text back to them.
+  const byId = new Map<
+    string,
+    { written: string; documents: LoreDocument[] }
+  >();
   const byName = new Map<string, LoreDocument[]>();
   const byH1 = new Map<string, LoreDocument[]>();
   const byAlias = new Map<string, LoreDocument[]>();
 
   for (const document of documents) {
     const { id, aliases } = document.frontmatter;
-    if (id !== null && id.trim() !== '') push(byId, id.trim(), document);
+    if (id !== null && normalizeId(id) !== '') {
+      const key = normalizeId(id);
+      const existing = byId.get(key);
+      if (existing) existing.documents.push(document);
+      else byId.set(key, { written: id.trim(), documents: [document] });
+    }
     push(byName, normalizeName(document.name), document);
     if (document.h1 !== null) push(byH1, normalizeName(document.h1), document);
     for (const alias of aliases) {
@@ -126,9 +155,9 @@ export function indexDocuments(
     }
   }
 
-  const duplicateIds = [...byId.entries()]
-    .filter(([, docs]) => docs.length > 1)
-    .map(([id]) => id);
+  const duplicateIds = [...byId.values()]
+    .filter((entry) => entry.documents.length > 1)
+    .map((entry) => entry.written);
 
   const tiers = [
     { matchedBy: 'name', map: byName },
@@ -140,7 +169,7 @@ export function indexDocuments(
     duplicateIds,
 
     resolveId(id) {
-      const matches = byId.get(id.trim());
+      const matches = byId.get(normalizeId(id))?.documents;
       // A duplicated ID is reported through `duplicateIds`; resolving one of
       // two claimants arbitrarily would hide the conflict inside an edge.
       if (matches?.length !== 1) return null;

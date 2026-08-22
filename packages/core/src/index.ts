@@ -1,14 +1,15 @@
 /**
  * Shared contracts for Lorekeeper.
  *
- * Feature 02 chunk 1 adds the read side of the frontmatter contract: locate a
- * frontmatter block without disturbing it, read it into a typed view that
- * preserves unrecognized fields, and resolve the two kinds of edge the frozen
- * v0.1 contract defines.
+ * The read side of the frontmatter contract: locate a frontmatter block without
+ * disturbing it, read it into a typed view that preserves unrecognized fields,
+ * resolve the two kinds of edge the frozen v0.1 contract defines, and report
+ * findings about what was read.
  *
- * Nothing here writes. Representation-preserving mutation arrives with the
- * write primitive; until then, `FrontmatterBlock` exists so that primitive has
- * an exact span to edit rather than an object to re-serialize.
+ * Nothing here writes, and validation reports rather than repairs.
+ * Representation-preserving mutation arrives with the write primitive; until
+ * then, `FrontmatterBlock` exists so that primitive has an exact span to edit
+ * rather than an object to re-serialize.
  */
 
 export const PRODUCT_NAME = 'Lorekeeper';
@@ -30,12 +31,21 @@ export {
   type FrontmatterRead,
   readFrontmatter,
 } from './frontmatter.js';
-
 export {
   type DocumentIndex,
   indexDocuments,
   type LinkTarget,
   type NameResolution,
+  normalizeId,
   normalizeName,
   parseLinkTarget,
 } from './links.js';
+export {
+  countBySeverity,
+  type Finding,
+  type FindingCode,
+  type Severity,
+  type ValidationTarget,
+  validateDocument,
+  validateDocuments,
+} from './validate.js';

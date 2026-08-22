@@ -17,16 +17,30 @@ import { isMap, isScalar, parseDocument, type YAMLMap } from 'yaml';
 
 /** The exact text span a frontmatter block occupies in a file. */
 export interface FrontmatterBlock {
-  /** Offset of the opening delimiter. Always 0 — frontmatter starts the file. */
+  /**
+   * Offset of the opening delimiter. `0`, or just past a leading byte order
+   * mark — an editor may write one, and it belongs to the file, not to us.
+   */
   readonly start: number;
+  /** Offset of the first byte after the opening delimiter's line ending. */
+  readonly contentStart: number;
+  /** Offset of the start of the closing delimiter's line. */
+  readonly contentEnd: number;
   /** Offset just past the closing delimiter's line ending. */
   readonly end: number;
   /**
    * The text between the delimiters, byte-exact, including its final line
-   * ending. Empty when the block holds no lines.
+   * ending. Empty when the block holds no lines. Always identical to
+   * `text.slice(contentStart, contentEnd)`.
    */
   readonly raw: string;
-  /** The line ending this block uses: `\n` or `\r\n`. */
+  /**
+   * The line ending of the *opening delimiter*: `\n` or `\r\n`.
+   *
+   * A block whose lines disagree is pathological but readable, so this is not
+   * a claim about the block as a whole. A mutation that adds a line takes its
+   * ending from the line it edits, not from here.
+   */
   readonly eol: '\n' | '\r\n';
 }
 
@@ -58,22 +72,30 @@ export interface FrontmatterRead {
 
 const OPENING = /^---[ \t]*(\r?\n)/;
 
+/** UTF-8 byte order mark, as one code unit once decoded. */
+const BOM = '\uFEFF';
+
 /**
  * Read the frontmatter block of `text`, if it has one.
  *
  * A block exists only when the file opens with a `---` delimiter line and a
- * later line is exactly `---`. An unterminated opening delimiter is body text,
- * not a broken block: treating it as frontmatter would let a reassembly
- * duplicate the file.
+ * later line is exactly `---`. A leading byte order mark is allowed before that
+ * delimiter and is not part of the block. An unterminated opening delimiter is
+ * body text, not a broken block: treating it as frontmatter would let a
+ * reassembly duplicate the file.
  */
 export function readFrontmatter(text: string): FrontmatterRead {
-  const opening = OPENING.exec(text);
+  // A byte order mark sits before the delimiter, not inside it. Skipping it
+  // here is what keeps a BOM-prefixed file's frontmatter visible; leaving the
+  // byte in place is what keeps a later write from moving or dropping it.
+  const start = text.startsWith(BOM) ? BOM.length : 0;
+  const opening = OPENING.exec(text.slice(start));
   if (!opening) {
     return noBlock(text);
   }
 
   const eol = opening[1] === '\r\n' ? '\r\n' : '\n';
-  const contentStart = opening[0].length;
+  const contentStart = start + opening[0].length;
   const closing = findClosingDelimiter(text, contentStart);
   if (!closing) {
     return noBlock(text);
@@ -81,7 +103,9 @@ export function readFrontmatter(text: string): FrontmatterRead {
 
   const raw = text.slice(contentStart, closing.start);
   const block: FrontmatterBlock = {
-    start: 0,
+    start,
+    contentStart,
+    contentEnd: closing.start,
     end: closing.end,
     raw,
     eol,

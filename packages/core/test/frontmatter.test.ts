@@ -104,19 +104,76 @@ describe('round-trip identity', () => {
         expect(body).toBe(text);
         return;
       }
-      // Chunk 3's write primitive slices on both offsets, so both are asserted.
-      expect(block.start).toBe(0);
-      expect(text.slice(block.start, block.end).startsWith('---')).toBe(true);
 
-      const openingEnd = text.indexOf('\n') + 1;
-      const opening = text.slice(0, openingEnd);
-      const closing = text.slice(openingEnd + block.raw.length, block.end);
+      // Every offset the write primitive splices on is asserted here, because
+      // a writer that re-derives them instead has been shown to lose bytes on
+      // padded delimiters and on a closing delimiter at end of file.
+      const prefix = text.slice(0, block.start);
+      const opening = text.slice(block.start, block.contentStart);
+      const closing = text.slice(block.contentEnd, block.end);
 
-      expect(text.slice(openingEnd, openingEnd + block.raw.length)).toBe(
-        block.raw,
-      );
+      expect(prefix === '' || prefix === '\uFEFF').toBe(true);
+      expect(opening).toMatch(/^---[ \t]*\r?\n$/);
+      expect(block.raw).toBe(text.slice(block.contentStart, block.contentEnd));
       expect(closing.trimEnd()).toBe('---');
-      expect(opening + block.raw + closing + body).toBe(text);
+      expect(prefix + opening + block.raw + closing + body).toBe(text);
+    });
+  }
+});
+
+/**
+ * A byte order mark is a byte of the author's file. It must not hide the
+ * frontmatter behind it, and it must not move.
+ */
+describe('byte order mark', () => {
+  const bom = '\uFEFF';
+
+  it('reads frontmatter behind a BOM', () => {
+    const read = readFrontmatter(`${bom}---\nid: abc\n---\n\nbody\n`);
+    expect(read.data.id).toBe('abc');
+    expect(read.parseError).toBeNull();
+  });
+
+  it('leaves the BOM outside the block', () => {
+    const text = `${bom}---\nid: abc\n---\n\nbody\n`;
+    const { block } = readFrontmatter(text);
+    expect(block?.start).toBe(1);
+    expect(text.slice(0, block?.start)).toBe(bom);
+    expect(block?.raw).toBe('id: abc\n');
+  });
+
+  it('keeps a BOM-only file as body, with no block', () => {
+    const read = readFrontmatter(`${bom}# Title\n`);
+    expect(read.block).toBeNull();
+    expect(read.body).toBe(`${bom}# Title\n`);
+  });
+});
+
+/**
+ * The delimiter spellings the review found a rebuilding writer losing bytes on.
+ * Reassembly through the published offsets must survive every one of them.
+ */
+describe('delimiter spellings', () => {
+  const cases: readonly [string, string][] = [
+    ['space-padded opening', '--- \nid: a\n---\nbody\n'],
+    ['space-padded closing', '---\nid: a\n--- \nbody\n'],
+    ['tab-padded closing', '---\nid: a\n---\t\nbody\n'],
+    ['closing at end of file', '---\nid: a\n---'],
+    ['mixed endings', '---\r\nid: a\n---\r\nbody\n'],
+  ];
+
+  for (const [name, text] of cases) {
+    it(`reassembles with a ${name}`, () => {
+      const { block, body } = readFrontmatter(text);
+      expect(block).not.toBeNull();
+      const b = block as NonNullable<typeof block>;
+      expect(b.raw).toBe(text.slice(b.contentStart, b.contentEnd));
+      expect(
+        text.slice(b.start, b.contentStart) +
+          b.raw +
+          text.slice(b.contentEnd, b.end) +
+          body,
+      ).toBe(text);
     });
   }
 });

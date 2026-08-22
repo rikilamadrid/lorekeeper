@@ -1,15 +1,16 @@
 /**
  * Shared contracts for Lorekeeper.
  *
- * The read side of the frontmatter contract: locate a frontmatter block without
- * disturbing it, read it into a typed view that preserves unrecognized fields,
- * resolve the two kinds of edge the frozen v0.1 contract defines, and report
- * findings about what was read.
+ * The frontmatter contract: locate a frontmatter block without disturbing it,
+ * read it into a typed view that preserves unrecognized fields, resolve the two
+ * kinds of edge the frozen v0.1 contract defines, report findings about what
+ * was read, and mutate provenance without rewriting a byte nobody asked to
+ * change.
  *
- * Nothing here writes, and validation reports rather than repairs.
- * Representation-preserving mutation arrives with the write primitive; until
- * then, `FrontmatterBlock` exists so that primitive has an exact span to edit
- * rather than an object to re-serialize.
+ * Reads may parse freely; writes may not. Every mutation splices the exact span
+ * `FrontmatterBlock` reports, so no file is ever re-serialized from a parsed
+ * object. Validation still reports rather than repairs — a finding never
+ * triggers a write.
  */
 
 export const PRODUCT_NAME = 'Lorekeeper';
@@ -49,3 +50,12 @@ export {
   validateDocument,
   validateDocuments,
 } from './validate.js';
+export {
+  addDerivedFrom,
+  applyEdits,
+  type Edit,
+  removeDerivedFrom,
+  type WriteRefusal,
+  type WriteRefusalCode,
+  type WriteResult,
+} from './write.js';

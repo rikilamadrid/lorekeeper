@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Complete
 
 ## Goal
 
@@ -71,6 +71,64 @@ change.
 - Validation on a file with unrecognized fields reports no error and preserves
   those fields through a later mutation.
 - No test fixture contains real personal content.
+
+## Known Limitations
+
+Accepted for v0.1 by human decision on 2026-08-24. None is a write-path defect;
+none blocks Feature 05 depending on these contracts.
+
+### Read-path defects, deferred
+
+1. **A file opening with a thematic break reports `frontmatter-unreadable`.**
+   A `---` on the first line is read as an opening delimiter, so the prose that
+   follows lands in `block.raw`. The file is still indexable and no mutation
+   corrupts it; the finding is noise, not damage.
+2. **An indented ATX H1 is not found.** `  # Title` does not resolve as a
+   title, so name-based links fall through to the alias tier.
+3. **An ATX H1 inside an HTML comment wins over the real H1.** The commented
+   heading is read as the title. This one carries more weight than its severity
+   suggests: on the prototype vault, 2 of 4 `about` edges resolved *only*
+   through the H1 tier, so the tier does real work and a wrong answer there is
+   a wrong link rather than a missing one.
+
+### Open decision, not a defect
+
+4. **Tag-resolution warnings are not inspected.** `readFrontmatter` reads
+   `document.errors` but never `document.warnings`, so a file whose tag fails to
+   resolve (`TAG_RESOLVE_FAILED`) is read, written, and reported clean. Current
+   behavior is portable — `!!null [abc]` and `!!str [abc]` both read as
+   `["abc"]` under this package's `yaml` and under Ruby Psych — so nothing is
+   silently non-portable today. Whether a warning should become a finding is a
+   contract question for whoever needs it.
+
+### Contract gap, resolved as unreported
+
+5. **Validation cannot detect a source missing its stable ID.** The frozen
+   contract says sources carry stable IDs and ordinary notes do not, but only
+   `type: source` announces source-ness, and `type` values are unfrozen and must
+   not become load-bearing. Resolved 2026-08-22: leave it unreported. Closing
+   the gap needs a signal the contract can lean on, which is a contract change,
+   not a validation change. Candidate for an `Open decision` row in
+   `context/project-overview.md`.
+
+### Interface note
+
+6. **`parseError` carries a code and position, not parser prose.** It now reads
+   `BAD_INDENT at line 3, column 1`. The `yaml` parser's own message quotes the
+   source lines that failed, and a frontmatter block holds whatever the author's
+   delimiters enclose — body prose included — so the message is rebuilt from the
+   parser's stable error code and position instead. Terser and greppable, at the
+   cost of the parser's human explanation. A curated per-code wording catalogue
+   is a possible follow-up.
+
+### Not verified
+
+- `doctor` exit behavior — `TBD` by design, out of scope for this Feature.
+- Large-vault performance. No benchmark exists.
+- Systematic cross-parser round-tripping beyond the tag spot-check above.
+- `changedLines` in `packages/core/test/write.test.ts` is a set-based diff and
+  can under-report a moved line. An independent LCS diff over all 20 fixtures
+  found no case where it did, but the helper remains weaker than it reads.
 
 ## Notes / Decisions
 

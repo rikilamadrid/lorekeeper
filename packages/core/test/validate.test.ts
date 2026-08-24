@@ -148,16 +148,20 @@ describe('validateDocument', () => {
     expect(validateDocument(source)).toEqual([]);
   });
 
-  it('reports no body text in any reason', () => {
+  it('reports no file content in the reason for unreadable frontmatter', () => {
+    // The delimiters enclose a line the author means as body, so the parser
+    // fails on prose. Its own message would quote that line back.
     const found = validateDocument(
       target(
         'notes/x.md',
-        '---\nid: a\nid: b\n---\n\nSomething private the author wrote.\n',
+        '---\ntype: note\ntags: [unclosed\n' +
+          'Private prose the author would not paste into an issue.\n' +
+          '---\n\nbody\n',
       ),
     );
-    for (const finding of found) {
-      expect(finding.reason).not.toContain('private');
-    }
+    expect(codes(found)).toEqual(['frontmatter-unreadable']);
+    expect(found[0]?.reason).not.toContain('Private prose');
+    expect(found[0]?.reason).not.toContain('unclosed');
   });
 });
 

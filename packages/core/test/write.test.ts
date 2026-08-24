@@ -310,9 +310,21 @@ describe('refusals', () => {
     expect(result.text).toBe(before);
   });
 
-  it('reasons name the field and never quote body text', () => {
-    const result = addDerivedFrom(doc(fixture('broken-yaml')), 'abc');
-    expect(result.refusal?.reason).not.toContain('Still indexable knowledge');
+  it('never quotes file content in a refusal reason', () => {
+    // The delimiters enclose a line the author means as body, so the parser
+    // fails on prose. Its own message would quote that line back.
+    const result = addDerivedFrom(
+      doc(
+        '---\ntype: note\ntags: [unclosed\n' +
+          'Private prose the author would not paste into an issue.\n' +
+          '---\n\nbody\n',
+      ),
+      'abc',
+    );
+
+    expect(result.refusal?.code).toBe('frontmatter-unreadable');
+    expect(result.refusal?.reason).not.toContain('Private prose');
+    expect(result.refusal?.reason).not.toContain('unclosed');
   });
 });
 

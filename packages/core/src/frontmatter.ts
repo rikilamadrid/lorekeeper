@@ -13,7 +13,13 @@
  * module never throws on content.
  */
 
-import { isMap, isScalar, parseDocument, type YAMLMap } from 'yaml';
+import {
+  isMap,
+  isScalar,
+  parseDocument,
+  type YAMLError,
+  type YAMLMap,
+} from 'yaml';
 
 /** The exact text span a frontmatter block occupies in a file. */
 export interface FrontmatterBlock {
@@ -177,7 +183,11 @@ function parseBlock(raw: string): {
       (error) => error.code !== 'DUPLICATE_KEY',
     );
     if (fatal) {
-      return { data: {}, parseError: fatal.message, duplicateKeys: [] };
+      return {
+        data: {},
+        parseError: describeParseError(fatal),
+        duplicateKeys: [],
+      };
     }
 
     const contents = document.contents;
@@ -196,10 +206,35 @@ function parseBlock(raw: string): {
       parseError: null,
       duplicateKeys: findDuplicateKeys(contents),
     };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    return { data: {}, parseError: message, duplicateKeys: [] };
+  } catch {
+    // Not every failure arrives through `document.errors`. An alias with no
+    // anchor parses cleanly and throws only when `toJS` tries to resolve it,
+    // as a plain `ReferenceError` naming the alias — text copied from the
+    // file, and with no code or position to rebuild a message from. So the
+    // block is reported as unreadable in the one way that stays content-free.
+    return {
+      data: {},
+      parseError: 'frontmatter could not be resolved into a value',
+      duplicateKeys: [],
+    };
   }
+}
+
+/**
+ * A parser error as a sentence that carries no file content.
+ *
+ * The `yaml` parser's own message quotes the offending source lines, and the
+ * frontmatter block can hold anything the author's `---` delimiters enclose —
+ * body prose included. A `Finding` or `WriteRefusal` reason is meant to be
+ * safe to paste into an issue, so the message is rebuilt here from the two
+ * parts that describe the failure without repeating the file: the parser's
+ * stable error code, and where it stopped.
+ */
+function describeParseError(error: YAMLError): string {
+  const at = error.linePos?.[0];
+  return at === undefined
+    ? error.code
+    : `${error.code} at line ${at.line}, column ${at.col}`;
 }
 
 /** Keys the mapping declares more than once, in order of first appearance. */

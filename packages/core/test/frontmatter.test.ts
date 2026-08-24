@@ -70,6 +70,34 @@ describe('readFrontmatter', () => {
     expect(read.body).toContain('Still indexable knowledge.');
   });
 
+  it('describes a parse failure without quoting the text that failed', () => {
+    // Everything between the delimiters is parsed as YAML, whatever the author
+    // meant it as, so a parser message that quotes its source can carry prose.
+    // Every reason built from `parseError` promises it does not.
+    const read = readFrontmatter(
+      '---\ntype: note\ntags: [unclosed\n' +
+        'Private prose the author would not paste into an issue.\n' +
+        '---\n\nbody\n',
+    );
+
+    expect(read.parseError).toBe('BAD_INDENT at line 3, column 1');
+    expect(read.body).toContain('body');
+  });
+
+  it('reports an alias with no anchor without naming it', () => {
+    // This one parses without error and throws only on resolution, in a
+    // `ReferenceError` that quotes the alias straight out of the file.
+    const read = readFrontmatter(
+      '---\ntype: note\nx: *BobHadSurgeryInMarch\n---\n\nbody\n',
+    );
+
+    expect(read.parseError).toBe(
+      'frontmatter could not be resolved into a value',
+    );
+    expect(read.data).toEqual({});
+    expect(read.body).toContain('body');
+  });
+
   it('reads CRLF frontmatter and records the line ending', () => {
     const read = readFrontmatter(fixture('crlf-endings'));
     expect(read.block?.eol).toBe('\r\n');

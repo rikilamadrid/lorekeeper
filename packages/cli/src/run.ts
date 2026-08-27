@@ -1,3 +1,4 @@
+import { init } from './init.js';
 import { usage } from './usage.js';
 import { readVersion } from './version.js';
 
@@ -31,6 +32,10 @@ export function run(argv: readonly string[], streams: Streams): number {
   if (first === '--help' || first === '-h') {
     streams.out(`${usage(version)}\n`);
     return 0;
+  }
+
+  if (first === 'init') {
+    return init(argv.slice(1), streams);
   }
 
   streams.err(`lore: unknown argument "${first}"\n`);

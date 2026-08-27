@@ -7,6 +7,10 @@
  * was read, and mutate provenance without rewriting a byte nobody asked to
  * change.
  *
+ * Alongside it, the managed manifest: which files in a brain the toolkit owns,
+ * and whether they still hold the bytes it wrote. Ownership metadata, not an
+ * inventory — absence from it is a positive statement of user ownership.
+ *
  * Reads may parse freely; writes may not. Every mutation splices the exact span
  * `FrontmatterBlock` reports, so no file is ever re-serialized from a parsed
  * object. Validation still reports rather than repairs — a finding never
@@ -41,6 +45,25 @@ export {
   normalizeName,
   parseLinkTarget,
 } from './links.js';
+export {
+  buildManifest,
+  type DriftEntry,
+  type DriftState,
+  detectDrift,
+  isManifestHash,
+  isOwned,
+  MANIFEST_HASH_ALGORITHM,
+  MANIFEST_PATH,
+  MANIFEST_VERSION,
+  type Manifest,
+  type ManifestEntry,
+  type ManifestInput,
+  type ManifestRefusal,
+  type ManifestRefusalCode,
+  type ManifestResult,
+  parseManifest,
+  serializeManifest,
+} from './manifest.js';
 export {
   countBySeverity,
   type Finding,

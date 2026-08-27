@@ -104,7 +104,7 @@ human resolves it.
 | Open decision | Visual identity, logo, typography, palette, CLI voice | `TBD` — direction recorded, design deliberately not started |
 | Open decision | Whether internal domain vocabulary adopts lore terminology | `TBD` — terminology must earn its place; do not rename concepts merely to match the product name |
 | Open decision | Mobile capture path under local-first | `TBD` — spike required; see Durable Decisions |
-| Open decision | Whether `system/` capabilities ship in the v0.1 generated structure or later | `TBD` — structure may be reserved without tooling |
+| Requirement | `system/` is neither created nor reserved in the v0.1 generated structure | Resolved 2026-08-27 by Feature 03. An empty reserved folder shipping no tooling is a promise with no delivery behind it |
 | Requirement | Ranking model for v0.1: BM25 over span text plus a weighted metadata document | Resolved 2026-08-21 by prototype `retrieval-v0`. Ranking is not a separate v0.1 Feature |
 | Open decision | Whether `derived_from` spans note-to-note or only source-to-note in v0.1 | `TBD` — note-to-note would require IDs on hand-written notes |
 | Open decision | PROVISIONAL vocabulary: `about` | Ships in v0.1, semantics deliberately unfrozen. Additive structural-aboutness override, never a required mirror of body wikilinks. Retrieval correctness must not depend on it. Reevaluate after real usage |
@@ -166,11 +166,11 @@ build/package: npm run build
 
 | Area | Choice |
 | --- | --- |
-| Git workflow | Trunk-based; one short-lived branch per Feature |
+| Git workflow | Trunk-based; one short-lived branch per ticket |
 | Default branch | `main` |
-| Branch naming | `feature/<slug>`, `fix/<slug>` |
+| Branch naming | `ticket/<NN.TT>-<slug>` for ticket delivery, e.g. `ticket/03.1-init-managed-manifest`; `fix/<slug>` for unplanned bugfix work outside normal ticket delivery |
 | Commit convention | Conventional Commits |
-| Review policy | Pull request per Feature; self-merged while solo, for a reviewable record |
+| Review policy | Pull request per ticket; self-merged while solo, for a reviewable record |
 | Merge strategy | Squash merge |
 | CI/CD | Required on pull request: install, lint, test, build |
 | Versioning and changelog | Semver; changelog maintained from Conventional Commits |

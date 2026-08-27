@@ -30,34 +30,55 @@ credentials.
 
 ## Read only what is needed
 
-For feature work, usually read:
+For delivery work, usually read:
 
-1. `context/current-feature.md`
-2. its referenced feature spec
+1. `context/current-ticket.md`
+2. the ticket it names, and that ticket's parent feature spec
 3. relevant sections of `context/project-overview.md`
 4. relevant rules from `context/coding-standards.md`
 5. `context/ai-interaction.md`
-6. only the source files needed for the current delivery chunk
+6. only the source files needed for the current ticket
 
 Do not load the whole repo by default.
 
 Pathfinder ships two context files: `ai-interaction.md` and
 `coding-standards.md`. Everything else in `context/` — `project-overview.md`,
-`features/`, `history.md`, `current-feature.md`, `handoff.md` — is written by
-the workflow that first needs it. A missing file here is normal; skip it rather
-than treating it as an error.
+`features/`, `tracker.md`, `history.md`, `current-ticket.md`, `handoff.md` — is
+written by the workflow that first needs it. A missing file here is normal; skip
+it rather than treating it as an error. This project's tickets live in GitHub
+Issues, named by `context/tracker.md`, so there is no `context/tickets/`
+directory and that is not a gap.
 
 Track the durable ones in Git and ignore the two transient ones,
-`current-feature.md` and `handoff.md`. `context/coding-standards.md` carries the
+`current-ticket.md` and `handoff.md`. `context/coding-standards.md` carries the
 rule; do not ignore `context/` wholesale.
+
+## Features and tickets
+
+A Feature spec is a planning record: scope, acceptance criteria, and the
+decisions behind them. A ticket is the executable unit of work, sliced from an
+approved Feature by `to-tickets` and delivered through the `/ticket` loop.
+
+Feature specs already in `context/features/` remain valid planning records as
+written. Their `## Delivery Chunks` sections are historical planning notes, not
+execution state; do not rewrite them as a side effect of other work.
+
+A Feature's status is derived from the state of its tickets. Do not maintain it
+by hand during execution.
 
 ## Roles
 
-When the human names a role, read `roles/<name>.md` before anything else and follow it for the session. A role says what a worker is responsible for, what it reads, and what it must not do, where a skill says how to perform a task.
+Lifecycle skills assume their responsible role for each invocation and read its
+contract themselves: planning, spec writing, and ticket creation use `planner`;
+ticket load, start, and complete use `developer`; ticket review uses `tester`.
 
-The roles are `planner`, `developer`, and `tester`. Activate one with `/role <name>`.
+The human can explicitly override that default with `/role <name>`. Read the
+named `roles/<name>.md` before anything else and follow it for the session. A
+role says what a worker is responsible for, what it reads, and what it must not
+do, where a skill says how to perform a task.
 
-Naming a role is the only thing that activates one. If the human names none, ignore `roles/` and work as this guide otherwise describes. A role narrows what a session may do and never widens it. Human authority sits outside the role system: approval, acceptance, merge, and release are always the human's.
+A role narrows responsibility and never widens authority. Approval, acceptance,
+merge, and release remain the human's whether a role was assumed or explicit.
 
 ## Project-selected policies
 
@@ -70,7 +91,7 @@ If a policy is `TBD`, do not invent it. Ask the human or clearly mark it unresol
 Restate:
 
 1. Goal
-2. Active delivery chunk
+2. Active ticket
 3. Expected files or areas
 4. Required context
 5. Risks
@@ -86,8 +107,8 @@ Ask before actions identified in `context/ai-interaction.md`, especially depende
 
 ## Scope and quality
 
-- Implement only the active feature and current delivery chunk.
-- Keep the project stable after each chunk.
+- Implement only the active feature and current ticket.
+- Keep the project stable after each ticket.
 - Do not convert prototype code into production code without an explicit feature decision.
 - Prefer concrete verification over confident narration.
 - Report conflicts between specs, repository reality, and durable context.
@@ -105,11 +126,9 @@ An adapter carries the canonical skill's frontmatter and a pointer to it, and no
 - `reverse-engineer` — analyze an external reference and produce an evidence-based reconstruction blueprint
 - `prototype` — create and iterate the cheapest useful validation artifact
 - `to-specs` — generate context-sized feature specs
-- `load-feature` — prepare one feature for implementation
-- `start-feature` — implement scoped delivery chunks
+- `to-tickets` — decompose one approved Feature into blocker-linked tickets
+- `ticket` — run one action of the ticket delivery loop: `load`, `start`, `review`, `complete`
 - `debug-issue` — diagnose an observed failure to its root cause, apply the smallest justified fix, and verify it
-- `review-feature` — review against requirements, regressions, and standards
-- `complete-feature` — verify and close a feature cleanly
 - `learn-feature` — create an interactive lesson for a completed feature
 - `learn-codebase` — create a modular learning portal for the repository
 - `teach-feature` — teach the verified current feature from its spec, diff, tests, and implementation
@@ -119,8 +138,7 @@ An adapter carries the canonical skill's frontmatter and a pointer to it, and no
 - `learning-review` — review accumulated lessons, identify gaps, and create a reinforcement plan
 - `reflect` — review completed work, and the reflection itself, and propose reusable workflow improvements for human approval
 - `handoff` — preserve useful state between sessions or tools
-- `role` — activate one named role for the current session
+- `role` — explicitly override the role the lifecycle would assume
 - `whereami` — report a compact read-only snapshot of the current session
 - `skillsmith` — teach and create small local skills
-- `setup-tracker` — configure an optional external work tracker
-- `sync-tracker` — publish approved feature specs to the configured tracker, one-way and idempotently
+- `setup-tracker` — choose the canonical ticket store when it is not local Markdown

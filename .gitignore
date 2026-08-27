@@ -7,6 +7,9 @@ dist/
 
 # Transient workspace state.
 # Never ignore context/ wholesale — it holds durable project truth.
+# current-feature.md is the file current-ticket.md replaced; it stays listed so
+# a checkout predating the Pathfinder v4 ticket loop stays clean.
+context/current-ticket.md
 context/current-feature.md
 context/handoff.md
 

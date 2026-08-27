@@ -90,12 +90,14 @@ Keep durable truth in its appropriate project artifact.
 
 - project-wide product and architecture context:
   `context/project-overview.md`
-- Feature contracts:
+- Feature contracts (planning records):
   `context/features/`
+- executable tickets:
+  the configured store named by `context/tracker.md`
 - completed outcomes:
   `context/history.md`
 - active workspace state:
-  `context/current-feature.md`
+  `context/current-ticket.md`
 - state handed to the next session:
   `context/handoff.md`
 
@@ -124,16 +126,20 @@ it belongs to one session on one machine, and committing it puts one person's
 in-flight work in everybody's diff:
 
 ```text
-context/current-feature.md
+context/current-ticket.md
 context/handoff.md
 ```
 
 Two lines in `.gitignore` are the whole mechanism:
 
 ```text
-context/current-feature.md
+context/current-ticket.md
 context/handoff.md
 ```
+
+`.gitignore` also still lists `context/current-feature.md`, the file
+`current-ticket.md` replaced, so a checkout predating the ticket loop stays
+clean.
 
 **Do not ignore `context/` as a directory.** It is the one mistake worth naming,
 because it looks tidier and quietly untracks the project truth every later
@@ -144,10 +150,10 @@ A team that would rather share workspace state — a single-machine project, or 
 handoff meant to be read by a colleague — can track them instead. Nothing in the
 kit reads Git state to decide how to behave.
 
-`context/tracker.md` is durable and tracked, with one exception that does not
-apply to your project: Pathfinder's own repository ignores it, because `context`
-is a directory in the installer's copy list and a committed copy would ship
-Pathfinder's tracker config to every new install.
+`context/tracker.md` is durable and tracked. It names this project's canonical
+ticket store — GitHub Issues on `rikilamadrid/lorekeeper` — so there is no
+`context/tickets/` directory here. Tickets exist in exactly one place, and
+nothing copies or synchronizes them into this repository.
 
 ## Project convention: representation-preserving writes
 

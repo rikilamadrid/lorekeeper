@@ -30,14 +30,19 @@
  * where it leads, what already occupies it, and whether this process can
  * actually write there. A run that could not record what it owns never starts.
  *
- * Re-running against an already-initialized target is a later slice, and until
- * it lands there are two shapes of it. A partially initialized brain stops on
- * the manifest's own `wx` write, with an errno rather than the report that
- * slice will give. A fully initialized one has nothing left to write, so it
- * reports a run in which every starter path was already occupied and exits 0.
- * That report says only what this run did, and claims no ownership it has not
- * established: deciding what an existing manifest already owns is that slice's
- * work, not this one's.
+ * Re-running reads the existing ownership record before touching the brain.
+ * Owned paths are inspected for drift and never repaired here. A partial
+ * installation may add only starter paths that are both missing and unowned;
+ * those new entries are then merged into the existing manifest.
+ *
+ * A rerun that finds no manifest but does find traces of one is the case that
+ * has no safe answer, so it gets no answer: init refuses rather than adopting
+ * a brain it may have written itself. The evidence is the surviving bytes
+ * themselves, complete or not and whether or not `.lorekeeper/` outlived the
+ * record inside it. Where even that is gone — the directory removed and every
+ * surviving starter edited — ownership cannot be reconstructed at all, and
+ * this file does not pretend otherwise: a starter path whose history is
+ * unknown is neither claimed nor declared the user's.
  */
 
 import {
@@ -49,19 +54,25 @@ import {
   readdirSync,
   readFileSync,
   realpathSync,
+  renameSync,
   statSync,
+  unlinkSync,
   writeFileSync,
 } from 'node:fs';
 import { dirname, join, resolve, sep } from 'node:path';
 import {
   buildManifest,
+  detectDrift,
+  isOwned,
   MANIFEST_PATH,
+  type Manifest,
   type ManifestEntry,
+  parseManifest,
   serializeManifest,
 } from '@lorekeeper/core';
-import { hashText } from './hash.js';
+import { hashBytes, hashText } from './hash.js';
 import type { Streams } from './run.js';
-import { STARTER_FILES, STARTER_FOLDERS } from './starter.js';
+import { STARTER_FILES, STARTER_FOLDERS, type StarterFile } from './starter.js';
 import { readVersion } from './version.js';
 
 export interface InitOptions {
@@ -104,7 +115,8 @@ export function init(
   const skipped: Skip[] = [];
   let adopting = false;
   let brain = target;
-  let claimedAlready = false;
+  let existingManifest: Manifest | null = null;
+  let resultingManifest: Manifest | null = null;
 
   try {
     const repoRoot =
@@ -143,35 +155,63 @@ export function init(
       return 1;
     }
 
-    // Read before the first write, so it describes the vault init was handed
-    // rather than the one it leaves. What that manifest actually claims is a
-    // later slice's question; that one is there at all is enough to keep this
-    // run from calling a file it skipped unclaimed.
-    claimedAlready = exists(join(target, MANIFEST_PATH));
+    const installation = readInstallationManifest(target);
+    if (!installation.ok) {
+      streams.err(`lore init: ${installation.reason}\n`);
+      return 1;
+    }
+    existingManifest = installation.manifest;
+    resultingManifest = existingManifest;
 
-    for (const folder of STARTER_FOLDERS) {
-      if (leavesBrain(join(target, folder), brain)) {
-        // Whatever this points at is not inside the brain, so it is not ours to
-        // write into. The starter file below is skipped for the same reason.
-        continue;
-      }
-      try {
-        mkdirSync(join(target, folder), { recursive: true });
-      } catch (error) {
-        if (!isOccupied(error)) {
-          throw error;
+    const evidence =
+      existingManifest === null
+        ? findInstallationWithoutManifest(target, brain)
+        : null;
+    if (evidence !== null) {
+      const observed =
+        evidence === 'toolkit-content'
+          ? 'Starter files this toolkit wrote are still here with nothing recording them'
+          : 'Every starter path is already occupied';
+      streams.err(
+        `lore init: ${MANIFEST_PATH} is missing from an ambiguous Lorekeeper installation at ${target}. Nothing was written.\n`,
+      );
+      streams.err(
+        `${observed}, so ownership cannot be determined safely. Restore the manifest from backup before running init again.\n`,
+      );
+      return 1;
+    }
+
+    if (existingManifest === null) {
+      for (const folder of STARTER_FOLDERS) {
+        if (leavesBrain(join(target, folder), brain)) {
+          // Whatever this points at is not inside the brain, so it is not ours
+          // to write into. The starter file below is skipped for the same reason.
+          continue;
         }
-        // Something of the user's already holds this name. It stays exactly as
-        // it is, and the starter file below is skipped for the same reason.
+        try {
+          mkdirSync(join(target, folder), { recursive: true });
+        } catch (error) {
+          if (!isOccupied(error)) {
+            throw error;
+          }
+          // Something of the user's already holds this name. It stays exactly
+          // as it is, and the starter file below is skipped too.
+        }
       }
     }
     for (const file of STARTER_FILES) {
+      if (existingManifest !== null && isOwned(existingManifest, file.path)) {
+        // Missing and modified owned files are drift. Init reports them below;
+        // repairing either one belongs to `lore update`.
+        continue;
+      }
       const path = join(target, file.path);
       if (leavesBrain(path, brain)) {
         skipped.push({ path: file.path, reason: 'outside' });
         continue;
       }
       try {
+        mkdirSync(dirname(path), { recursive: true });
         writeFileSync(path, file.content, { encoding: 'utf8', flag: 'wx' });
       } catch (error) {
         if (!isOccupied(error)) {
@@ -183,11 +223,12 @@ export function init(
       written.push({ path: file.path, sha256: hashText(file.content) });
     }
 
-    const refused = claim(target, written, options);
-    if (refused !== null) {
-      streams.err(`lore init: ${refused}\n`);
+    const claimed = claim(target, written, options, existingManifest);
+    if (!claimed.ok) {
+      streams.err(`lore init: ${claimed.reason}\n`);
       return 1;
     }
+    resultingManifest = claimed.manifest;
   } catch (error) {
     // Whatever failed, the files already written are the toolkit's, and an
     // unclaimed starter file is the user's permanently — absence from the
@@ -195,7 +236,7 @@ export function init(
     // leaves a later run able to correct this one. Nothing is removed: deleting
     // inside someone's vault is not this command's decision to make.
     try {
-      claim(target, written, options);
+      claim(target, written, options, existingManifest);
     } catch {
       // The original failure is the one worth reporting.
     }
@@ -204,10 +245,124 @@ export function init(
   }
 
   report(
-    { target, brain, adopting, claimedAlready, written, skipped },
+    {
+      target,
+      brain,
+      adopting,
+      existingInstallation: existingManifest !== null,
+      manifest: resultingManifest,
+      written,
+      skipped,
+    },
     streams,
   );
   return 0;
+}
+
+type InstallationRead =
+  | { readonly ok: true; readonly manifest: Manifest | null }
+  | { readonly ok: false; readonly reason: string };
+
+/** Read the ownership record before the first write, refusing every ambiguity. */
+function readInstallationManifest(target: string): InstallationRead {
+  const path = join(target, MANIFEST_PATH);
+  if (!exists(path)) {
+    return { ok: true, manifest: null };
+  }
+
+  let text: string;
+  try {
+    text = readFileSync(path, 'utf8');
+  } catch {
+    return {
+      ok: false,
+      reason: `${MANIFEST_PATH} in ${target} cannot be read. Fix its permissions or restore it from backup before running init again. Nothing was written.`,
+    };
+  }
+
+  const parsed = parseManifest(text);
+  if (!parsed.ok) {
+    return {
+      ok: false,
+      reason: `${MANIFEST_PATH} in ${target} cannot be used: ${parsed.refusal.reason} Fix or restore it before running init again. Nothing was written.`,
+    };
+  }
+  return { ok: true, manifest: parsed.manifest };
+}
+
+/** What a manifest-less target shows of a Lorekeeper installation that was here. */
+type InstallationEvidence = 'toolkit-content' | 'every-starter-occupied';
+
+/**
+ * The evidence that a removed ownership record left behind, or `null` when
+ * there is none and this is an ordinary vault to adopt.
+ *
+ * Two classes of evidence, asked in order of what they actually prove.
+ *
+ * The strong one is content, and it is asked first and unconditionally. A
+ * starter path holding exactly the bytes this toolkit writes is not a shape a
+ * vault arrives at on its own, and one such file speaks whether or not the
+ * rest of the starter set survived — a run that failed part way through leaves
+ * precisely that gap. It speaks just as loudly when `.lorekeeper/` is gone as
+ * when it remains: removing the directory and removing the file inside it are
+ * the same gesture from the surviving files' point of view, and gating the
+ * fingerprints on the directory is what let `rm -rf .lorekeeper` be read as a
+ * clean adoption, writing down a new manifest that disowned six files this
+ * toolkit had written.
+ *
+ * The weak one is occupancy, and it stays gated on `.lorekeeper/`. Every
+ * starter path taken with no toolkit bytes anywhere is the fully-edited
+ * installation, where nothing proves ownership and nothing rules it out; a
+ * surviving metadata directory is the only thing separating that from an
+ * ordinary vault whose six README names happen to be taken. The gate is what
+ * keeps the weak signal from swallowing vaults adoption exists for, so it is
+ * not widened to cover what the strong signal now handles on its own.
+ *
+ * Neither is turned into ownership. Both are refused, because what cannot be
+ * proven here also must not be reported as definitely the user's: a starter
+ * path called unclaimed is a path a later run would feel free to overwrite.
+ *
+ * Below both lies a case no rule reaches. A partial installation whose
+ * `.lorekeeper/` is gone and whose every surviving starter has been edited
+ * leaves no durable evidence at all, and init adopts it. That is not an
+ * oversight to fix later: with the record deleted and the bytes rewritten,
+ * nothing on disk distinguishes it from a vault that was always the user's,
+ * and guessing would mean claiming files this toolkit cannot show it wrote.
+ */
+function findInstallationWithoutManifest(
+  target: string,
+  brain: string,
+): InstallationEvidence | null {
+  if (STARTER_FILES.some((file) => holdsToolkitContent(target, brain, file))) {
+    return 'toolkit-content';
+  }
+
+  const metadata = join(target, dirname(MANIFEST_PATH));
+  if (!exists(metadata) || !isDirectory(metadata)) {
+    return null;
+  }
+  return STARTER_FILES.every((file) => exists(join(target, file.path)))
+    ? 'every-starter-occupied'
+    : null;
+}
+
+/** Whether this starter path still holds the exact bytes the toolkit writes. */
+function holdsToolkitContent(
+  target: string,
+  brain: string,
+  file: StarterFile,
+): boolean {
+  const path = join(target, file.path);
+  if (leavesBrain(path, brain) || !isRegularFile(path)) {
+    return false;
+  }
+  try {
+    return hashBytes(readFileSync(path)) === hashText(file.content);
+  } catch {
+    // Unreadable is not evidence of anything, and is not an error to raise
+    // here: the paths that are readable answer the question on their own.
+    return false;
+  }
 }
 
 /**
@@ -329,37 +484,59 @@ function holdsAnything(target: string): boolean {
  * Write the manifest for what was actually written, or say why it could not be.
  *
  * Called on the way out of a successful run and again after a failed one, so
- * the toolkit owns what it wrote either way. Nothing here overwrites an
- * existing manifest: the `wx` flag holds on this path too.
+ * the toolkit owns what it wrote either way. A first init creates with `wx`.
+ * A partial rerun updates the manifest the toolkit already owns, preserving
+ * its provenance and every prior entry while adding only this run's writes.
  */
+type ClaimResult =
+  | { readonly ok: true; readonly manifest: Manifest | null }
+  | { readonly ok: false; readonly reason: string };
+
 function claim(
   target: string,
   written: readonly ManifestEntry[],
   options: InitOptions,
-): string | null {
+  existing: Manifest | null,
+): ClaimResult {
   if (written.length === 0) {
-    return null;
+    return { ok: true, manifest: existing };
   }
 
   const manifest = buildManifest({
-    toolkitVersion: readVersion(),
-    createdAt: (options.now?.() ?? new Date()).toISOString(),
-    files: written,
+    toolkitVersion: existing?.toolkitVersion ?? readVersion(),
+    createdAt:
+      existing?.createdAt ?? (options.now?.() ?? new Date()).toISOString(),
+    files: [...(existing?.files ?? []), ...written],
   });
   if (!manifest.ok) {
-    return manifest.refusal.reason;
+    return { ok: false, reason: manifest.refusal.reason };
   }
 
-  mkdirSync(join(target, dirname(MANIFEST_PATH)), { recursive: true });
-  writeFileSync(
-    join(target, MANIFEST_PATH),
-    serializeManifest(manifest.manifest),
-    {
-      encoding: 'utf8',
-      flag: 'wx',
-    },
-  );
-  return null;
+  const path = join(target, MANIFEST_PATH);
+  mkdirSync(dirname(path), { recursive: true });
+  const serialized = serializeManifest(manifest.manifest);
+  if (existing === null) {
+    writeFileSync(path, serialized, { encoding: 'utf8', flag: 'wx' });
+  } else {
+    replaceManifest(path, serialized);
+  }
+  return { ok: true, manifest: manifest.manifest };
+}
+
+/** Replace an owned manifest atomically, leaving the old record intact on failure. */
+function replaceManifest(path: string, serialized: string): void {
+  const temporary = `${path}.${process.pid}.tmp`;
+  writeFileSync(temporary, serialized, { encoding: 'utf8', flag: 'wx' });
+  try {
+    renameSync(temporary, path);
+  } catch (error) {
+    try {
+      unlinkSync(temporary);
+    } catch {
+      // Preserve the replacement error; a leftover temp file owns no path.
+    }
+    throw error;
+  }
 }
 
 /**
@@ -400,12 +577,8 @@ interface Report {
   /** The brain's real path, so the summary and the writes agree on "inside". */
   readonly brain: string;
   readonly adopting: boolean;
-  /**
-   * Whether a manifest was already there when this run started. It is the one
-   * thing this run knows about prior ownership, and all it is used for is to
-   * stop the report claiming a skipped file belongs to nobody.
-   */
-  readonly claimedAlready: boolean;
+  readonly existingInstallation: boolean;
+  readonly manifest: Manifest | null;
   readonly written: readonly ManifestEntry[];
   readonly skipped: readonly Skip[];
 }
@@ -419,9 +592,11 @@ interface Report {
  */
 function report(result: Report, streams: Streams): void {
   streams.out(
-    result.adopting
-      ? `Adopted the vault at ${result.target}\n`
-      : `Initialized a brain at ${result.target}\n`,
+    result.existingInstallation
+      ? `Found an existing Lorekeeper installation at ${result.target}\n`
+      : result.adopting
+        ? `Adopted the vault at ${result.target}\n`
+        : `Initialized a brain at ${result.target}\n`,
   );
   streams.out('\n');
   for (const folder of STARTER_FOLDERS) {
@@ -438,19 +613,28 @@ function report(result: Report, streams: Streams): void {
   // touched is the kind of confident falsehood a report exists to prevent.
   streams.out(
     result.written.length === 0
-      ? `No starter files were written, and ${MANIFEST_PATH} was not changed.\n`
-      : `${result.written.length} starter ${plural(result.written.length, 'file')}, recorded in ${MANIFEST_PATH}.\n`,
+      ? result.existingInstallation
+        ? `No changes were needed, and ${MANIFEST_PATH} was not changed.\n`
+        : `No starter files were written, and ${MANIFEST_PATH} was not changed.\n`
+      : result.existingInstallation
+        ? `${result.written.length} missing starter ${plural(result.written.length, 'file')} added and recorded in ${MANIFEST_PATH}.\n`
+        : `${result.written.length} starter ${plural(result.written.length, 'file')}, recorded in ${MANIFEST_PATH}.\n`,
   );
+
+  if (result.existingInstallation && result.manifest !== null) {
+    streams.out('\nOwned files:\n');
+    for (const entry of inspectDrift(
+      result.target,
+      result.brain,
+      result.manifest,
+    )) {
+      streams.out(`  ${entry.state}: ${entry.path}\n`);
+    }
+  }
 
   listSkipped(
     result.skipped.filter((skip) => skip.reason === 'occupied'),
-    // "Unclaimed" is a statement about the whole vault, not about this run, and
-    // it is only this run's to make when nothing was claiming anything before
-    // it started. Where a manifest was already there, what it owns is 03.3's
-    // question, and the report says the part that is certain and stops.
-    result.claimedAlready
-      ? 'already in your vault, left unchanged'
-      : 'already in your vault, left unchanged and unclaimed',
+    'already in your vault, left unchanged and unclaimed',
     streams,
   );
   listSkipped(
@@ -465,6 +649,33 @@ function report(result: Report, streams: Streams): void {
     streams.out('\n');
     streams.out(`Start by reading ${join(result.target, 'README.md')}\n`);
   }
+}
+
+/** Observe only manifest-owned paths, and never follow one outside the brain. */
+function inspectDrift(target: string, brain: string, manifest: Manifest) {
+  const observed = new Map<string, string | null>();
+  const unreadable = new Set<string>();
+  for (const entry of manifest.files) {
+    const path = join(target, entry.path);
+    if (!exists(path)) {
+      observed.set(entry.path, null);
+      continue;
+    }
+    if (leavesBrain(path, brain) || !isRegularFile(path)) {
+      observed.set(entry.path, 'not-the-owned-file');
+      continue;
+    }
+    try {
+      observed.set(entry.path, hashBytes(readFileSync(path)));
+    } catch {
+      unreadable.add(entry.path);
+    }
+  }
+  return detectDrift(manifest, observed).map((entry) =>
+    unreadable.has(entry.path)
+      ? { path: entry.path, state: 'unreadable' as const }
+      : entry,
+  );
 }
 
 function listSkipped(

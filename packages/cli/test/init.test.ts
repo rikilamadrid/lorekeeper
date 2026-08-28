@@ -1,5 +1,7 @@
 import {
   chmodSync,
+  existsSync,
+  lstatSync,
   mkdirSync,
   mkdtempSync,
   readdirSync,
@@ -9,7 +11,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, relative, resolve, sep } from 'node:path';
+import { dirname, join, relative, resolve, sep } from 'node:path';
 import {
   MANIFEST_PATH,
   MANIFEST_VERSION,
@@ -22,6 +24,10 @@ import { hashBytes } from '../src/hash.js';
 import { init } from '../src/init.js';
 import { run } from '../src/run.js';
 import { STARTER_FILES, STARTER_FOLDERS } from '../src/starter.js';
+import {
+  COLLIDING_STARTER_PATH,
+  createAdoptionVault,
+} from './fixtures/adoption-vault.js';
 
 const REPO_ROOT = resolve(import.meta.dirname, '..', '..', '..');
 
@@ -65,6 +71,20 @@ function walk(root: string, prefix = ''): string[] {
     }
   }
   return found.sort();
+}
+
+/** Every file under `root`, mapped to the hash of its bytes. */
+function hashTree(root: string): Record<string, string> {
+  return Object.fromEntries(
+    walk(root).map((path) => [path, hashBytes(readFileSync(join(root, path)))]),
+  );
+}
+
+/** The paths the manifest at `target` claims. */
+function claimed(target: string): string[] {
+  const read = parseManifest(readFileSync(join(target, MANIFEST_PATH), 'utf8'));
+  if (!read.ok) throw new Error(read.refusal.reason);
+  return read.manifest.files.map((file) => file.path);
 }
 
 function initInto(target: string, extra: Parameters<typeof init>[2] = {}) {
@@ -210,6 +230,687 @@ describe('init into an empty target', () => {
   });
 });
 
+describe('init adopting an existing vault', () => {
+  let vault: string;
+
+  beforeEach(() => {
+    vault = join(sandbox, 'vault');
+    createAdoptionVault(vault);
+  });
+
+  it('leaves every pre-existing file byte-identical', () => {
+    const before = hashTree(vault);
+
+    const result = initInto(vault);
+
+    expect(result.code).toBe(0);
+    expect(result.err).toBe('');
+
+    const after = hashTree(vault);
+    const preexisting = Object.fromEntries(
+      Object.keys(before).map((path) => [path, after[path]]),
+    );
+
+    expect(preexisting).toEqual(before);
+  });
+
+  it('adds the starter files that were missing, and the manifest', () => {
+    const before = new Set(Object.keys(hashTree(vault)));
+
+    initInto(vault);
+
+    const added = walk(vault).filter((path) => !before.has(path));
+
+    expect(added.sort()).toEqual(
+      [
+        ...STARTER_FILES.map((file) => file.path).filter(
+          (path) => path !== COLLIDING_STARTER_PATH,
+        ),
+        MANIFEST_PATH,
+      ].sort(),
+    );
+  });
+
+  it('leaves an occupied starter path unclaimed, unchanged, and reported', () => {
+    const path = join(vault, COLLIDING_STARTER_PATH);
+    const mine = readFileSync(path, 'utf8');
+
+    const result = initInto(vault);
+
+    expect(readFileSync(path, 'utf8')).toBe(mine);
+    expect(claimed(vault)).not.toContain(COLLIDING_STARTER_PATH);
+    expect(result.out).toContain(COLLIDING_STARTER_PATH);
+    expect(result.out).toContain('unclaimed');
+  });
+
+  it('claims nothing it did not write', () => {
+    const before = new Set(Object.keys(hashTree(vault)));
+
+    initInto(vault);
+
+    expect(claimed(vault).filter((path) => before.has(path))).toEqual([]);
+  });
+
+  it('leaves .obsidian/ and .trash/ untouched and unclaimed', () => {
+    const before = hashTree(vault);
+    const theirs = Object.keys(before).filter(
+      (path) => path.startsWith('.obsidian/') || path.startsWith('.trash/'),
+    );
+    expect(theirs.length).toBeGreaterThan(0);
+
+    initInto(vault);
+
+    const after = hashTree(vault);
+    for (const path of theirs) {
+      expect(after[path]).toBe(before[path]);
+      expect(claimed(vault)).not.toContain(path);
+    }
+  });
+
+  it('leaves non-Markdown attachments untouched and unclaimed', () => {
+    const before = hashTree(vault);
+    const attachments = Object.keys(before).filter(
+      (path) => !path.endsWith('.md'),
+    );
+    expect(attachments).toContain('attachments/diagram.png');
+
+    initInto(vault);
+
+    const after = hashTree(vault);
+    for (const path of attachments) {
+      expect(after[path]).toBe(before[path]);
+      expect(claimed(vault)).not.toContain(path);
+    }
+  });
+
+  it('reuses an existing folder rather than refusing it', () => {
+    initInto(vault);
+
+    expect(readFileSync(join(vault, 'notes/README.md'), 'utf8')).toBe(
+      STARTER_FILES.find((file) => file.path === 'notes/README.md')?.content,
+    );
+    expect(walk(join(vault, 'notes'))).toContain('existing-thought.md');
+  });
+
+  it('neither validates nor reformats an adopted note', () => {
+    const hand = 'notes/hand-written-frontmatter.md';
+    const before = readFileSync(join(vault, hand), 'utf8');
+
+    const result = initInto(vault);
+
+    expect(result.code).toBe(0);
+    expect(result.err).toBe('');
+    expect(readFileSync(join(vault, hand), 'utf8')).toBe(before);
+    expect(before).toContain('2026-08-21T09:02:00-05:00');
+    expect(before).toContain('# written by hand');
+  });
+
+  it('reports the vault as adopted rather than created', () => {
+    const result = initInto(vault);
+
+    expect(result.out).toContain(`Adopted the vault at ${vault}`);
+    expect(result.out).toContain(MANIFEST_PATH);
+    expect(result.out).toContain('Everything else in that directory is yours.');
+  });
+
+  it('skips a starter folder whose name a user file already holds', () => {
+    const flat = join(sandbox, 'flat');
+    mkdirSync(flat);
+    writeFileSync(join(flat, 'notes'), 'a file, not a folder\n');
+
+    const result = initInto(flat);
+
+    expect(result.code).toBe(0);
+    expect(readFileSync(join(flat, 'notes'), 'utf8')).toBe(
+      'a file, not a folder\n',
+    );
+    expect(claimed(flat)).not.toContain('notes/README.md');
+    expect(result.out).toContain('notes/README.md');
+  });
+
+  it('writes a manifest whose hashes match the bytes on disk', () => {
+    initInto(vault);
+
+    const read = parseManifest(
+      readFileSync(join(vault, MANIFEST_PATH), 'utf8'),
+    );
+    if (!read.ok) throw new Error(read.refusal.reason);
+
+    expect(read.manifest.files.length).toBeGreaterThan(0);
+    for (const entry of read.manifest.files) {
+      expect(entry.sha256).toBe(
+        hashBytes(readFileSync(join(vault, entry.path))),
+      );
+    }
+  });
+});
+
+describe('init and paths that lead out of the brain', () => {
+  let outside: string;
+  let vault: string;
+
+  beforeEach(() => {
+    outside = join(sandbox, 'outside');
+    vault = join(sandbox, 'vault');
+    mkdirSync(outside, { recursive: true });
+    mkdirSync(vault, { recursive: true });
+  });
+
+  it('writes nothing through a starter folder symlinked out of the vault', () => {
+    symlinkSync(outside, join(vault, 'notes'));
+
+    const result = initInto(vault);
+
+    expect(result.code).toBe(0);
+    expect(readdirSync(outside)).toEqual([]);
+    expect(claimed(vault)).not.toContain('notes/README.md');
+  });
+
+  it('reports the starter file it left alone for pointing outside', () => {
+    symlinkSync(outside, join(vault, 'notes'));
+
+    const result = initInto(vault);
+
+    expect(result.out).toContain('notes/README.md');
+    expect(result.out).toContain(`pointing outside ${vault}`);
+  });
+
+  it('does not let a symlinked folder defeat the repository refusal', () => {
+    const fakeRepo = join(sandbox, 'fake-repo');
+    mkdirSync(join(fakeRepo, 'packages'), { recursive: true });
+    symlinkSync(join(fakeRepo, 'packages'), join(vault, 'notes'));
+
+    const result = initInto(vault, { toolkitRepoRoot: fakeRepo });
+
+    expect(readdirSync(join(fakeRepo, 'packages'))).toEqual([]);
+    expect(result.code).toBe(0);
+  });
+
+  it('still writes into a folder symlinked within the vault', () => {
+    mkdirSync(join(vault, 'actual-notes'));
+    symlinkSync(join(vault, 'actual-notes'), join(vault, 'notes'));
+
+    initInto(vault);
+
+    expect(readdirSync(join(vault, 'actual-notes'))).toContain('README.md');
+    expect(claimed(vault)).toContain('notes/README.md');
+  });
+
+  it('refuses when the manifest itself would land outside the vault', () => {
+    symlinkSync(outside, join(vault, '.lorekeeper'));
+
+    const result = initInto(vault);
+
+    expect(result.code).toBe(1);
+    expect(result.err).toContain(MANIFEST_PATH);
+    expect(result.err).toContain('Nothing was written');
+    expect(readdirSync(outside)).toEqual([]);
+    // The user's symlink is all that remains: no starter file, no folder.
+    expect(readdirSync(vault)).toEqual(['.lorekeeper']);
+  });
+});
+
+describe('init and an unusable .lorekeeper', () => {
+  const METADATA_DIRECTORY = dirname(MANIFEST_PATH);
+
+  let vault: string;
+
+  beforeEach(() => {
+    vault = join(sandbox, 'vault');
+    createAdoptionVault(vault);
+  });
+
+  it('refuses a plain file at .lorekeeper before writing anything', () => {
+    writeFileSync(join(vault, METADATA_DIRECTORY), 'not a directory\n');
+    const before = hashTree(vault);
+
+    const result = initInto(vault);
+
+    expect(result.code).toBe(1);
+    expect(hashTree(vault)).toEqual(before);
+  });
+
+  it('creates no starter folder, no starter file, and no manifest', () => {
+    writeFileSync(join(vault, METADATA_DIRECTORY), 'not a directory\n');
+    const before = new Set(Object.keys(hashTree(vault)));
+
+    initInto(vault);
+
+    const created = Object.keys(hashTree(vault)).filter(
+      (path) => !before.has(path),
+    );
+    expect(created).toEqual([]);
+    for (const file of STARTER_FILES) {
+      if (before.has(file.path)) continue;
+      expect(existsSync(join(vault, file.path))).toBe(false);
+    }
+    expect(existsSync(join(vault, MANIFEST_PATH))).toBe(false);
+  });
+
+  it('leaves the user file at that path byte-identical', () => {
+    const mine = 'not a directory, and not yours to replace\n';
+    writeFileSync(join(vault, METADATA_DIRECTORY), mine);
+
+    initInto(vault);
+
+    expect(readFileSync(join(vault, METADATA_DIRECTORY), 'utf8')).toBe(mine);
+  });
+
+  it('says what it refused rather than reporting a raw mkdir errno', () => {
+    writeFileSync(join(vault, METADATA_DIRECTORY), 'not a directory\n');
+
+    const result = initInto(vault);
+
+    expect(result.out).toBe('');
+    expect(result.err).toContain(METADATA_DIRECTORY);
+    expect(result.err).toContain(MANIFEST_PATH);
+    expect(result.err).toContain('Nothing was written');
+    expect(result.err).not.toMatch(/EEXIST|ENOTDIR|EISDIR|mkdir/);
+  });
+
+  it('refuses a symlink at .lorekeeper that leads out of the vault', () => {
+    const outside = join(sandbox, 'outside');
+    mkdirSync(outside);
+    symlinkSync(outside, join(vault, METADATA_DIRECTORY));
+    const before = walk(vault);
+
+    const result = initInto(vault);
+
+    expect(result.code).toBe(1);
+    expect(result.err).toContain('Nothing was written');
+    expect(readdirSync(outside)).toEqual([]);
+    expect(walk(vault)).toEqual(before);
+  });
+
+  it('refuses a symlink at .lorekeeper that leads nowhere', () => {
+    symlinkSync(
+      join(vault, 'no-such-directory'),
+      join(vault, METADATA_DIRECTORY),
+    );
+    const before = walk(vault);
+
+    const result = initInto(vault);
+
+    expect(result.code).toBe(1);
+    expect(result.err).toContain('Nothing was written');
+    expect(result.err).not.toMatch(/EEXIST|ENOTDIR|EISDIR|mkdir/);
+    expect(walk(vault)).toEqual(before);
+  });
+
+  it('accepts a symlink at .lorekeeper that stays inside the vault', () => {
+    mkdirSync(join(vault, 'metadata'));
+    symlinkSync(join(vault, 'metadata'), join(vault, METADATA_DIRECTORY));
+
+    const result = initInto(vault);
+
+    expect(result.code).toBe(0);
+    expect(claimed(vault)).toContain('notes/README.md');
+  });
+
+  /**
+   * A `.lorekeeper` of the right shape, in the right place, that cannot be
+   * written into. Nothing about its name or location says so, which is why the
+   * shape checks above are not enough on their own: the run would write all six
+   * starter files and only then fail on the manifest, leaving toolkit files in
+   * someone's vault with nothing claiming them.
+   */
+  function withUnwritableMetadataDirectory<T>(act: () => T): T {
+    const path = join(vault, METADATA_DIRECTORY);
+    mkdirSync(path);
+    // Readable and searchable, so it is unmistakably a directory here; not
+    // writable, so nothing can be created inside it.
+    chmodSync(path, 0o500);
+    try {
+      return act();
+    } finally {
+      chmodSync(path, 0o700);
+    }
+  }
+
+  it('refuses an unwritable .lorekeeper before writing anything', () => {
+    const before = hashTree(vault);
+
+    const result = withUnwritableMetadataDirectory(() => initInto(vault));
+
+    expect(result.code).toBe(1);
+    expect(hashTree(vault)).toEqual(before);
+  });
+
+  it('creates no starter file, no starter folder, and no manifest', () => {
+    const before = new Set(walk(vault));
+    const foldersBefore = readdirSync(vault).sort();
+
+    withUnwritableMetadataDirectory(() => initInto(vault));
+
+    expect(walk(vault).filter((path) => !before.has(path))).toEqual([]);
+    for (const file of STARTER_FILES) {
+      if (before.has(file.path)) continue;
+      expect(existsSync(join(vault, file.path))).toBe(false);
+    }
+    for (const folder of STARTER_FOLDERS) {
+      if (foldersBefore.includes(folder)) continue;
+      expect(existsSync(join(vault, folder))).toBe(false);
+    }
+    expect(existsSync(join(vault, MANIFEST_PATH))).toBe(false);
+  });
+
+  it('says it refused rather than reporting a raw write errno', () => {
+    const result = withUnwritableMetadataDirectory(() => initInto(vault));
+
+    expect(result.out).toBe('');
+    expect(result.err).toContain(METADATA_DIRECTORY);
+    expect(result.err).toContain(MANIFEST_PATH);
+    expect(result.err).toContain('Nothing was written');
+    expect(result.err).not.toMatch(/EACCES|EPERM|errno|mkdir|open/);
+  });
+
+  it('refuses when the vault itself cannot hold a new .lorekeeper', () => {
+    const before = hashTree(vault);
+    chmodSync(vault, 0o500);
+
+    const result = (() => {
+      try {
+        return initInto(vault);
+      } finally {
+        chmodSync(vault, 0o700);
+      }
+    })();
+
+    expect(result.code).toBe(1);
+    expect(result.err).toContain('Nothing was written');
+    expect(result.err).not.toMatch(/EACCES|EPERM|errno|mkdir|open/);
+    expect(hashTree(vault)).toEqual(before);
+  });
+
+  /**
+   * The manifest's own name, one level below the directory the checks above
+   * cover. Something that is not a file sitting here passes every one of them
+   * and still cannot be written to, which is the same failure with the same
+   * cost: six starter files in someone's vault and no manifest claiming them.
+   */
+  describe('and a manifest name that is already taken', () => {
+    /**
+     * Hashes what can be read, so a dangling symlink in the tree is a fact
+     * about the tree rather than a read error in the assertion.
+     */
+    function hashReadable(root: string): Record<string, string> {
+      return Object.fromEntries(
+        walk(root)
+          .filter((path) => lstatSync(join(root, path)).isFile())
+          .map((path) => [path, hashBytes(readFileSync(join(root, path)))]),
+      );
+    }
+
+    const cases: ReadonlyArray<readonly [string, () => void]> = [
+      [
+        'a directory',
+        () => {
+          mkdirSync(join(vault, MANIFEST_PATH), { recursive: true });
+        },
+      ],
+      [
+        'a symlink to nothing',
+        () => {
+          mkdirSync(join(vault, METADATA_DIRECTORY));
+          symlinkSync(
+            join(vault, METADATA_DIRECTORY, 'nowhere'),
+            join(vault, MANIFEST_PATH),
+          );
+        },
+      ],
+    ];
+
+    for (const [what, occupy] of cases) {
+      it(`refuses ${what} at the manifest path before writing anything`, () => {
+        occupy();
+        const before = hashReadable(vault);
+        const treeBefore = walk(vault);
+        const rootBefore = readdirSync(vault).sort();
+
+        const result = initInto(vault);
+
+        expect(result.code).toBe(1);
+        // Nothing added, nothing changed, nothing removed.
+        expect(walk(vault)).toEqual(treeBefore);
+        expect(hashReadable(vault)).toEqual(before);
+        for (const file of STARTER_FILES) {
+          if (treeBefore.includes(file.path)) continue;
+          expect(existsSync(join(vault, file.path))).toBe(false);
+        }
+        for (const folder of STARTER_FOLDERS) {
+          if (rootBefore.includes(folder)) continue;
+          expect(existsSync(join(vault, folder))).toBe(false);
+        }
+      });
+
+      it(`leaves ${what} at the manifest path exactly as it was`, () => {
+        occupy();
+        const before = lstatSync(join(vault, MANIFEST_PATH));
+
+        initInto(vault);
+
+        const after = lstatSync(join(vault, MANIFEST_PATH));
+        expect(after.isDirectory()).toBe(before.isDirectory());
+        expect(after.isSymbolicLink()).toBe(before.isSymbolicLink());
+        expect(after.size).toBe(before.size);
+      });
+
+      it(`says what it refused about ${what}, without a raw errno`, () => {
+        occupy();
+
+        const result = initInto(vault);
+
+        expect(result.out).toBe('');
+        expect(result.err).toContain(MANIFEST_PATH);
+        expect(result.err).toContain('Nothing was written');
+        expect(result.err).not.toMatch(
+          /EEXIST|EISDIR|ENOTDIR|EACCES|errno|open|mkdir/,
+        );
+      });
+    }
+
+    it("does not refuse a regular file, which is 03.3's to answer", () => {
+      // The one occupant that is not a refusal here. An existing installation
+      // reaches the behavior it reached before this check existed: starter
+      // files it is missing are written, and the manifest's own `wx` write is
+      // what stops the run. Recognizing and completing it is Ticket 03.3.
+      mkdirSync(join(vault, METADATA_DIRECTORY));
+      writeFileSync(join(vault, MANIFEST_PATH), '{"version":1}\n');
+
+      const result = initInto(vault);
+
+      expect(result.err).not.toContain('is already taken');
+      expect(result.err).toContain('EEXIST');
+      expect(readFileSync(join(vault, MANIFEST_PATH), 'utf8')).toBe(
+        '{"version":1}\n',
+      );
+    });
+
+    it('leaves no toolkit file behind for a later run to disown', () => {
+      mkdirSync(join(vault, MANIFEST_PATH), { recursive: true });
+      const before = new Set(walk(vault));
+
+      initInto(vault);
+
+      // The invariant the whole preflight exists for: a run that could not
+      // record what it owns wrote nothing to own.
+      expect(walk(vault).filter((path) => !before.has(path))).toEqual([]);
+    });
+  });
+
+  it('still initializes when an empty .lorekeeper is already there', () => {
+    mkdirSync(join(vault, METADATA_DIRECTORY));
+
+    const result = initInto(vault);
+
+    expect(result.code).toBe(0);
+    expect(claimed(vault)).toContain('notes/README.md');
+    expect(readFileSync(join(vault, COLLIDING_STARTER_PATH), 'utf8')).toContain(
+      'Mine, written by hand',
+    );
+  });
+});
+
+/**
+ * The second run against a brain whose starter set is already complete. It has
+ * nothing to write, so it never reaches the manifest's `wx` write and exits 0 —
+ * unlike a partially initialized brain, which does reach it and fails. Handling
+ * either one properly is 03.3; what this run owes in the meantime is a report
+ * that does not describe work it did not do.
+ */
+describe('init run again against a fully initialized brain', () => {
+  let brain: string;
+
+  beforeEach(() => {
+    brain = join(sandbox, 'brain');
+    expect(initInto(brain).code).toBe(0);
+  });
+
+  it('claims nothing was recorded, because nothing was', () => {
+    const result = initInto(brain);
+
+    expect(result.code).toBe(0);
+    expect(result.out).not.toContain(`recorded in ${MANIFEST_PATH}`);
+    expect(result.out).toContain(`${MANIFEST_PATH} was not changed`);
+  });
+
+  it('does not call files unclaimed that a manifest already claims', () => {
+    const owned = claimed(brain);
+    const result = initInto(brain);
+
+    expect(result.out).not.toContain('unclaimed');
+    // The files it reported as skipped are exactly the ones already owned.
+    for (const path of owned) {
+      expect(result.out).toContain(path);
+    }
+  });
+
+  it('changes not a byte of the brain it already made', () => {
+    const before = hashTree(brain);
+
+    expect(initInto(brain).code).toBe(0);
+
+    expect(hashTree(brain)).toEqual(before);
+  });
+
+  it('still says a starter path is unclaimed when no manifest exists', () => {
+    const vault = join(sandbox, 'unmanaged');
+    createAdoptionVault(vault);
+
+    const result = initInto(vault);
+
+    expect(result.out).toContain('unclaimed');
+    expect(result.out).toContain(COLLIDING_STARTER_PATH);
+  });
+});
+
+describe('init interrupted part way', () => {
+  it('claims the starter files it wrote before the failure', () => {
+    const vault = join(sandbox, 'vault');
+    mkdirSync(join(vault, 'sources'), { recursive: true });
+    writeFileSync(join(vault, 'mine.md'), 'mine\n');
+    chmodSync(join(vault, 'sources'), 0o000);
+
+    const result = (() => {
+      try {
+        return initInto(vault);
+      } finally {
+        chmodSync(join(vault, 'sources'), 0o700);
+      }
+    })();
+
+    expect(result.code).toBe(1);
+    expect(result.err).toContain('EACCES');
+
+    const owned = claimed(vault);
+    expect(owned.length).toBeGreaterThan(0);
+    expect(owned).not.toContain('sources/README.md');
+    for (const path of owned) {
+      expect(walk(vault)).toContain(path);
+    }
+    expect(readFileSync(join(vault, 'mine.md'), 'utf8')).toBe('mine\n');
+  });
+
+  it('records hashes that match what is actually on disk', () => {
+    const vault = join(sandbox, 'vault');
+    mkdirSync(join(vault, 'sources'), { recursive: true });
+    chmodSync(join(vault, 'sources'), 0o000);
+
+    try {
+      initInto(vault);
+    } finally {
+      chmodSync(join(vault, 'sources'), 0o700);
+    }
+
+    const read = parseManifest(
+      readFileSync(join(vault, MANIFEST_PATH), 'utf8'),
+    );
+    if (!read.ok) throw new Error(read.refusal.reason);
+
+    for (const entry of read.manifest.files) {
+      expect(entry.sha256).toBe(
+        hashBytes(readFileSync(join(vault, entry.path))),
+      );
+    }
+  });
+});
+
+describe('what init says it did', () => {
+  it('lists no folder that a user file already occupies', () => {
+    const vault = join(sandbox, 'vault');
+    mkdirSync(vault);
+    writeFileSync(join(vault, 'notes'), 'a file, not a folder\n');
+
+    const result = initInto(vault);
+
+    expect(result.out).not.toContain('  notes/\n');
+    expect(result.out).toContain('  daily/\n');
+  });
+
+  it('lists no folder that is a symlink out of the brain', () => {
+    const outside = join(sandbox, 'outside');
+    const vault = join(sandbox, 'vault');
+    mkdirSync(outside);
+    mkdirSync(vault);
+    symlinkSync(outside, join(vault, 'notes'));
+
+    const result = initInto(vault);
+
+    expect(result.code).toBe(0);
+    // init refused to write through it, so it is not one of the brain's folders.
+    expect(result.out).not.toContain('  notes/\n');
+    expect(result.out).toContain('  daily/\n');
+    expect(readdirSync(outside)).toEqual([]);
+  });
+
+  it('still lists a folder symlinked within the brain', () => {
+    const vault = join(sandbox, 'vault');
+    mkdirSync(join(vault, 'actual-notes'), { recursive: true });
+    symlinkSync(join(vault, 'actual-notes'), join(vault, 'notes'));
+
+    expect(initInto(vault).out).toContain('  notes/\n');
+  });
+
+  it('does not point at a README it did not write', () => {
+    const vault = join(sandbox, 'vault');
+    mkdirSync(vault);
+    writeFileSync(join(vault, 'README.md'), '# mine\n');
+
+    const result = initInto(vault);
+
+    expect(result.out).not.toContain('Start by reading');
+    expect(readFileSync(join(vault, 'README.md'), 'utf8')).toBe('# mine\n');
+  });
+
+  it('still points at the README when it wrote one', () => {
+    const target = join(sandbox, 'brain');
+
+    expect(initInto(target).out).toContain(
+      `Start by reading ${join(target, 'README.md')}`,
+    );
+  });
+});
+
 describe('init refusals', () => {
   it('refuses a target inside the toolkit repository, writing nothing', () => {
     const target = join(REPO_ROOT, 'tmp-brain-should-never-exist');
@@ -244,20 +945,6 @@ describe('init refusals', () => {
     });
 
     expect(result.code).toBe(0);
-  });
-
-  it('refuses a non-empty target and writes nothing into it', () => {
-    const target = join(sandbox, 'vault');
-    mkdirSync(target);
-    writeFileSync(join(target, 'my-note.md'), 'mine\n');
-
-    const result = initInto(target);
-
-    expect(result.code).toBe(1);
-    expect(result.err).toContain('not empty');
-    expect(result.err).toContain('Nothing was written');
-    expect(walk(target)).toEqual(['my-note.md']);
-    expect(readFileSync(join(target, 'my-note.md'), 'utf8')).toBe('mine\n');
   });
 
   it('refuses a target that is a file', () => {

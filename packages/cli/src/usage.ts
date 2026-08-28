@@ -11,7 +11,7 @@ export function usage(version: string): string {
     TAGLINE,
     '',
     'Usage:',
-    '  lore init <dir>   Create a brain in an empty directory',
+    '  lore init <dir>   Create a brain, or adopt an existing vault',
     '  lore --help       Show this message',
     '  lore --version    Print the version',
     '',

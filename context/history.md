@@ -4,6 +4,37 @@ Compact record of completed work.
 
 ## Completed
 
+### 2026-08-28 — Feature 03: `lore init` and the Managed Manifest
+
+- Outcome: `lore init` produces a working brain — thin folder set, starter
+  files, and `.lorekeeper/manifest.json` recording what the toolkit owns. It
+  refuses to generate into this repository, adopts an existing Markdown or
+  Obsidian vault without rewriting a byte, and is idempotent: a rerun reads the
+  ownership record before touching anything and reports owned files as
+  unchanged, modified, missing, or unreadable without repairing any of them.
+  Repair is deferred to `lore update`. A starter-path collision leaves the file
+  byte-identical, unclaimed, and reported as skipped, because claiming a file
+  the toolkit did not write is what would let a later run overwrite it. A
+  partial installation adds only paths that are missing and unowned, merging
+  them into the existing manifest atomically. A manifest-less target that still
+  shows traces of an installation is refused rather than adopted; unprovable
+  ownership is never reported as the user's. `packages/core` stayed
+  filesystem-free.
+- Verification: `npm run lint`, `npm run build`, and `npm test` (503 tests, 11
+  files) clean. Init behavior re-checked against built `dist/cli.js` rather than
+  the project's own tests: normal rerun, partial recovery, both missing-manifest
+  variants, and missing, modified, and unreadable owned files. Adoption verified
+  by hashing a synthetic vault before and after.
+- Commit/PR: PRs #7 (`03.1`), #8 (`03.2`), and #9 (`03.3`), squash-merged to
+  `main`.
+- Follow-up: propagating later starter changes into an existing brain is Feature
+  06, and `lore update` owns drift repair. One case is deliberately unreachable
+  and recorded in `packages/cli/src/init.ts`: a partial installation whose
+  `.lorekeeper/` is gone and whose every surviving starter has been edited
+  leaves no evidence on disk and is adopted as an ordinary vault. Carried and
+  still open: bump `actions/checkout` and `actions/setup-node` to `@v5`; `npm
+  run clean && npm run build` without a reinstall leaves `lore` non-executable.
+
 ### 2026-08-24 — Feature 02: Frontmatter Contract and Representation-Preserving Core
 
 - Outcome: `packages/core` reads, validates, and mutates Lorekeeper frontmatter.

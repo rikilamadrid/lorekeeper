@@ -20,6 +20,16 @@ when the captured thing is a URL it mints a deterministic stable source ID.
 
 ## Requirements
 
+- The brain is named explicitly: `lore capture <brain> <item>`. For v0.1 there
+  is no upward discovery from the working directory, no configured default
+  brain, and no implicit lookup of any other kind.
+- `<brain>` must resolve to an initialized brain holding a valid
+  `.lorekeeper/manifest.json`. When it does not, capture fails with an
+  actionable error and writes nothing.
+- The explicit-path convention is the default for every later command that
+  operates on an existing brain, including `search` in Feature 05 and `update`
+  in Feature 06, until a Feature explicitly changes it. Nested brains need no
+  lookup rule, because the caller names the one it means.
 - A captured item is useful before any processing: self-describing frontmatter
   plus the captured content, findable with `grep`.
 - Capture writes only into the inbox, and only files the manifest owns.

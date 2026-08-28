@@ -1,3 +1,4 @@
+import { execFileSync, spawnSync } from 'node:child_process';
 import {
   chmodSync,
   existsSync,
@@ -19,7 +20,7 @@ import {
   readDocument,
   validateDocuments,
 } from '@lorekeeper/core';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { hashBytes } from '../src/hash.js';
 import { init } from '../src/init.js';
 import { run } from '../src/run.js';
@@ -709,21 +710,24 @@ describe('init and an unusable .lorekeeper', () => {
       });
     }
 
-    it("does not refuse a regular file, which is 03.3's to answer", () => {
-      // The one occupant that is not a refusal here. An existing installation
-      // reaches the behavior it reached before this check existed: starter
-      // files it is missing are written, and the manifest's own `wx` write is
-      // what stops the run. Recognizing and completing it is Ticket 03.3.
+    it('refuses a malformed manifest before writing anything', () => {
       mkdirSync(join(vault, METADATA_DIRECTORY));
       writeFileSync(join(vault, MANIFEST_PATH), '{"version":1}\n');
+      const before = hashTree(vault);
 
       const result = initInto(vault);
 
+      expect(result.code).toBe(1);
+      expect(result.out).toBe('');
       expect(result.err).not.toContain('is already taken');
-      expect(result.err).toContain('EEXIST');
+      expect(result.err).toContain('cannot be used');
+      expect(result.err).toContain('Fix or restore it');
+      expect(result.err).toContain('Nothing was written');
+      expect(result.err).not.toContain('EEXIST');
       expect(readFileSync(join(vault, MANIFEST_PATH), 'utf8')).toBe(
         '{"version":1}\n',
       );
+      expect(hashTree(vault)).toEqual(before);
     });
 
     it('leaves no toolkit file behind for a later run to disown', () => {
@@ -736,6 +740,41 @@ describe('init and an unusable .lorekeeper', () => {
       // record what it owns wrote nothing to own.
       expect(walk(vault).filter((path) => !before.has(path))).toEqual([]);
     });
+  });
+
+  it('adopts an ordinary vault that has no .lorekeeper at all', () => {
+    // No record, no toolkit bytes: nothing here says this vault was ever
+    // initialized, and adoption is exactly what it is owed.
+    const before = readFileSync(join(vault, COLLIDING_STARTER_PATH), 'utf8');
+
+    const result = initInto(vault);
+
+    expect(result.code).toBe(0);
+    expect(result.err).toBe('');
+    expect(result.out).toContain(`Adopted the vault at ${vault}`);
+    expect(readFileSync(join(vault, COLLIDING_STARTER_PATH), 'utf8')).toBe(
+      before,
+    );
+    expect(claimed(vault)).not.toContain(COLLIDING_STARTER_PATH);
+  });
+
+  it('adopts a vault whose starter paths are only partly occupied', () => {
+    // An incomplete starter set is not evidence of anything on its own: an
+    // ordinary vault has no reason to hold all six, and calling one a lost
+    // installation would refuse to adopt the very vaults adoption is for.
+    mkdirSync(join(vault, METADATA_DIRECTORY));
+    const before = readFileSync(join(vault, COLLIDING_STARTER_PATH), 'utf8');
+
+    const result = initInto(vault);
+
+    expect(result.code).toBe(0);
+    expect(result.err).toBe('');
+    expect(result.out).toContain(`Adopted the vault at ${vault}`);
+    expect(result.out).not.toContain('existing Lorekeeper installation');
+    expect(readFileSync(join(vault, COLLIDING_STARTER_PATH), 'utf8')).toBe(
+      before,
+    );
+    expect(claimed(vault)).not.toContain(COLLIDING_STARTER_PATH);
   });
 
   it('still initializes when an empty .lorekeeper is already there', () => {
@@ -751,13 +790,7 @@ describe('init and an unusable .lorekeeper', () => {
   });
 });
 
-/**
- * The second run against a brain whose starter set is already complete. It has
- * nothing to write, so it never reaches the manifest's `wx` write and exits 0 —
- * unlike a partially initialized brain, which does reach it and fails. Handling
- * either one properly is 03.3; what this run owes in the meantime is a report
- * that does not describe work it did not do.
- */
+/** A complete installation is inspected and reported without being rewritten. */
 describe('init run again against a fully initialized brain', () => {
   let brain: string;
 
@@ -770,6 +803,7 @@ describe('init run again against a fully initialized brain', () => {
     const result = initInto(brain);
 
     expect(result.code).toBe(0);
+    expect(result.out).toContain('existing Lorekeeper installation');
     expect(result.out).not.toContain(`recorded in ${MANIFEST_PATH}`);
     expect(result.out).toContain(`${MANIFEST_PATH} was not changed`);
   });
@@ -793,6 +827,138 @@ describe('init run again against a fully initialized brain', () => {
     expect(hashTree(brain)).toEqual(before);
   });
 
+  it('reports every owned file as unchanged', () => {
+    const owned = claimed(brain);
+
+    const result = initInto(brain);
+
+    for (const path of owned) {
+      expect(result.out).toContain(`unchanged: ${path}`);
+    }
+    expect(result.out).not.toContain('modified:');
+    expect(result.out).not.toContain('missing:');
+  });
+
+  it('reports modified and missing owned files without repairing either', () => {
+    const modified = 'README.md';
+    const missing = 'notes/README.md';
+    writeFileSync(join(brain, modified), '# My edited brain\n');
+    rmSync(join(brain, missing));
+    const before = hashTree(brain);
+
+    const result = initInto(brain);
+
+    expect(result.code).toBe(0);
+    expect(result.out).toContain(`modified: ${modified}`);
+    expect(result.out).toContain(`missing: ${missing}`);
+    expect(readFileSync(join(brain, modified), 'utf8')).toBe(
+      '# My edited brain\n',
+    );
+    expect(existsSync(join(brain, missing))).toBe(false);
+    expect(hashTree(brain)).toEqual(before);
+  });
+
+  it('refuses a deleted manifest instead of guessing ownership', () => {
+    rmSync(join(brain, MANIFEST_PATH));
+    const before = hashTree(brain);
+
+    const result = initInto(brain);
+
+    expect(result.code).toBe(1);
+    expect(result.out).toBe('');
+    expect(result.err).toContain(`${MANIFEST_PATH} is missing`);
+    expect(result.err).toContain('Restore the manifest');
+    expect(result.err).toContain('Nothing was written');
+    expect(hashTree(brain)).toEqual(before);
+    expect(existsSync(join(brain, MANIFEST_PATH))).toBe(false);
+  });
+
+  it('refuses when the whole .lorekeeper directory was removed', () => {
+    // Removing the directory and removing the file inside it are one gesture
+    // as far as the surviving starter files are concerned.
+    rmSync(join(brain, dirname(MANIFEST_PATH)), { recursive: true });
+    const before = hashTree(brain);
+
+    const result = initInto(brain);
+
+    expect(result.code).toBe(1);
+    expect(result.out).toBe('');
+    expect(result.err).toContain(`${MANIFEST_PATH} is missing`);
+    expect(result.err).toContain('ownership cannot be determined safely');
+    expect(result.err).toContain('Restore the manifest');
+    expect(result.err).toContain('Nothing was written');
+    expect(result.err).not.toContain('unclaimed');
+    expect(result.err).not.toContain('Adopted');
+    expect(result.err).not.toMatch(
+      /EEXIST|EISDIR|ENOTDIR|EACCES|errno|open|mkdir/,
+    );
+    expect(hashTree(brain)).toEqual(before);
+    expect(existsSync(join(brain, dirname(MANIFEST_PATH)))).toBe(false);
+  });
+
+  it('refuses ambiguous recovery when every formerly owned starter was edited', () => {
+    for (const file of STARTER_FILES) {
+      writeFileSync(join(brain, file.path), `# Edited ${file.path}\n`);
+    }
+    rmSync(join(brain, MANIFEST_PATH));
+    const before = hashTree(brain);
+
+    const result = initInto(brain);
+
+    expect(result.code).toBe(1);
+    expect(result.out).toBe('');
+    expect(result.err).toContain(`${MANIFEST_PATH} is missing`);
+    expect(result.err).toContain('ownership cannot be determined safely');
+    expect(result.err).toContain('Restore the manifest');
+    expect(result.err).toContain('Nothing was written');
+    expect(result.err).not.toMatch(/EEXIST|EISDIR|EACCES|errno|open|mkdir/);
+    expect(result.err).not.toContain('unclaimed');
+    expect(result.err).not.toContain('Adopted');
+    expect(hashTree(brain)).toEqual(before);
+    expect(existsSync(join(brain, MANIFEST_PATH))).toBe(false);
+  });
+
+  it('refuses an unreadable manifest before touching the brain', () => {
+    const manifestPath = join(brain, MANIFEST_PATH);
+    const before = hashTree(brain);
+    chmodSync(manifestPath, 0o000);
+
+    const result = (() => {
+      try {
+        return initInto(brain);
+      } finally {
+        chmodSync(manifestPath, 0o600);
+      }
+    })();
+
+    expect(result.code).toBe(1);
+    expect(result.out).toBe('');
+    expect(result.err).toContain('cannot be read');
+    expect(result.err).toContain('Nothing was written');
+    expect(hashTree(brain)).toEqual(before);
+  });
+
+  it('reports an unreadable owned file without calling it missing', () => {
+    const ownedPath = 'README.md';
+    const path = join(brain, ownedPath);
+    const before = readFileSync(path);
+    chmodSync(path, 0o000);
+
+    const result = (() => {
+      try {
+        return initInto(brain);
+      } finally {
+        chmodSync(path, 0o600);
+      }
+    })();
+
+    expect(result.code).toBe(0);
+    expect(result.err).toBe('');
+    expect(result.out).toContain(`unreadable: ${ownedPath}`);
+    expect(result.out).not.toContain(`missing: ${ownedPath}`);
+    expect(readFileSync(path)).toEqual(before);
+  });
+
   it('still says a starter path is unclaimed when no manifest exists', () => {
     const vault = join(sandbox, 'unmanaged');
     createAdoptionVault(vault);
@@ -801,6 +967,21 @@ describe('init run again against a fully initialized brain', () => {
 
     expect(result.out).toContain('unclaimed');
     expect(result.out).toContain(COLLIDING_STARTER_PATH);
+  });
+
+  it('leaves an adopted starter collision unchanged and unclaimed on rerun', () => {
+    const vault = join(sandbox, 'adopted');
+    createAdoptionVault(vault);
+    expect(initInto(vault).code).toBe(0);
+    const before = hashTree(vault);
+
+    const result = initInto(vault);
+
+    expect(result.code).toBe(0);
+    expect(result.out).toContain('unclaimed');
+    expect(result.out).toContain(COLLIDING_STARTER_PATH);
+    expect(claimed(vault)).not.toContain(COLLIDING_STARTER_PATH);
+    expect(hashTree(vault)).toEqual(before);
   });
 });
 
@@ -852,6 +1033,229 @@ describe('init interrupted part way', () => {
         hashBytes(readFileSync(join(vault, entry.path))),
       );
     }
+  });
+
+  it('refuses a deleted manifest when only part of the starter set was written', () => {
+    const vault = join(sandbox, 'vault');
+    mkdirSync(join(vault, 'sources'), { recursive: true });
+    chmodSync(join(vault, 'sources'), 0o000);
+
+    try {
+      expect(initInto(vault).code).toBe(1);
+    } finally {
+      chmodSync(join(vault, 'sources'), 0o700);
+    }
+
+    // The installation is genuinely partial: some starter paths were written
+    // and claimed, and at least one was never written at all.
+    const owned = claimed(vault);
+    expect(owned.length).toBeGreaterThan(0);
+    expect(owned.length).toBeLessThan(STARTER_FILES.length);
+    expect(
+      STARTER_FILES.some((file) => !existsSync(join(vault, file.path))),
+    ).toBe(true);
+
+    rmSync(join(vault, MANIFEST_PATH));
+    const before = hashTree(vault);
+
+    const result = initInto(vault);
+
+    expect(result.code).toBe(1);
+    expect(result.out).toBe('');
+    expect(result.err).toContain(`${MANIFEST_PATH} is missing`);
+    expect(result.err).toContain('ownership cannot be determined safely');
+    expect(result.err).toContain('Restore the manifest');
+    expect(result.err).toContain('Nothing was written');
+    expect(result.err).not.toContain('unclaimed');
+    expect(result.err).not.toContain('Adopted');
+    expect(result.err).not.toMatch(
+      /EEXIST|EISDIR|ENOTDIR|EACCES|errno|open|mkdir/,
+    );
+    // The surviving evidence is neither rewritten nor disowned, and the run
+    // that could not explain it wrote no manifest of its own.
+    expect(hashTree(vault)).toEqual(before);
+    expect(existsSync(join(vault, MANIFEST_PATH))).toBe(false);
+  });
+
+  it('refuses a partial installation whose .lorekeeper directory was removed', () => {
+    const vault = join(sandbox, 'vault');
+    mkdirSync(join(vault, 'sources'), { recursive: true });
+    chmodSync(join(vault, 'sources'), 0o000);
+
+    try {
+      expect(initInto(vault).code).toBe(1);
+    } finally {
+      chmodSync(join(vault, 'sources'), 0o700);
+    }
+
+    const owned = claimed(vault);
+    expect(owned.length).toBeGreaterThan(0);
+    expect(owned.length).toBeLessThan(STARTER_FILES.length);
+    const absent = STARTER_FILES.filter(
+      (file) => !existsSync(join(vault, file.path)),
+    );
+    expect(absent.length).toBeGreaterThan(0);
+
+    rmSync(join(vault, dirname(MANIFEST_PATH)), { recursive: true });
+    const before = hashTree(vault);
+
+    const result = initInto(vault);
+
+    expect(result.code).toBe(1);
+    expect(result.out).toBe('');
+    expect(result.err).toContain(`${MANIFEST_PATH} is missing`);
+    expect(result.err).toContain('ownership cannot be determined safely');
+    expect(result.err).toContain('Nothing was written');
+    expect(result.err).not.toContain('unclaimed');
+    expect(result.err).not.toContain('Adopted');
+    expect(result.err).not.toMatch(
+      /EEXIST|EISDIR|ENOTDIR|EACCES|errno|open|mkdir/,
+    );
+    // Nothing written, nothing recreated, nothing disowned: the surviving
+    // evidence is still there for a restored manifest to explain.
+    expect(hashTree(vault)).toEqual(before);
+    for (const file of absent) {
+      expect(existsSync(join(vault, file.path))).toBe(false);
+    }
+    expect(existsSync(join(vault, dirname(MANIFEST_PATH)))).toBe(false);
+  });
+
+  it('completes the installation and extends the existing manifest', () => {
+    const vault = join(sandbox, 'vault');
+    mkdirSync(join(vault, 'sources'), { recursive: true });
+    chmodSync(join(vault, 'sources'), 0o000);
+
+    try {
+      expect(initInto(vault).code).toBe(1);
+    } finally {
+      chmodSync(join(vault, 'sources'), 0o700);
+    }
+
+    const firstOwned = claimed(vault);
+    const firstBytes = Object.fromEntries(
+      firstOwned.map((path) => [path, readFileSync(join(vault, path))]),
+    );
+
+    const result = initInto(vault);
+
+    expect(result.code).toBe(0);
+    expect(result.err).toBe('');
+    expect(result.out).toContain('existing Lorekeeper installation');
+    expect(result.out).toContain('missing starter files added');
+    expect(claimed(vault)).toEqual(
+      STARTER_FILES.map((file) => file.path).sort(),
+    );
+    for (const [path, bytes] of Object.entries(firstBytes)) {
+      expect(readFileSync(join(vault, path))).toEqual(bytes);
+    }
+  });
+});
+
+describe('the built init binary', () => {
+  const cli = join(REPO_ROOT, 'packages', 'cli', 'dist', 'cli.js');
+
+  beforeAll(() => {
+    execFileSync('npm', ['run', 'build'], { cwd: REPO_ROOT, stdio: 'pipe' });
+  });
+
+  it('refuses a partial installation whose .lorekeeper directory was removed', () => {
+    const brain = join(sandbox, 'built-no-metadata');
+    mkdirSync(join(brain, 'sources'), { recursive: true });
+    chmodSync(join(brain, 'sources'), 0o000);
+
+    const first = (() => {
+      try {
+        return spawnSync(process.execPath, [cli, 'init', brain], {
+          encoding: 'utf8',
+        });
+      } finally {
+        chmodSync(join(brain, 'sources'), 0o700);
+      }
+    })();
+    expect(first.status).toBe(1);
+    expect(claimed(brain).length).toBeLessThan(STARTER_FILES.length);
+
+    rmSync(join(brain, dirname(MANIFEST_PATH)), { recursive: true });
+    const before = hashTree(brain);
+
+    const rerun = spawnSync(process.execPath, [cli, 'init', brain], {
+      encoding: 'utf8',
+    });
+
+    expect(rerun.status).toBe(1);
+    expect(rerun.stdout).toBe('');
+    expect(rerun.stderr).toContain('ownership cannot be determined safely');
+    expect(rerun.stderr).not.toContain('unclaimed');
+    expect(rerun.stderr).not.toContain('Adopted');
+    expect(rerun.stderr).not.toMatch(/EEXIST|EISDIR|EACCES|errno|open|mkdir/);
+    expect(hashTree(brain)).toEqual(before);
+    expect(existsSync(join(brain, dirname(MANIFEST_PATH)))).toBe(false);
+  });
+
+  it('refuses recovery when a partial installation lost its manifest', () => {
+    const brain = join(sandbox, 'built-partial');
+    mkdirSync(join(brain, 'sources'), { recursive: true });
+    chmodSync(join(brain, 'sources'), 0o000);
+
+    const first = (() => {
+      try {
+        return spawnSync(process.execPath, [cli, 'init', brain], {
+          encoding: 'utf8',
+        });
+      } finally {
+        chmodSync(join(brain, 'sources'), 0o700);
+      }
+    })();
+    expect(first.status).toBe(1);
+
+    const owned = claimed(brain);
+    expect(owned.length).toBeGreaterThan(0);
+    expect(owned.length).toBeLessThan(STARTER_FILES.length);
+
+    rmSync(join(brain, MANIFEST_PATH));
+    const before = hashTree(brain);
+
+    const rerun = spawnSync(process.execPath, [cli, 'init', brain], {
+      encoding: 'utf8',
+    });
+
+    expect(rerun.status).toBe(1);
+    expect(rerun.stdout).toBe('');
+    expect(rerun.stderr).toContain(`${MANIFEST_PATH} is missing`);
+    expect(rerun.stderr).toContain('ownership cannot be determined safely');
+    expect(rerun.stderr).not.toContain('unclaimed');
+    expect(rerun.stderr).not.toContain('Adopted');
+    expect(rerun.stderr).not.toMatch(/EEXIST|EISDIR|EACCES|errno|open|mkdir/);
+    expect(hashTree(brain)).toEqual(before);
+    expect(existsSync(join(brain, MANIFEST_PATH))).toBe(false);
+  });
+
+  it('refuses recovery when every formerly owned starter was edited and the manifest is gone', () => {
+    const brain = join(sandbox, 'built-brain');
+    const first = spawnSync(process.execPath, [cli, 'init', brain], {
+      encoding: 'utf8',
+    });
+    expect(first.status).toBe(0);
+
+    for (const file of STARTER_FILES) {
+      writeFileSync(join(brain, file.path), `# Edited ${file.path}\n`);
+    }
+    rmSync(join(brain, MANIFEST_PATH));
+    const before = hashTree(brain);
+
+    const rerun = spawnSync(process.execPath, [cli, 'init', brain], {
+      encoding: 'utf8',
+    });
+
+    expect(rerun.status).toBe(1);
+    expect(rerun.stdout).toBe('');
+    expect(rerun.stderr).toContain(`${MANIFEST_PATH} is missing`);
+    expect(rerun.stderr).toContain('ownership cannot be determined safely');
+    expect(rerun.stderr).not.toContain('unclaimed');
+    expect(rerun.stderr).not.toContain('Adopted');
+    expect(rerun.stderr).not.toMatch(/EEXIST|EISDIR|EACCES|errno|open|mkdir/);
+    expect(hashTree(brain)).toEqual(before);
+    expect(existsSync(join(brain, MANIFEST_PATH))).toBe(false);
   });
 });
 

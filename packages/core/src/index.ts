@@ -11,6 +11,9 @@
  * and whether they still hold the bytes it wrote. Ownership metadata, not an
  * inventory — absence from it is a positive statement of user ownership.
  *
+ * And URL identity: the normalized form of a source's origin URL, and the
+ * stable ID derived from it, under per-domain rules rather than a blocklist.
+ *
  * Reads may parse freely; writes may not. Every mutation splices the exact span
  * `FrontmatterBlock` reports, so no file is ever re-serialized from a parsed
  * object. Validation still reports rather than repairs — a finding never
@@ -64,6 +67,16 @@ export {
   parseManifest,
   serializeManifest,
 } from './manifest.js';
+export {
+  type NormalizedUrl,
+  type NormalizeResult,
+  normalizeUrl,
+  type SourceIdResult,
+  sourceIdFor,
+  type UrlRefusal,
+  type UrlRefusalCode,
+  type UrlRule,
+} from './url.js';
 export {
   countBySeverity,
   type Finding,

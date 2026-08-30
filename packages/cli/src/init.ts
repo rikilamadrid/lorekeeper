@@ -1,9 +1,11 @@
 /**
  * `lore init <target>` — turn a directory into a brain.
  *
- * Every `fs` call in Lorekeeper lives in this package, and every one on the
- * init path lives in this file. `packages/core` decides what a manifest is;
- * this decides what touches the disk.
+ * Every `fs` call in Lorekeeper lives in this package. `packages/core` decides
+ * what a manifest is; this decides what touches the disk. The rules every
+ * command that writes into a brain has to share — reading the ownership record
+ * before writing, claiming only what was written, refusing to follow a path out
+ * of the brain — live in `brain.ts`, and what is left here is init's own.
  *
  * Three rules constrain the writes below:
  *
@@ -49,27 +51,32 @@ import {
   accessSync,
   constants,
   existsSync,
-  lstatSync,
   mkdirSync,
   readdirSync,
   readFileSync,
   realpathSync,
-  renameSync,
   statSync,
-  unlinkSync,
   writeFileSync,
 } from 'node:fs';
-import { dirname, join, resolve, sep } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import {
-  buildManifest,
   detectDrift,
   isOwned,
   MANIFEST_PATH,
   type Manifest,
   type ManifestEntry,
-  parseManifest,
-  serializeManifest,
 } from '@lorekeeper/core';
+import {
+  type ClaimContext,
+  claim,
+  exists,
+  isDirectory,
+  isInside,
+  isOccupied,
+  isRegularFile,
+  leavesBrain,
+  readInstallationManifest,
+} from './brain.js';
 import { hashBytes, hashText } from './hash.js';
 import type { Streams } from './run.js';
 import { STARTER_FILES, STARTER_FOLDERS, type StarterFile } from './starter.js';
@@ -155,7 +162,7 @@ export function init(
       return 1;
     }
 
-    const installation = readInstallationManifest(target);
+    const installation = readInstallationManifest(target, 'running init again');
     if (!installation.ok) {
       streams.err(`lore init: ${installation.reason}\n`);
       return 1;
@@ -223,7 +230,12 @@ export function init(
       written.push({ path: file.path, sha256: hashText(file.content) });
     }
 
-    const claimed = claim(target, written, options, existingManifest);
+    const claimed = claim(
+      target,
+      written,
+      existingManifest,
+      claimContext(options),
+    );
     if (!claimed.ok) {
       streams.err(`lore init: ${claimed.reason}\n`);
       return 1;
@@ -236,7 +248,7 @@ export function init(
     // leaves a later run able to correct this one. Nothing is removed: deleting
     // inside someone's vault is not this command's decision to make.
     try {
-      claim(target, written, options, existingManifest);
+      claim(target, written, existingManifest, claimContext(options));
     } catch {
       // The original failure is the one worth reporting.
     }
@@ -257,37 +269,6 @@ export function init(
     streams,
   );
   return 0;
-}
-
-type InstallationRead =
-  | { readonly ok: true; readonly manifest: Manifest | null }
-  | { readonly ok: false; readonly reason: string };
-
-/** Read the ownership record before the first write, refusing every ambiguity. */
-function readInstallationManifest(target: string): InstallationRead {
-  const path = join(target, MANIFEST_PATH);
-  if (!exists(path)) {
-    return { ok: true, manifest: null };
-  }
-
-  let text: string;
-  try {
-    text = readFileSync(path, 'utf8');
-  } catch {
-    return {
-      ok: false,
-      reason: `${MANIFEST_PATH} in ${target} cannot be read. Fix its permissions or restore it from backup before running init again. Nothing was written.`,
-    };
-  }
-
-  const parsed = parseManifest(text);
-  if (!parsed.ok) {
-    return {
-      ok: false,
-      reason: `${MANIFEST_PATH} in ${target} cannot be used: ${parsed.refusal.reason} Fix or restore it before running init again. Nothing was written.`,
-    };
-  }
-  return { ok: true, manifest: parsed.manifest };
 }
 
 /** What a manifest-less target shows of a Lorekeeper installation that was here. */
@@ -444,22 +425,6 @@ function describeMetadataDestination(
 }
 
 /**
- * Whether a regular file is what this name leads to, following symlinks.
- *
- * The question is not "is something here" — `exists` answers that — but "could
- * what is here be a manifest". A directory could not, and neither could a
- * symlink pointing at nothing, which `stat` reports by refusing to resolve.
- * A regular file could, and whether it actually is one is not asked here.
- */
-function isRegularFile(path: string): boolean {
-  try {
-    return statSync(path).isFile();
-  } catch {
-    return false;
-  }
-}
-
-/**
  * Whether this process can create a file inside `path` right now.
  *
  * Write permission alone is not enough: creating a file inside a directory
@@ -480,77 +445,6 @@ function holdsAnything(target: string): boolean {
   return existsSync(target) && readdirSync(target).length > 0;
 }
 
-/**
- * Write the manifest for what was actually written, or say why it could not be.
- *
- * Called on the way out of a successful run and again after a failed one, so
- * the toolkit owns what it wrote either way. A first init creates with `wx`.
- * A partial rerun updates the manifest the toolkit already owns, preserving
- * its provenance and every prior entry while adding only this run's writes.
- */
-type ClaimResult =
-  | { readonly ok: true; readonly manifest: Manifest | null }
-  | { readonly ok: false; readonly reason: string };
-
-function claim(
-  target: string,
-  written: readonly ManifestEntry[],
-  options: InitOptions,
-  existing: Manifest | null,
-): ClaimResult {
-  if (written.length === 0) {
-    return { ok: true, manifest: existing };
-  }
-
-  const manifest = buildManifest({
-    toolkitVersion: existing?.toolkitVersion ?? readVersion(),
-    createdAt:
-      existing?.createdAt ?? (options.now?.() ?? new Date()).toISOString(),
-    files: [...(existing?.files ?? []), ...written],
-  });
-  if (!manifest.ok) {
-    return { ok: false, reason: manifest.refusal.reason };
-  }
-
-  const path = join(target, MANIFEST_PATH);
-  mkdirSync(dirname(path), { recursive: true });
-  const serialized = serializeManifest(manifest.manifest);
-  if (existing === null) {
-    writeFileSync(path, serialized, { encoding: 'utf8', flag: 'wx' });
-  } else {
-    replaceManifest(path, serialized);
-  }
-  return { ok: true, manifest: manifest.manifest };
-}
-
-/** Replace an owned manifest atomically, leaving the old record intact on failure. */
-function replaceManifest(path: string, serialized: string): void {
-  const temporary = `${path}.${process.pid}.tmp`;
-  writeFileSync(temporary, serialized, { encoding: 'utf8', flag: 'wx' });
-  try {
-    renameSync(temporary, path);
-  } catch (error) {
-    try {
-      unlinkSync(temporary);
-    } catch {
-      // Preserve the replacement error; a leftover temp file owns no path.
-    }
-    throw error;
-  }
-}
-
-/**
- * Whether this brain-relative path resolves anywhere other than inside `brain`.
- *
- * A symlink is the ordinary way a vault points one of its folders elsewhere,
- * and `mkdir -p` follows one without complaint. Init writes to the directory
- * the user named and to nothing else, so a path that leads out of it is left
- * alone rather than followed.
- */
-function leavesBrain(path: string, brain: string): boolean {
-  return !isInside(path, brain);
-}
-
 /** Why a starter file was not written. */
 type SkipReason = 'occupied' | 'outside';
 
@@ -559,17 +453,12 @@ interface Skip {
   readonly reason: SkipReason;
 }
 
-/**
- * Whether this write failed because something already occupies the path.
- *
- * The three errnos are one condition seen from three angles: the path is a
- * file (`EEXIST`), the path is a directory (`EISDIR`), or a parent of it is a
- * file (`ENOTDIR`). All three mean the same thing here — the user's bytes are
- * there and stay there. Anything else is a real failure and is rethrown.
- */
-function isOccupied(error: unknown): boolean {
-  const code = (error as NodeJS.ErrnoException | null)?.code;
-  return code === 'EEXIST' || code === 'EISDIR' || code === 'ENOTDIR';
+/** The clock and version a first claim would stamp into a new manifest. */
+function claimContext(options: InitOptions): ClaimContext {
+  return {
+    toolkitVersion: readVersion(),
+    now: options.now ?? (() => new Date()),
+  };
 }
 
 interface Report {
@@ -694,57 +583,8 @@ function listSkipped(
   }
 }
 
-/** Whether this path is a directory now, following symlinks as the user would. */
-function isDirectory(path: string): boolean {
-  return existsSync(path) && statSync(path).isDirectory();
-}
-
-/**
- * Whether anything occupies this name, symlink included.
- *
- * `existsSync` follows the link and so calls a dangling symlink absent, which
- * is the wrong answer for a name init is about to try to create.
- */
-function exists(path: string): boolean {
-  try {
-    lstatSync(path);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 function plural(count: number, noun: string): string {
   return count === 1 ? noun : `${noun}s`;
-}
-
-/** Whether `path` is `root` or sits under it, with symlinks resolved. */
-function isInside(path: string, root: string): boolean {
-  const realRoot = realOrNearest(root);
-  const realPath = realOrNearest(path);
-  return realPath === realRoot || realPath.startsWith(realRoot + sep);
-}
-
-/**
- * The real path of the nearest existing ancestor, with the rest appended.
- *
- * A target that does not exist yet still has to be located, and a symlinked
- * parent is the ordinary way a check like this is defeated.
- */
-function realOrNearest(path: string): string {
-  let existing = path;
-  const trailing: string[] = [];
-
-  while (!existsSync(existing)) {
-    const parent = dirname(existing);
-    if (parent === existing) {
-      return path;
-    }
-    trailing.unshift(existing.slice(parent.length + 1));
-    existing = parent;
-  }
-
-  return join(realpathSync(existing), ...trailing);
 }
 
 /**

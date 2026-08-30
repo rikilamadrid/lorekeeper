@@ -1,3 +1,4 @@
+import { capture } from './capture.js';
 import { init } from './init.js';
 import { usage } from './usage.js';
 import { readVersion } from './version.js';
@@ -36,6 +37,10 @@ export function run(argv: readonly string[], streams: Streams): number {
 
   if (first === 'init') {
     return init(argv.slice(1), streams);
+  }
+
+  if (first === 'capture') {
+    return capture(argv.slice(1), streams);
   }
 
   streams.err(`lore: unknown argument "${first}"\n`);

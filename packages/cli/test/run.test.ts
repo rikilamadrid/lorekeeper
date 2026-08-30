@@ -53,8 +53,8 @@ describe('run', () => {
     expect(c.err()).toContain('lore --help');
   });
 
-  it('does not treat an unknown argument as a silent success', () => {
+  it('does not treat an unshipped subcommand as a silent success', () => {
     const c = capture();
-    expect(run(['capture'], c.streams)).toBe(1);
+    expect(run(['search'], c.streams)).toBe(1);
   });
 });

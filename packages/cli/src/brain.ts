@@ -92,7 +92,23 @@ export interface ClaimContext {
  *
  * A first claim creates with `wx`. Every later one updates the manifest the
  * toolkit already owns, preserving its provenance and every prior entry while
- * adding only this run's writes.
+ * recording this run's writes.
+ *
+ * A write to a path the manifest already claims *refreshes* that entry rather
+ * than adding a second one. The manifest may never hold one path twice —
+ * `buildManifest` refuses that, and this function must not be the thing that
+ * hands it a duplicate. Appending blindly is what turned an ordinary sequence
+ * into a failure: capture a source, delete the file, capture it again. The
+ * path is deterministic, so the second write lands exactly where the first
+ * one did, and the run died reporting that its own path was "claimed more than
+ * once" while leaving the manifest holding a hash for bytes that no longer
+ * existed.
+ *
+ * Refreshing is the honest record in every case that can reach here, because
+ * everything that calls this writes with `wx`. A file at a claimed path was
+ * therefore absent a moment ago, and the entry describing it was already stale;
+ * this run's hash is what is true now. No caller can use this to paper over a
+ * user's edit, because a user's file is never overwritten in the first place.
  */
 export function claim(
   target: string,
@@ -107,7 +123,7 @@ export function claim(
   const manifest = buildManifest({
     toolkitVersion: existing?.toolkitVersion ?? context.toolkitVersion,
     createdAt: existing?.createdAt ?? context.now().toISOString(),
-    files: [...(existing?.files ?? []), ...written],
+    files: merge(existing?.files ?? [], written),
   });
   if (!manifest.ok) {
     return { ok: false, reason: manifest.refusal.reason };
@@ -122,6 +138,23 @@ export function claim(
     replaceManifest(path, serialized);
   }
   return { ok: true, manifest: manifest.manifest };
+}
+
+/**
+ * Prior entries plus this run's, with a rewritten path carrying its new hash
+ * instead of appearing twice.
+ *
+ * Order is irrelevant to the result — `buildManifest` sorts by path — so this
+ * keeps it simple and preserves the order it was given.
+ */
+function merge(
+  existing: readonly ManifestEntry[],
+  written: readonly ManifestEntry[],
+): ManifestEntry[] {
+  const fresh = new Map(written.map((entry) => [entry.path, entry]));
+  const merged = existing.map((entry) => fresh.get(entry.path) ?? entry);
+  const kept = new Set(existing.map((entry) => entry.path));
+  return [...merged, ...written.filter((entry) => !kept.has(entry.path))];
 }
 
 /** Replace an owned manifest atomically, leaving the old record intact on failure. */

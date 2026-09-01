@@ -1,4 +1,7 @@
-import { MANIFEST_HASH_ALGORITHM } from '@lorekeeper/core';
+import {
+  MANIFEST_HASH_ALGORITHM,
+  URL_ID_HASH_ALGORITHM,
+} from '@lorekeeper/core';
 import { describe, expect, it } from 'vitest';
 import { hashBytes, hashText } from '../src/hash.js';
 
@@ -15,6 +18,16 @@ describe('hashing', () => {
     for (const [text, digest] of VECTORS) {
       expect(hashText(text)).toBe(digest);
     }
+  });
+
+  /**
+   * `sourceIdFor` takes the hash function rather than reaching for one, so the
+   * algorithm core names for URL identity and the one this package supplies
+   * are held in step here, exactly as the manifest's is.
+   */
+  it('implements the algorithm URL identity names', () => {
+    expect(URL_ID_HASH_ALGORITHM).toBe('sha256');
+    expect(hashText('')).toBe(VECTORS[0]?.[1]);
   });
 
   it('hashes bytes and text identically for the same content', () => {

@@ -31,7 +31,8 @@
  * it, and provenance edges written against the old ID will not resolve — which
  * the FROZEN contract that edges resolve by stable source ID does not permit
  * anyone to shrug at. Adding a rule is therefore a migration, not an
- * extension. Nothing here versions the rule set yet; see ticket 04.3.
+ * extension. Nothing here versions the rule set yet; ticket 04.4 decides the
+ * policy, and until it does, do not add a second rule.
  */
 
 /** Which identity rule spoke for a URL. */
@@ -117,8 +118,25 @@ const RULE_PREFIX: Readonly<Record<UrlRule, string>> = {
   generic: 'url',
 };
 
-/** How many digest characters a generic source ID carries. */
-const DIGEST_LENGTH = 12;
+/**
+ * The hash a generic source ID is a slice of, named here so core and the
+ * package that supplies the platform capability agree on it: SHA-256 over the
+ * normalized URL, lowercase hex. `packages/cli` implements it in `hash.ts`,
+ * and a test holds the two in step.
+ *
+ * Changing this value, or changing what {@link sourceIdFor} feeds it, re-IDs
+ * every `url-` source already written to a user's disk and breaks every
+ * provenance edge pointing at one. A golden literal-ID test exists so that
+ * cannot happen green.
+ */
+export const URL_ID_HASH_ALGORITHM = 'sha256';
+
+/**
+ * How many digest characters a generic source ID carries. Part of the ID
+ * contract for the same reason the algorithm is: changing it re-IDs every
+ * `url-` source.
+ */
+export const URL_ID_DIGEST_LENGTH = 12;
 
 /** A lowercase hex digest long enough to slice an ID from. */
 const HEX_DIGEST = /^[0-9a-f]+$/;
@@ -128,9 +146,21 @@ const HEX_DIGEST = /^[0-9a-f]+$/;
  *
  * The generic path corrects only what is safe everywhere: the scheme and host
  * are lowercased and a default port dropped by `URL` itself, a trailing slash
- * on a non-root path is removed, query parameters are sorted so their order
- * stops mattering, and the fragment is dropped — `#section` addresses a place
- * inside a document, not a different document.
+ * on a non-root path is removed, and query parameters are sorted so their order
+ * stops mattering.
+ *
+ * The fragment is dropped when it is a document anchor — `#section` addresses a
+ * place inside a document, not a different document — and kept when it is
+ * path-shaped, meaning it begins with `/`. A hash-routed application puts the
+ * whole location there: `https://app.example.com/#/notes/5` and `.../#/notes/6`
+ * are two different pages, and dropping the fragment would collapse every page
+ * of such a site into a single source, reporting the second capture as a
+ * duplicate of the first. That is exactly the mistake this module refuses to
+ * make elsewhere — a generic rule that guesses merges two of the user's sources
+ * into one — so it is not made here either. The cost is the other direction:
+ * a site that hash-routes *and* uses anchors keeps `#/notes/5#intro` as its own
+ * source. Splitting one source in two is recoverable; merging two into one is
+ * not, and that asymmetry is what decides the default.
  *
  * Credentials in the authority — `https://user:pass@example.com/x` — are
  * dropped with the rest of the userinfo, so they never decide identity and
@@ -236,19 +266,19 @@ export function sourceIdFor(
   if (
     typeof digest !== 'string' ||
     !HEX_DIGEST.test(digest) ||
-    digest.length < DIGEST_LENGTH
+    digest.length < URL_ID_DIGEST_LENGTH
   ) {
     return {
       ok: false,
       refusal: {
         code: 'digest-malformed',
-        reason: `The hash function returned ${describe(String(digest))}, which is not a lowercase hex digest of at least ${DIGEST_LENGTH} characters.`,
+        reason: `The hash function returned ${describe(String(digest))}, which is not a lowercase hex digest of at least ${URL_ID_DIGEST_LENGTH} characters.`,
       },
     };
   }
   return {
     ok: true,
-    id: `${RULE_PREFIX.generic}-${digest.slice(0, DIGEST_LENGTH)}`,
+    id: `${RULE_PREFIX.generic}-${digest.slice(0, URL_ID_DIGEST_LENGTH)}`,
     normalized,
   };
 }
@@ -301,7 +331,11 @@ function youtubeVideoId(url: URL): string | null {
   return null;
 }
 
-/** The generic normalized form: origin, tidied path, sorted query, no fragment. */
+/**
+ * The generic normalized form: origin, tidied path, sorted query, and the
+ * fragment only when it is path-shaped. See {@link normalizeUrl} for why a
+ * route survives where an anchor does not.
+ */
 function generic(url: URL): string {
   const path =
     url.pathname.length > 1 && url.pathname.endsWith('/')
@@ -312,7 +346,10 @@ function generic(url: URL): string {
   query.sort();
   const search = query.toString();
 
-  return `${url.origin}${path}${search === '' ? '' : `?${search}`}`;
+  // `url.hash` carries its own leading `#`, and is `''` when there is none.
+  const route = url.hash.startsWith('#/') ? url.hash : '';
+
+  return `${url.origin}${path}${search === '' ? '' : `?${search}`}${route}`;
 }
 
 /** What a thrown value says, for a value that need not be an `Error`. */
@@ -323,8 +360,33 @@ function messageOf(error: unknown): string {
   return typeof error === 'string' ? error : String(error);
 }
 
-/** A value quoted for an error message, with long input cut short. */
+/**
+ * The userinfo component of an authority, with whatever follows `//` up to the
+ * `@`. Matched textually rather than through `URL`, because the input that most
+ * needs redacting is the one `URL` refused to parse.
+ */
+const USERINFO = /\/\/[^/?#@\s]*@/g;
+
+/**
+ * A value quoted for an error message, with credentials removed and long input
+ * cut short.
+ *
+ * {@link normalizeUrl} drops userinfo so a password never decides identity and
+ * never reaches a provenance graph the user greps. A refusal has to hold the
+ * same line: these reasons are printed by the CLI, and a message is copied into
+ * a terminal transcript, a bug report, or a screenshot far more readily than a
+ * file is. `https://user:pass@example.com` is refused as
+ * `"https://<redacted>@example.com"`.
+ *
+ * The whole userinfo goes, not just the password after the colon. A bare
+ * username is still a credential half, and telling the user which account they
+ * typed is not worth putting it in every log that catches this message.
+ *
+ * Redaction happens before the length cut, so a long URL cannot push the
+ * credentials past the ellipsis and out of reach of the substitution.
+ */
 function describe(value: string): string {
-  const shown = value.length > 80 ? `${value.slice(0, 77)}...` : value;
+  const safe = value.replace(USERINFO, '//<redacted>@');
+  const shown = safe.length > 80 ? `${safe.slice(0, 77)}...` : safe;
   return shown === '' ? 'an empty string' : `"${shown}"`;
 }

@@ -6,8 +6,10 @@ In Progress
 
 ## Goal
 
-`lore capture` writes a self-describing, greppable item into the inbox, and
-when the captured thing is a URL it mints a deterministic stable source ID.
+`lore capture` writes a self-describing, greppable item, filed by what it is:
+a plain-text capture lands in `inbox/`, and a URL becomes a source in
+`sources/` under the deterministic stable source ID minted from its
+normalized form.
 
 ## Context
 
@@ -32,7 +34,9 @@ when the captured thing is a URL it mints a deterministic stable source ID.
   lookup rule, because the caller names the one it means.
 - A captured item is useful before any processing: self-describing frontmatter
   plus the captured content, findable with `grep`.
-- Capture writes only into the inbox, and only files the manifest owns.
+- Capture writes into `inbox/` and `sources/` and nowhere else: a plain-text
+  capture lands in `inbox/`, a captured URL lands in `sources/`. Either way it
+  writes only files the manifest owns.
 - Capturing a URL produces a stable source ID derived from a normalized URL.
 - URL normalization is per-domain, not a generic tracking-parameter blocklist.
   The normalization rules are documented in `packages/core`.
@@ -43,8 +47,10 @@ when the captured thing is a URL it mints a deterministic stable source ID.
   such as `?page=2` intact on generic URLs.
 - Capturing the same URL twice reports the existing source rather than creating
   a second one.
-- Provenance written at capture time goes through the Feature 02 mutation
-  operations, never through hand-assembled YAML.
+- A source file is created with its initial validated frontmatter composed
+  directly. Creating a file is not mutating one.
+- Every later change to provenance or edges on a file that already exists goes
+  through the Feature 02 mutation operations, never through hand-assembled YAML.
 - Capture makes no network call. It does not fetch, transcribe, or summarize
   anything at the URL.
 
@@ -77,3 +83,18 @@ when the captured thing is a URL it mints a deterministic stable source ID.
 - Depends on Features 02 and 03.
 - The binary name is `lore`, resolved 2026-08-21. Command vocabulary beyond
   `capture` is not settled here.
+- The two Requirements about provenance were one line until 2026-08-31, reading
+  that provenance written at capture time goes through the Feature 02 mutation
+  operations. It was split to match the decision recorded on ticket `04.3`
+  (issue #12) on 2026-08-28 and delivered there: creating a brand-new source
+  file with its first validated frontmatter is file creation, not mutation of an
+  existing note, so it composes the file directly. Feature 02 is not widened,
+  and no core mutation API exists merely to write the first version of a file.
+  This records the boundary that was always meant; it grants nothing new.
+- The Requirement about where capture writes read "only into the inbox" until
+  2026-09-01. That was accurate before `04.3` and stale after it: the same
+  Requirements section already described minting a source ID and reporting an
+  existing source, and `04.3` delivered captured URLs into `sources/`. The line
+  was corrected to name both folders. The guarantee it carries is unchanged —
+  capture writes to those two folders and no others, and only to files the
+  manifest owns.

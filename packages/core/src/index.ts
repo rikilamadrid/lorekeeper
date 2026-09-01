@@ -73,6 +73,8 @@ export {
   normalizeUrl,
   type SourceIdResult,
   sourceIdFor,
+  URL_ID_DIGEST_LENGTH,
+  URL_ID_HASH_ALGORITHM,
   type UrlRefusal,
   type UrlRefusalCode,
   type UrlRule,

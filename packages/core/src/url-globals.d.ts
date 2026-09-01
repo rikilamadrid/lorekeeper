@@ -33,6 +33,8 @@ declare global {
     readonly hostname: string;
     readonly origin: string;
     readonly pathname: string;
+    /** The fragment, with its leading `#`, or `''` when there is none. */
+    readonly hash: string;
     readonly searchParams: URLSearchParams;
   }
 

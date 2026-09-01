@@ -425,6 +425,323 @@ describe('capture through run', () => {
   });
 });
 
+/** The files capture added under `sources/`, relative to the brain. */
+function sourceFiles(brain: string): string[] {
+  return walk(brain).filter(
+    (path) => path.startsWith('sources/') && path !== 'sources/README.md',
+  );
+}
+
+const VIDEO = 'https://www.youtube.com/watch?v=aQb3Q9nCsK4';
+
+describe('capturing a URL as a source', () => {
+  it('writes it to sources/ with its origin URL and stable ID', () => {
+    const brain = brainAt('brain');
+    const result = captureInto(brain, VIDEO);
+
+    expect(result.code).toBe(0);
+    expect(result.err).toBe('');
+    expect(sourceFiles(brain)).toEqual(['sources/yt-aQb3Q9nCsK4.md']);
+    expect(inboxItems(brain)).toEqual([]);
+
+    const path = join(brain, 'sources', 'yt-aQb3Q9nCsK4.md');
+    const document = readDocument('yt-aQb3Q9nCsK4', readFileSync(path, 'utf8'));
+
+    expect(document.frontmatter.id).toBe('yt-aQb3Q9nCsK4');
+    expect(document.frontmatter.url).toBe(VIDEO);
+    // The offset is the writer's own, so only the local wall clock is fixed.
+    expect(document.frontmatter.created).toMatch(/^2026-08-29T12:30:15[+-]/);
+    expect(document.body.trim()).toBe(VIDEO);
+    expect(validateDocument({ file: path, document })).toEqual([]);
+    expect(claimed(brain)).toContain('sources/yt-aQb3Q9nCsK4.md');
+  });
+
+  it('stores the URL as the user wrote it, not the normalized form', () => {
+    const brain = brainAt('brain');
+    const asTyped = 'https://youtu.be/aQb3Q9nCsK4?list=PL9&index=4';
+    captureInto(brain, asTyped);
+
+    const path = join(brain, 'sources', 'yt-aQb3Q9nCsK4.md');
+    const document = readDocument('x', readFileSync(path, 'utf8'));
+
+    expect(document.frontmatter.url).toBe(asTyped);
+    expect(document.frontmatter.id).toBe('yt-aQb3Q9nCsK4');
+  });
+
+  it('gives a URL with no domain rule a generic ID', () => {
+    const brain = brainAt('brain');
+    const result = captureInto(brain, 'https://example.com/page');
+
+    expect(result.code).toBe(0);
+    expect(sourceFiles(brain)).toEqual(['sources/url-3641c5f2274c.md']);
+  });
+
+  it('keeps writing an ordinary thought to the inbox', () => {
+    const brain = brainAt('brain');
+    captureInto(brain, 'the retry worry from the walk');
+
+    expect(sourceFiles(brain)).toEqual([]);
+    expect(inboxItems(brain)).toHaveLength(1);
+  });
+
+  /**
+   * `URL` parses this as scheme `javascript:` with an opaque path. A capture
+   * command that answered a typed thought with a scheme complaint would be
+   * broken in the way users never forgive, so whitespace settles it first.
+   */
+  it('treats text that merely parses as a URL as the thought it is', () => {
+    const brain = brainAt('brain');
+    const result = captureInto(brain, 'javascript: the good parts, revisited');
+
+    expect(result.code).toBe(0);
+    expect(sourceFiles(brain)).toEqual([]);
+    expect(inboxItems(brain)).toHaveLength(1);
+  });
+
+  it('refuses a bare URL whose scheme a source cannot have', () => {
+    const brain = brainAt('brain');
+    const before = hashTree(brain);
+    const result = captureInto(brain, 'mailto:someone@example.com');
+
+    expect(result.code).toBe(1);
+    expect(result.err).toContain('http or https');
+    expect(hashTree(brain)).toEqual(before);
+  });
+
+  it('never puts credentials from a refused URL into its own message', () => {
+    const brain = brainAt('brain');
+    const result = captureInto(brain, 'ftp://user:hunter2@example.com/paper');
+
+    expect(result.code).toBe(1);
+    expect(result.err).not.toContain('hunter2');
+    expect(result.err).toContain('<redacted>');
+  });
+});
+
+describe('capturing the same source twice', () => {
+  it('reports the existing file and writes nothing', () => {
+    const brain = brainAt('brain');
+    expect(captureInto(brain, VIDEO).code).toBe(0);
+    const after = hashTree(brain);
+
+    const second = captureInto(brain, 'https://youtu.be/aQb3Q9nCsK4?list=PL9');
+
+    expect(second.code).toBe(0);
+    expect(second.err).toBe('');
+    expect(second.out).toContain(join(brain, 'sources', 'yt-aQb3Q9nCsK4.md'));
+    expect(second.out).toContain('yt-aQb3Q9nCsK4');
+    expect(second.out).toContain('Nothing was written.');
+
+    expect(sourceFiles(brain)).toEqual(['sources/yt-aQb3Q9nCsK4.md']);
+    // Byte for byte, including the manifest: a duplicate changes nothing.
+    expect(hashTree(brain)).toEqual(after);
+  });
+
+  it('collapses five variants of one video onto one file', () => {
+    const brain = brainAt('brain');
+    for (const variant of [
+      VIDEO,
+      'https://youtu.be/aQb3Q9nCsK4',
+      'https://m.youtube.com/watch?v=aQb3Q9nCsK4&list=PL9&index=4',
+      'https://www.youtube.com/embed/aQb3Q9nCsK4',
+      'https://music.youtube.com/watch?v=aQb3Q9nCsK4&t=90',
+    ]) {
+      expect(captureInto(brain, variant).code).toBe(0);
+    }
+
+    expect(sourceFiles(brain)).toEqual(['sources/yt-aQb3Q9nCsK4.md']);
+    expect(
+      claimed(brain).filter(
+        (path) => path.startsWith('sources/') && path !== 'sources/README.md',
+      ),
+    ).toEqual(['sources/yt-aQb3Q9nCsK4.md']);
+  });
+
+  it('keeps a URL whose ?page=2 is meaningful distinct', () => {
+    const brain = brainAt('brain');
+    captureInto(brain, 'https://example.com/page');
+    captureInto(brain, 'https://example.com/page?page=2');
+
+    expect(sourceFiles(brain)).toHaveLength(2);
+  });
+
+  /**
+   * The duplicate decides on the `id` in the frontmatter and on nothing else.
+   * A user is free to rename a source or move it out of `sources/`; it is the
+   * same source afterwards, and capturing its URL again must still say so.
+   */
+  it('finds the source wherever the user has since filed it', () => {
+    const brain = brainAt('brain');
+    captureInto(brain, VIDEO);
+
+    const original = join(brain, 'sources', 'yt-aQb3Q9nCsK4.md');
+    const moved = join(brain, 'knowledge', 'hohpe-on-messaging.md');
+    mkdirSync(join(brain, 'knowledge'), { recursive: true });
+    writeFileSync(moved, readFileSync(original, 'utf8'));
+    rmSync(original);
+
+    const second = captureInto(brain, VIDEO);
+
+    expect(second.code).toBe(0);
+    expect(second.out).toContain(moved);
+    expect(sourceFiles(brain)).toEqual([]);
+  });
+
+  it('is not fooled by a filename that merely looks like the ID', () => {
+    const brain = brainAt('brain');
+    mkdirSync(join(brain, 'sources'), { recursive: true });
+    writeFileSync(
+      join(brain, 'sources', 'yt-aQb3Q9nCsK4.md'),
+      '# notes I made before I had the tool\n',
+    );
+
+    const result = captureInto(brain, VIDEO);
+
+    expect(result.code).toBe(0);
+    // The user's file is untouched and unclaimed; the source took another name.
+    expect(
+      readFileSync(join(brain, 'sources', 'yt-aQb3Q9nCsK4.md'), 'utf8'),
+    ).toBe('# notes I made before I had the tool\n');
+    expect(sourceFiles(brain)).toContain('sources/yt-aQb3Q9nCsK4-2.md');
+    const document = readDocument(
+      'x',
+      readFileSync(join(brain, 'sources', 'yt-aQb3Q9nCsK4-2.md'), 'utf8'),
+    );
+    expect(document.frontmatter.id).toBe('yt-aQb3Q9nCsK4');
+  });
+
+  it('keeps scanning past a file it cannot parse', () => {
+    const brain = brainAt('brain');
+    captureInto(brain, VIDEO);
+    writeFileSync(join(brain, 'inbox', 'broken.md'), '---\n: : :\n---\nx\n');
+
+    const second = captureInto(brain, VIDEO);
+
+    expect(second.code).toBe(0);
+    expect(second.out).toContain('Nothing was written.');
+    expect(sourceFiles(brain)).toEqual(['sources/yt-aQb3Q9nCsK4.md']);
+  });
+
+  it('makes no network call while identifying a URL', () => {
+    // Nothing in capture can reach the network: `packages/core` compiles
+    // without `fetch`, and this package's URL path only parses and hashes. The
+    // observable guarantee is that identifying a URL touches no socket, which
+    // a capture completing against an unroutable host demonstrates.
+    const brain = brainAt('brain');
+    const result = captureInto(brain, 'https://192.0.2.1/paper');
+
+    expect(result.code).toBe(0);
+    expect(sourceFiles(brain)).toHaveLength(1);
+  });
+});
+
+/**
+ * The tester's medium finding. A source path is deterministic, so deleting the
+ * file and capturing its URL again writes to exactly the path the manifest
+ * already claims. Appending that claim made the run fail on its own path and
+ * left the manifest describing bytes that no longer existed.
+ */
+describe('recapturing a source whose file was deleted', () => {
+  it('restores the managed path and succeeds', () => {
+    const brain = brainAt('brain');
+    expect(captureInto(brain, VIDEO).code).toBe(0);
+
+    rmSync(join(brain, 'sources', 'yt-aQb3Q9nCsK4.md'));
+
+    const again = captureInto(brain, VIDEO);
+
+    expect(again.code).toBe(0);
+    expect(again.err).toBe('');
+    // The same deterministic path, not a suffixed one.
+    expect(sourceFiles(brain)).toEqual(['sources/yt-aQb3Q9nCsK4.md']);
+    expect(again.out).toContain(join(brain, 'sources', 'yt-aQb3Q9nCsK4.md'));
+  });
+
+  it('leaves the manifest agreeing with the file it just wrote', () => {
+    const brain = brainAt('brain');
+    captureInto(brain, VIDEO);
+    rmSync(join(brain, 'sources', 'yt-aQb3Q9nCsK4.md'));
+    // A later second, so the restored file's `created` really differs.
+    captureInto(brain, VIDEO, { now: () => new Date(2026, 7, 29, 14, 0, 0) });
+
+    const read = parseManifest(
+      readFileSync(join(brain, MANIFEST_PATH), 'utf8'),
+    );
+    if (!read.ok) throw new Error(read.refusal.reason);
+
+    const claims = read.manifest.files.filter(
+      (file) => file.path === 'sources/yt-aQb3Q9nCsK4.md',
+    );
+    // Claimed exactly once: the entry was refreshed, not duplicated.
+    expect(claims).toHaveLength(1);
+    expect(claims[0]?.sha256).toBe(
+      hashBytes(readFileSync(join(brain, 'sources', 'yt-aQb3Q9nCsK4.md'))),
+    );
+  });
+
+  it('leaves no temporary file or partial manifest behind', () => {
+    const brain = brainAt('brain');
+    captureInto(brain, VIDEO);
+    rmSync(join(brain, 'sources', 'yt-aQb3Q9nCsK4.md'));
+    captureInto(brain, VIDEO);
+
+    expect(readdirSync(join(brain, '.lorekeeper'))).toEqual(['manifest.json']);
+    expect(
+      parseManifest(readFileSync(join(brain, MANIFEST_PATH), 'utf8')).ok,
+    ).toBe(true);
+  });
+
+  it('still refuses to overwrite a file the user put at that path', () => {
+    const brain = brainAt('brain');
+    captureInto(brain, VIDEO);
+    rmSync(join(brain, 'sources', 'yt-aQb3Q9nCsK4.md'));
+    writeFileSync(join(brain, 'sources', 'yt-aQb3Q9nCsK4.md'), '# mine now\n');
+
+    const again = captureInto(brain, VIDEO);
+
+    expect(again.code).toBe(0);
+    expect(
+      readFileSync(join(brain, 'sources', 'yt-aQb3Q9nCsK4.md'), 'utf8'),
+    ).toBe('# mine now\n');
+    expect(sourceFiles(brain)).toContain('sources/yt-aQb3Q9nCsK4-2.md');
+  });
+});
+
+describe('a URL carrying a control character', () => {
+  // Not whitespace, so `identify` lets it through, and the WHATWG parser
+  // accepts it. Written raw it would be an invalid YAML 1.2 double-quoted
+  // scalar in a file the user keeps.
+  const CONTROL = `https://example.com/${String.fromCharCode(1)}x`;
+
+  it('escapes it in the frontmatter rather than writing it raw', () => {
+    const brain = brainAt('brain');
+    expect(captureInto(brain, CONTROL).code).toBe(0);
+
+    const path = join(brain, sourceFiles(brain)[0] as string);
+    const text = readFileSync(path, 'utf8');
+    const frontmatter = text.slice(0, text.indexOf('\n---\n', 4));
+
+    expect(frontmatter).toContain('\\x01');
+    // The scalar is the part that has to be valid YAML, so it is the part that
+    // must not hold the raw byte. The body below it is Markdown, and it keeps
+    // the URL exactly as the user typed it.
+    expect(frontmatter).not.toContain(String.fromCharCode(1));
+    expect(text).toContain(CONTROL);
+  });
+
+  it('reads back as the URL that was captured, and validates', () => {
+    const brain = brainAt('brain');
+    captureInto(brain, CONTROL);
+
+    const path = join(brain, sourceFiles(brain)[0] as string);
+    const document = readDocument('x', readFileSync(path, 'utf8'));
+
+    expect(document.parseError).toBe(null);
+    expect(document.frontmatter.url).toBe(CONTROL);
+    expect(validateDocument({ file: path, document })).toEqual([]);
+  });
+});
+
 describe('the built capture binary', () => {
   const cli = join(REPO_ROOT, 'packages', 'cli', 'dist', 'cli.js');
 
@@ -455,6 +772,108 @@ describe('the built capture binary', () => {
     expect(grep.stdout.trim().split('\n')).toHaveLength(1);
     expect(grep.stdout).toContain(`${join(brain, 'inbox')}/`);
     expect(result.stdout).toContain(grep.stdout.trim());
+  });
+
+  it('captures a URL once and reports the second as a duplicate', () => {
+    const brain = join(sandbox, 'built-source-brain');
+    expect(
+      spawnSync(process.execPath, [cli, 'init', brain], { encoding: 'utf8' })
+        .status,
+    ).toBe(0);
+
+    const first = spawnSync(
+      process.execPath,
+      [cli, 'capture', brain, 'https://www.youtube.com/watch?v=aQb3Q9nCsK4'],
+      { encoding: 'utf8' },
+    );
+    expect(first.status).toBe(0);
+    expect(first.stderr).toBe('');
+    expect(first.stdout).toContain(join(brain, 'sources', 'yt-aQb3Q9nCsK4.md'));
+
+    const after = hashTree(brain);
+
+    const second = spawnSync(
+      process.execPath,
+      [
+        cli,
+        'capture',
+        brain,
+        'https://m.youtube.com/watch?v=aQb3Q9nCsK4&list=PL9&index=4',
+      ],
+      { encoding: 'utf8' },
+    );
+    expect(second.status).toBe(0);
+    expect(second.stderr).toBe('');
+    expect(second.stdout).toContain('Already captured as');
+    expect(second.stdout).toContain(
+      join(brain, 'sources', 'yt-aQb3Q9nCsK4.md'),
+    );
+
+    // The brain is byte-for-byte what it was before the duplicate run.
+    expect(hashTree(brain)).toEqual(after);
+
+    const grep = spawnSync(
+      'grep',
+      ['-rl', '--include=*.md', 'aQb3Q9nCsK4', brain],
+      { encoding: 'utf8' },
+    );
+    expect(grep.status).toBe(0);
+    expect(grep.stdout.trim().split('\n')).toEqual([
+      join(brain, 'sources', 'yt-aQb3Q9nCsK4.md'),
+    ]);
+  });
+
+  /**
+   * The tester's medium finding, end to end and through the real binary:
+   * capture, delete the file, capture the same URL. The manifest and the file
+   * must agree afterwards, and `lore init` must not report a file the toolkit
+   * itself just restored as modified.
+   */
+  it('restores a deleted source and leaves init reporting no drift', () => {
+    const brain = join(sandbox, 'built-restore-brain');
+    const url = 'https://www.youtube.com/watch?v=aQb3Q9nCsK4';
+    const source = join(brain, 'sources', 'yt-aQb3Q9nCsK4.md');
+
+    expect(
+      spawnSync(process.execPath, [cli, 'init', brain], { encoding: 'utf8' })
+        .status,
+    ).toBe(0);
+    expect(
+      spawnSync(process.execPath, [cli, 'capture', brain, url], {
+        encoding: 'utf8',
+      }).status,
+    ).toBe(0);
+
+    rmSync(source);
+
+    const again = spawnSync(process.execPath, [cli, 'capture', brain, url], {
+      encoding: 'utf8',
+    });
+    expect(again.status).toBe(0);
+    expect(again.stderr).toBe('');
+    expect(again.stdout).toContain(source);
+
+    // The manifest claims that path exactly once, with the hash of the bytes
+    // that are actually there.
+    const read = parseManifest(
+      readFileSync(join(brain, MANIFEST_PATH), 'utf8'),
+    );
+    if (!read.ok) throw new Error(read.refusal.reason);
+    const claims = read.manifest.files.filter(
+      (file) => file.path === 'sources/yt-aQb3Q9nCsK4.md',
+    );
+    expect(claims).toHaveLength(1);
+    expect(claims[0]?.sha256).toBe(hashBytes(readFileSync(source)));
+
+    // Nothing partial is left where the manifest is rewritten.
+    expect(readdirSync(join(brain, '.lorekeeper'))).toEqual(['manifest.json']);
+
+    const reinit = spawnSync(process.execPath, [cli, 'init', brain], {
+      encoding: 'utf8',
+    });
+    expect(reinit.status).toBe(0);
+    expect(reinit.stdout).toContain('unchanged: sources/yt-aQb3Q9nCsK4.md');
+    expect(reinit.stdout).not.toContain('modified: sources/yt-aQb3Q9nCsK4.md');
   });
 
   it('exits non-zero against a directory that is not a brain', () => {
@@ -596,6 +1015,24 @@ describe('capture that could not be recorded', () => {
     // through a temporary file created next to it.
     expect(result.err).toContain(`make ${join(brain, '.lorekeeper')} writable`);
     expect(result.err).not.toMatch(ERRNO_LEAK);
+  });
+
+  /**
+   * The permissions remedy belongs to a write failure and to nothing else, so
+   * this asserts it is reached by the failure it describes. The other branch —
+   * a manifest that is writable and refused what it was asked to record — is
+   * defensive: `parseManifest` rejects everything `buildManifest` would, and
+   * `claim` no longer builds a duplicate path, so no input to `capture` is
+   * known to reach it. It is kept because a wrong remedy is worse than none.
+   */
+  it('names permissions only because permissions are what failed', () => {
+    const brain = brainAt('brain');
+
+    const result = captureWithUnwritableManifest(brain);
+
+    expect(result.code).toBe(1);
+    expect(result.err).toContain(`make ${join(brain, '.lorekeeper')} writable`);
+    expect(result.err).not.toContain('what it says is the problem');
   });
 
   it('leaves the capture readable and intact on disk', () => {

@@ -2,7 +2,12 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { normalizeUrl, sourceIdFor } from '../src/url.js';
+import {
+  normalizeUrl,
+  sourceIdFor,
+  URL_ID_DIGEST_LENGTH,
+  URL_ID_HASH_ALGORITHM,
+} from '../src/url.js';
 
 /**
  * A real SHA-256, the same one `packages/cli` passes in. Core never computes a
@@ -140,9 +145,33 @@ describe('generic identity', () => {
     );
   });
 
-  it('drops the fragment, which addresses a place inside one document', () => {
+  it('drops an anchor fragment, which addresses a place inside one document', () => {
     expect(normalized('https://example.com/x#section-3')).toBe(
       'https://example.com/x',
+    );
+  });
+
+  /**
+   * The decision recorded in {@link normalizeUrl}: a path-shaped fragment is
+   * the location on a hash-routed site, not a place inside a document.
+   * Dropping it would make every page of such a site one source, and report
+   * the second page a user captured as a duplicate of the first.
+   */
+  it('keeps a path-shaped fragment, which is a hash-routed location', () => {
+    expect(normalized('https://app.example.com/#/notes/5')).toBe(
+      'https://app.example.com/#/notes/5',
+    );
+  });
+
+  it('keeps two hash-routed pages of one app apart', () => {
+    expect(id('https://app.example.com/#/notes/5')).not.toBe(
+      id('https://app.example.com/#/notes/6'),
+    );
+  });
+
+  it('still drops an anchor on a page that has a route as well', () => {
+    expect(normalized('https://app.example.com/notes#intro')).toBe(
+      'https://app.example.com/notes',
     );
   });
 
@@ -304,6 +333,59 @@ describe('refusals', () => {
   it('gives a reason a human can act on, without inventing a fix', () => {
     const result = sourceIdFor('mailto:someone@example.com', sha256);
     expect(!result.ok && result.refusal.reason).toContain('http or https');
+  });
+
+  /**
+   * `normalizeUrl` drops credentials so a password never decides identity and
+   * never reaches a provenance graph. A refusal is printed, copied into
+   * transcripts, and pasted into bug reports, so it has to hold the same line.
+   */
+  it('never echoes credentials back in the reason it refuses', () => {
+    for (const raw of [
+      'ftp://user:hunter2@example.com/x',
+      'not a url http://user:hunter2@example.com',
+      'ssh://hunter2@example.com',
+    ]) {
+      const result = sourceIdFor(raw, sha256);
+      expect(result.ok).toBe(false);
+      const reason = !result.ok ? result.refusal.reason : '';
+      expect(reason).not.toContain('hunter2');
+      expect(reason).toContain('<redacted>');
+    }
+  });
+
+  it('redacts before it truncates, so length cannot hide a credential', () => {
+    const long = `ftp://user:hunter2@example.com/${'a'.repeat(400)}`;
+    const result = sourceIdFor(long, sha256);
+    expect(!result.ok && result.refusal.reason).not.toContain('hunter2');
+  });
+});
+
+/**
+ * The ID contract, pinned. A generic source ID is a slice of a digest, and the
+ * digest and the slice length are as much a part of a user's file as the bytes
+ * around them: change either and every `url-` source on disk is re-IDed, while
+ * every provenance edge pointing at one stops resolving. Literal IDs are held
+ * here so that change cannot pass green.
+ */
+describe('the generic source ID contract', () => {
+  it('names the hash a source ID is a slice of', () => {
+    expect(URL_ID_HASH_ALGORITHM).toBe('sha256');
+    expect(URL_ID_DIGEST_LENGTH).toBe(12);
+  });
+
+  it.each([
+    ['https://example.com/page', 'url-3641c5f2274c'],
+    ['https://example.com/page?page=2', 'url-7fdba0ac3b6b'],
+    ['https://app.example.com/#/notes/5', 'url-391b24be8b51'],
+  ])('mints %s as %s, now and in every later version', (raw, expected) => {
+    expect(id(raw)).toBe(expected);
+  });
+
+  it('carries the rule prefix and exactly the named digest length', () => {
+    const minted = id('https://example.com/page');
+    expect(minted.startsWith('url-')).toBe(true);
+    expect(minted.length).toBe('url-'.length + URL_ID_DIGEST_LENGTH);
   });
 });
 

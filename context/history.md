@@ -4,6 +4,29 @@ Compact record of completed work.
 
 ## Completed
 
+### 2026-09-01 — Feature 04: `lore capture`
+
+- Outcome: `lore capture <brain> <item>` writes a greppable, self-describing
+  inbox item, while a URL is normalized under a per-domain identity rule and
+  written as a validated source carrying its stable ID and origin URL. A repeat
+  capture finds that ID across the brain, reports the existing source, and
+  writes nothing. Capture remains offline. YouTube is the only v0.1 domain
+  rule; the rule set is closed and versioned so claiming a host that already
+  has `url-` sources requires a deliberate migration of IDs and inbound
+  provenance edges rather than passing as a drop-in extension.
+- Verification: `npm run lint`, `npm run build`, and `npm test` (620 tests, 13
+  files) clean. PR #18 CI passed on macOS and Ubuntu. The Feature's delivery
+  tickets separately verified explicit-brain refusal without writes, greppable
+  inbox capture, built-artifact URL normalization, validated source creation,
+  duplicate capture with a byte-identical brain, and the rule-set migration
+  guard.
+- Commit/PR: PRs #15 (`04.1`), #14 (`04.2`), #17 (`04.3`), and #18 (`04.4`),
+  squash-merged to `main`.
+- Follow-up: adding any second domain identity rule must bump the rule-set
+  version and migrate every affected `url-` source ID together with its inbound
+  provenance edges. The migration itself remains out of scope until such a
+  rule is approved.
+
 ### 2026-08-28 — Feature 03: `lore init` and the Managed Manifest
 
 - Outcome: `lore init` produces a working brain — thin folder set, starter

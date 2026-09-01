@@ -7,6 +7,8 @@ import {
   sourceIdFor,
   URL_ID_DIGEST_LENGTH,
   URL_ID_HASH_ALGORITHM,
+  URL_RULE_SET,
+  URL_RULE_SET_VERSION,
 } from '../src/url.js';
 
 /**
@@ -386,6 +388,57 @@ describe('the generic source ID contract', () => {
     const minted = id('https://example.com/page');
     expect(minted.startsWith('url-')).toBe(true);
     expect(minted.length).toBe('url-'.length + URL_ID_DIGEST_LENGTH);
+  });
+});
+
+/**
+ * 04.4's guard. The rule set is closed for v0.1, and this is what makes that a
+ * fact rather than a comment: adding a rule cannot reach `main` green.
+ *
+ * The first test fails on any change to the set. The second shows *why* that
+ * matters, using the only domain rule that exists as the worked example —
+ * a host a rule claims is identified by that rule's key, and the `url-` digest
+ * the generic rule would have minted for the same URL is a different string.
+ * That is precisely the breakage a second rule inflicts on sources already on
+ * a user's disk, and the FROZEN contract that provenance edges resolve by
+ * stable source ID does not permit it.
+ */
+describe('the identity rule set is closed', () => {
+  it('pins every rule and its prefix', () => {
+    // Adding a rule here is a MIGRATION, not an extension. Bump
+    // URL_RULE_SET_VERSION and rewrite the IDs and inbound provenance edges of
+    // every already-captured `url-` source whose host the new rule claims.
+    expect(URL_RULE_SET).toEqual({ youtube: 'yt', generic: 'url' });
+    expect(URL_RULE_SET_VERSION).toBe(1);
+  });
+
+  it('re-IDs a source when a rule claims the host it was captured under', () => {
+    const raw = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+
+    // What the YouTube rule mints today.
+    const claimed = id(raw);
+    expect(claimed).toBe('yt-dQw4w9WgXcQ');
+
+    // What the generic rule would have minted for the same normalized URL —
+    // the ID this source would carry had no domain rule spoken for its host.
+    const unclaimed = `${URL_RULE_SET.generic}-${sha256(normalized(raw)).slice(
+      0,
+      URL_ID_DIGEST_LENGTH,
+    )}`;
+
+    // The two never coincide, so a source captured before the rule existed
+    // keeps an ID nothing mints any more and every edge to it dangles.
+    expect(unclaimed).not.toBe(claimed);
+    expect(unclaimed.startsWith('url-')).toBe(true);
+  });
+
+  it('leaves a host no rule claims on the generic rule', () => {
+    // The worked example from the ticket. While the set stays pinned this ID
+    // is stable; the day a rule claims this host it changes, which is the
+    // migration the policy forbids shipping by accident.
+    const minted = id('https://podcast.example.com/ep/12');
+    expect(minted).toBe('url-3993712d10e3');
+    expect(minted.startsWith(`${URL_RULE_SET.generic}-`)).toBe(true);
   });
 });
 

@@ -25,32 +25,64 @@
  * package can see, declared narrowly in `url-globals.d.ts` so that reaching for
  * a URL parser does not also hand core `fetch`.
  *
- * KNOWN LIMITATION, for whoever adds the second rule: a source ID is stable
- * only while the rule that minted it keeps speaking for the URL. A URL that is
+ * RULE SET EVOLUTION, decided in ticket 04.4: a source ID is stable only while
+ * the rule that minted it keeps speaking for the URL. A URL that is
  * `url-<digest>` today becomes `<prefix>-<key>` the day a domain rule claims
  * it, and provenance edges written against the old ID will not resolve — which
  * the FROZEN contract that edges resolve by stable source ID does not permit
- * anyone to shrug at. Adding a rule is therefore a migration, not an
- * extension. Nothing here versions the rule set yet; ticket 04.4 decides the
- * policy, and until it does, do not add a second rule.
+ * anyone to shrug at.
+ *
+ * The policy is the third of the three 04.4 weighed, and it is a hard limit
+ * rather than a mechanism: **the rule set is closed for v0.1**. Changing it is
+ * a migration someone performs deliberately, not an extension that ships
+ * because the suite stayed green. {@link URL_RULE_SET} pins the rules and
+ * their prefixes and {@link URL_RULE_SET_VERSION} numbers the set, and a guard
+ * test asserts both alongside golden IDs for URLs the generic rule owns today.
+ * Adding a rule fails that test, and the failure is the conversation. A rule
+ * cannot hide behind the existing `generic` label either: {@link NormalizedUrl}
+ * makes that variant keyless, and {@link sourceIdFor} selects keyed identity by
+ * the declared rule rather than by the incidental shape of its data.
+ *
+ * The other two options were not built, deliberately. Recording the minting
+ * rule in each source file duplicates what the ID prefix already says and
+ * changes the frontmatter schema Feature 04 now depends on. Re-IDing on a
+ * version bump means rewriting edges inside a user's brain, which is
+ * machinery for a second rule that v0.1 has decided not to have — and this
+ * project loses a user's notes over nothing.
+ *
+ * What a later version must do, when a rule is genuinely wanted: bump
+ * {@link URL_RULE_SET_VERSION}, and treat every already-captured `url-` source
+ * whose host the new rule claims as needing its ID and its inbound edges
+ * rewritten together. That is the migration. It is out of scope here because
+ * v0.1 ships one domain rule.
  */
 
 /** Which identity rule spoke for a URL. */
-export type UrlRule = 'youtube' | 'generic';
+export type UrlRule = NormalizedUrl['rule'];
 
-/** A URL reduced to the form that decides its identity. */
-export interface NormalizedUrl {
-  /** The normalized URL, serialized. Two equal strings are the same source. */
-  readonly url: string;
-  /** The rule that produced it. */
-  readonly rule: UrlRule;
-  /**
-   * The rule's own identifying key, when it has one that is injective within
-   * the domain — a YouTube video ID, for instance. `null` under the generic
-   * rule, where nothing short of the whole URL identifies the resource.
-   */
-  readonly key: string | null;
-}
+/**
+ * A URL reduced to the form that decides its identity.
+ *
+ * This is discriminated by `rule` so the generic path cannot quietly acquire
+ * a domain key while leaving {@link URL_RULE_SET} unchanged. Only the pinned
+ * YouTube rule may mint an ID from a key in v0.1; generic identity is always a
+ * digest of the normalized URL.
+ */
+export type NormalizedUrl =
+  | {
+      /** The canonical YouTube URL. */
+      readonly url: string;
+      readonly rule: 'youtube';
+      /** The eleven-character YouTube video ID. */
+      readonly key: string;
+    }
+  | {
+      /** The conservatively normalized generic URL. */
+      readonly url: string;
+      readonly rule: 'generic';
+      /** A generic URL has no domain key; its whole normalized URL identifies it. */
+      readonly key: null;
+    };
 
 /** Why a URL has no identity. Codes are safe to match on. */
 export type UrlRefusalCode =
@@ -109,14 +141,33 @@ const YOUTUBE_ID = /^[A-Za-z0-9_-]{11}$/;
 const YOUTUBE_CANONICAL = 'https://www.youtube.com/watch?v=';
 
 /**
- * The prefix a rule's IDs carry, so an ID says which rule minted it. A second
- * domain rule adds its own here rather than teaching {@link sourceIdFor} about
- * itself.
+ * The identity rule set: every rule that may speak for a URL, and the prefix
+ * its IDs carry so that an ID says which rule minted it.
+ *
+ * This is pinned, not merely declared. A guard test asserts this exact object,
+ * because adding a key here silently re-IDs every `url-<digest>` source whose
+ * host the new rule claims — see the RULE SET EVOLUTION note in this module's
+ * header. Changing it means bumping {@link URL_RULE_SET_VERSION} and migrating
+ * the IDs and their inbound provenance edges together. The discriminated
+ * normalized result also prevents a domain key from being smuggled through the
+ * pinned generic entry instead.
  */
-const RULE_PREFIX: Readonly<Record<UrlRule, string>> = {
+export const URL_RULE_SET: Readonly<Record<UrlRule, string>> = Object.freeze({
   youtube: 'yt',
   generic: 'url',
-};
+});
+
+/**
+ * Which generation of {@link URL_RULE_SET} minted an ID.
+ *
+ * Version 1 is the v0.1 set: one domain rule, YouTube, and the generic rule for
+ * everything else. It is not written into any file — the prefix inside each ID
+ * already says which rule spoke, and a source file's frontmatter is not the
+ * place to carry a constant every reader can derive. It exists so that a change
+ * to the set has a number to move, and so the migration this project would owe
+ * its users has something to compare against.
+ */
+export const URL_RULE_SET_VERSION = 1;
 
 /**
  * The hash a generic source ID is a slice of, named here so core and the
@@ -242,17 +293,22 @@ export function sourceIdFor(
   }
 
   const { normalized } = result;
-  if (normalized.key !== null) {
+  if (normalized.rule === 'youtube') {
     return {
       ok: true,
-      id: `${RULE_PREFIX[normalized.rule]}-${normalized.key}`,
+      id: `${URL_RULE_SET.youtube}-${normalized.key}`,
       normalized,
     };
   }
 
+  // Keep this narrowing explicit. If a later version adds a rule variant, the
+  // build must fail here until its minting behavior is decided deliberately.
+  const generic: Extract<NormalizedUrl, { readonly rule: 'generic' }> =
+    normalized;
+
   let digest: unknown;
   try {
-    digest = hash(normalized.url);
+    digest = hash(generic.url);
   } catch (error) {
     return {
       ok: false,
@@ -278,8 +334,8 @@ export function sourceIdFor(
   }
   return {
     ok: true,
-    id: `${RULE_PREFIX.generic}-${digest.slice(0, URL_ID_DIGEST_LENGTH)}`,
-    normalized,
+    id: `${URL_RULE_SET.generic}-${digest.slice(0, URL_ID_DIGEST_LENGTH)}`,
+    normalized: generic,
   };
 }
 

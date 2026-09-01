@@ -75,6 +75,8 @@ export {
   sourceIdFor,
   URL_ID_DIGEST_LENGTH,
   URL_ID_HASH_ALGORITHM,
+  URL_RULE_SET,
+  URL_RULE_SET_VERSION,
   type UrlRefusal,
   type UrlRefusalCode,
   type UrlRule,

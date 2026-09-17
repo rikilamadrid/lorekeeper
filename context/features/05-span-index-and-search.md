@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+In Progress
 
 ## Goal
 
@@ -75,3 +75,27 @@ wordings into one ranked list.
   mature personal brain. Rerunning that harness against a populated real brain
   is longitudinal validation and is not part of this Feature.
 - Depends on Features 02 and 03.
+- Recorded at the `05.1` review on 2026-09-16, all non-blocking and none
+  addressed inside `05.1`, so the ticket did not grow during delivery. Each
+  stays open until a ticket or a Feature decision takes it up:
+  - **CRLF headings do not delimit spans.** The ATX heading pattern in
+    `packages/core/src/spans.ts` ends at `$` and `.` does not match `\r`, so a
+    heading in a CRLF file is body text and span text carries raw `\r`. The
+    document reader in the same package strips `\r` per line; the splitter does
+    not.
+  - **A `#` line inside a fenced code block becomes an anchor.** The document
+    reader tracks fences when finding the H1; the splitter does not. Parity with
+    the measured prototype, but it yields an address that is not a heading.
+  - **Closing-hash headings keep their hashes** — `## Closed ##` yields the
+    anchor `Closed ##`, where the reader's H1 logic strips the closing sequence.
+  - **Setext headings do not delimit spans.** Stated in the splitter. The stated
+    rationale covers `---` colliding with a thematic break; `===` has no such
+    collision and the reader already reads it, so the limitation is broader than
+    its justification.
+  - **The brain is positional, not `--brain`.** Ticket `05.1` wrote
+    `lore search --brain <path>`; the command takes `<brain>` first, matching
+    `lore capture <brain> <item>`. Command vocabulary remains an open decision.
+  - **Two verification gaps.** The retrieval test that `type` is not ranked on
+    asserts a type-level truth rather than ranking behavior, and exhaustion is
+    reported through `lore search` but exercised only at the walker. The review
+    verified both directly against the built binary.

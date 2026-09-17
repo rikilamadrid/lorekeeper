@@ -14,6 +14,12 @@
  * And URL identity: the normalized form of a source's origin URL, and the
  * stable ID derived from it, under per-domain rules rather than a blocklist.
  *
+ * And retrieval: a document split into the addressable spans the frozen
+ * contract requires — file plus heading or block anchor, plus a line range —
+ * and those spans ranked against a query by BM25 over their text and a
+ * weighted metadata document. Both halves are pure. Reading a vault from disk
+ * belongs to the CLI, and no index is ever written.
+ *
  * Reads may parse freely; writes may not. Every mutation splices the exact span
  * `FrontmatterBlock` reports, so no file is ever re-serialized from a parsed
  * object. Validation still reports rather than repairs — a finding never
@@ -67,6 +73,22 @@ export {
   parseManifest,
   serializeManifest,
 } from './manifest.js';
+export {
+  BM25_B,
+  BM25_K1,
+  buildSpanIndex,
+  METADATA_WEIGHT,
+  type SearchResult,
+  type SpanIndex,
+  searchSpans,
+  tokenize,
+} from './retrieval.js';
+export {
+  MAX_SPAN_LINES,
+  type Span,
+  type SpanMeta,
+  spansOf,
+} from './spans.js';
 export {
   type NormalizedUrl,
   type NormalizeResult,

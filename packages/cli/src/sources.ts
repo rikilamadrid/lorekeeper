@@ -21,28 +21,8 @@
  * holding one broken file still gets correct dedup for every other.
  */
 
-import { type Dirent, readdirSync, readFileSync } from 'node:fs';
-import { basename, join } from 'node:path';
 import { readDocument } from '@lorekeeper/core';
-import { isInside } from './brain.js';
-
-/** The extension a document carries. Nothing else is read. */
-const MARKDOWN = '.md';
-
-/**
- * How many files are examined before the search gives up.
- *
- * A bound exists so a pathological directory is a finished run rather than one
- * that appears to hang. Reaching it is reported by
- * {@link SourceSearch.exhausted} rather than swallowed, because "I did not find
- * it" and "I stopped looking" are different answers and only one of them makes
- * it safe to write.
- *
- * The bound is not what rules out a symlink cycle. Nothing here follows a
- * symlink at all — see {@link findSourceById} — so a cycle is not reachable in
- * the first place.
- */
-const MAX_FILES_SCANNED = 50_000;
+import { walkMarkdown } from './walk.js';
 
 export interface SourceSearch {
   /** The brain-relative POSIX path of the file carrying `id`, or `null`. */
@@ -54,97 +34,29 @@ export interface SourceSearch {
 /**
  * The file in this brain whose frontmatter `id` is `id`, if there is one.
  *
- * Directory entries are walked in sorted order so that a brain holding the
- * same ID twice — which validation reports as `duplicate-id`, and which this
- * function is not the place to fix — reports the same file every run. A
- * duplicate report that named a different path each time would be worse than
- * useless.
- *
- * No symlink is followed, and that falls out of how the entries are read rather
- * than from a check applied to them. `readdirSync` with `withFileTypes` reports
- * what each name *is*, not what it points at, so a symlink answers `false` to
- * both `isDirectory()` and `isFile()` however it resolves. A symlinked folder is
- * therefore never descended and a symlinked document never read.
- *
- * That is the behavior this scan wants, for two reasons. A vault may symlink one
- * of its folders somewhere else, and reading through one would scan files
- * outside the directory the user named. And a cycle — a link pointing back at an
- * ancestor — cannot arise, so the walk terminates on the directory tree alone.
- *
- * The cost is real and accepted: a source reachable only through a symlink is
- * not found, and capturing its URL again writes a second file. `brain` is still
- * taken and checked, so that the containment rule is stated where the walk
- * happens rather than resting on a detail of `readdirSync` that a later edit
- * could drop without noticing.
+ * The walk's rules — sorted order, no symlink followed, dot directories
+ * skipped, a bounded scan — live in `walk.js`, because indexing needs exactly
+ * the same ones and two walks would be two chances to get them wrong. This
+ * function adds only the question it asks of each file, and stops at the first
+ * file that answers it.
  */
 export function findSourceById(
   target: string,
   brain: string,
   id: string,
 ): SourceSearch {
-  let budget = MAX_FILES_SCANNED;
+  let found: string | null = null;
 
-  const search = (directory: string, prefix: string): string | null => {
-    let entries: Dirent[];
-    try {
-      entries = readdirSync(directory, { withFileTypes: true });
-    } catch {
-      // A directory that cannot be listed holds no answer this run. It is the
-      // user's to fix, and refusing the whole capture over it would be worse.
-      return null;
+  const result = walkMarkdown(target, brain, (file) => {
+    // `readDocument` never throws and reports a `parseError` instead, so a
+    // brain holding one broken file still gets correct dedup for every other.
+    const document = readDocument(file.name, file.text);
+    if (document.frontmatter.id === id) {
+      found = file.relative;
+      return 'stop';
     }
+    return 'continue';
+  });
 
-    for (const entry of [...entries].sort((a, b) =>
-      a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
-    )) {
-      if (budget <= 0) {
-        return null;
-      }
-      const path = join(directory, entry.name);
-      const relative = prefix === '' ? entry.name : `${prefix}/${entry.name}`;
-
-      // A symlink is neither a directory nor a file to `readdirSync`, so it
-      // matches no branch below and is skipped without a decision being made
-      // about it.
-      if (entry.isDirectory()) {
-        // `.lorekeeper/` is ownership metadata, not knowledge, and a dot
-        // directory in a vault is tooling state — `.obsidian/`, `.git/`. None
-        // of it holds a source, and some of it is large.
-        if (entry.name.startsWith('.')) {
-          continue;
-        }
-        // Belt and braces. A real directory is already inside the brain, so
-        // this turns nothing away today; it is the line that keeps the walk
-        // contained if the entry test above is ever loosened.
-        if (!isInside(path, brain)) {
-          continue;
-        }
-        const found = search(path, relative);
-        if (found !== null) {
-          return found;
-        }
-        continue;
-      }
-
-      if (!entry.isFile() || !entry.name.endsWith(MARKDOWN)) {
-        continue;
-      }
-      budget -= 1;
-
-      let text: string;
-      try {
-        text = readFileSync(path, 'utf8');
-      } catch {
-        continue;
-      }
-      const document = readDocument(basename(entry.name, MARKDOWN), text);
-      if (document.frontmatter.id === id) {
-        return relative;
-      }
-    }
-    return null;
-  };
-
-  const path = search(target, '');
-  return { path, exhausted: path === null && budget <= 0 };
+  return { path: found, exhausted: found === null && result.exhausted };
 }

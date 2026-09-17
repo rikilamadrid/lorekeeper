@@ -55,6 +55,15 @@ describe('run', () => {
 
   it('does not treat an unshipped subcommand as a silent success', () => {
     const c = capture();
-    expect(run(['search'], c.streams)).toBe(1);
+    // `search` ships as of Feature 05; `update` does not yet.
+    expect(run(['update'], c.streams)).toBe(1);
+  });
+
+  it('dispatches search, and lets it report its own usage error', () => {
+    const c = capture();
+    // Exit 2 is a call that was understood and malformed, which is a different
+    // answer from exit 1's "there is no such command".
+    expect(run(['search'], c.streams)).toBe(2);
+    expect(c.err()).toContain('lore search');
   });
 });

@@ -67,6 +67,34 @@ wordings into one ranked list.
 - Index and query time over a generated few-thousand-note corpus is measured and
   recorded.
 
+## Verification
+
+Measured by `npm run bench:search` on 2026-09-17, from a clean build, over a
+deterministic synthetic corpus the command generates into a temporary
+directory and removes — nothing generated is committed, and nothing is read
+from a real vault. Ticket `05.3`.
+
+| Measure | Value |
+| --- | --- |
+| Notes | 3,000 (seed `20260917`) |
+| Spans | 10,537 |
+| Corpus | 3,193,061 bytes; 907 paragraphs duplicated across files |
+| Walk + read + split | 81 ms |
+| Build index | 64 ms |
+| Query, one wording | 2.3 ms median of 20 |
+| Query, three wordings fused and suppressed | 6.9 ms median of 20 |
+| `lore search` end to end, three wordings, `--json` | 129 ms median of 20 |
+| Machine | Apple M5, 24 GiB, macOS 25.6.0 arm64, Node v26.5.0 |
+
+"Interactive" was read as a fused three-wording search, including the full
+in-memory index build, under two seconds — the round trip an agent tool call
+tolerates. That is an interpretive reading recorded here, not an acceptance
+threshold this Feature invents. The measured result is roughly fifteen times
+inside it, so the `05.1` decision that the index is built per command and never
+persisted stands on evidence: at this size, persistence would save about 150 ms
+and cost a manifest-owned file. Revisit only on a corpus where the walk and
+index phases, which scale with the vault, approach the reading.
+
 ## Notes / Decisions
 
 - KNOWN v0.1 LIMITATION: score cannot prove requested knowledge is absent. This
@@ -118,3 +146,14 @@ wordings into one ranked list.
     joined the words into one query. The `05.1` ticket, usage, and PR all wrote
     the query quoted, so this changes an undocumented convenience, not a
     contract. Feature 07's instructions should show the quotes.
+- Recorded at the `05.3` review on 2026-09-17, all non-blocking and none
+  addressed inside `05.3`:
+  - **The benchmark ships in the published package.** `dist/bench/` adds
+    eight files and about 22 kB. `run.js` executes on import and must never be
+    re-exported. Decide a `files` exclusion, or not, when the release process
+    is resolved.
+  - **The phase rows in Verification are single samples**; the query rows are
+    medians of 20. Wall-clock timings vary by a few milliseconds run to run.
+  - **The corpus generator's determinism rests on IEEE float division being
+    identical across engines.** Node is the only runtime, and the determinism
+    test guards it.

@@ -17,8 +17,9 @@
  * And retrieval: a document split into the addressable spans the frozen
  * contract requires — file plus heading or block anchor, plus a line range —
  * and those spans ranked against a query by BM25 over their text and a
- * weighted metadata document. Both halves are pure. Reading a vault from disk
- * belongs to the CLI, and no index is ever written.
+ * weighted metadata document; several wordings of one question fused by
+ * reciprocal rank, and duplicate spans suppressed. All of it is pure. Reading a
+ * vault from disk belongs to the CLI, and no index is ever written.
  *
  * Reads may parse freely; writes may not. Every mutation splices the exact span
  * `FrontmatterBlock` reports, so no file is ever re-serialized from a parsed
@@ -45,6 +46,12 @@ export {
   type FrontmatterRead,
   readFrontmatter,
 } from './frontmatter.js';
+export {
+  FUSION_DEPTH,
+  fuseRankings,
+  RRF_K,
+  suppressDuplicates,
+} from './fusion.js';
 export {
   type DocumentIndex,
   indexDocuments,

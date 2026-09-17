@@ -4,6 +4,41 @@ Compact record of completed work.
 
 ## Completed
 
+### 2026-09-17 — Feature 05: Span Index and `lore search`
+
+- Outcome: `lore search <brain> "<wording>" ["<wording>" ...]` walks a vault,
+  splits every Markdown file into spans addressed by heading anchor plus a
+  1-based line range, ranks them with BM25 over span text and a weighted
+  metadata document, fuses several wordings by reciprocal rank over the top 20
+  of each, suppresses spans whose normalized tokens already stand in the list,
+  and prints path, anchor, line range, score, and span text on every result.
+  `--json` is the machine-readable contract Feature 07 will consume. The index
+  is built in memory per command and never written; a span under no heading
+  carries a `null` anchor. Files without frontmatter, or with unparseable
+  frontmatter, index as ordinary knowledge, and ranking reads neither `type`
+  nor `about` as structure. No relevance cutoff anywhere. `packages/core`
+  stayed free of `node:` builtins, asserted by a layering test.
+- Verification: `npm run lint`, `npm run build`, and `npm test` (698 tests, 19
+  files) clean. CI passed on macOS and Ubuntu for PRs #23, #24, and #25.
+  `npm run bench:search` over a deterministic synthetic corpus of 3,000 notes
+  and 10,537 spans: 81 ms to walk and split, 64 ms to build the index, 6.9 ms
+  for three fused wordings, 129 ms for the command end to end, median of 20 on
+  an Apple M5 with Node v26.5.0 — about fifteen times inside the two-second
+  interpretive reading of "interactive" recorded in the spec. Each ticket was
+  separately reviewed against the built binary: byte-identical vaults by
+  sha256, no file created, headingless spans, RRF arithmetic and the top-20
+  boundary, suppression before `--limit`, and run-to-run determinism.
+- Commit/PR: PRs #23 (`05.1`), #24 (`05.2`), and #25 (`05.3`), squash-merged
+  to `main`.
+- Follow-up: fourteen non-blocking review observations are recorded in the
+  spec's Notes / Decisions and none was addressed inside a ticket. The ones
+  most likely to matter: CRLF headings and `#` lines inside code fences are
+  not handled by the span splitter although the document reader handles both;
+  the `--help` summary line still shows a single unquoted `<query>`; unquoted
+  multi-word input now fuses one-word wordings, so Feature 07's instructions
+  should show the quotes; and `dist/bench/` ships in the package until the
+  release process decides otherwise.
+
 ### 2026-09-01 — Feature 04: `lore capture`
 
 - Outcome: `lore capture <brain> <item>` writes a greppable, self-describing

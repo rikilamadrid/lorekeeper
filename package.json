@@ -19,7 +19,8 @@
     "format:check": "biome format .",
     "build": "tsc --build",
     "clean": "tsc --build --clean",
-    "test": "vitest run"
+    "test": "vitest run",
+    "bench:search": "npm run build && node packages/cli/dist/bench/run.js"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.10",

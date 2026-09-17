@@ -13,6 +13,7 @@ export function usage(version: string): string {
     'Usage:',
     '  lore init <dir>              Create a brain, or adopt an existing vault',
     '  lore capture <brain> <item>  Write a thought or a URL into that brain',
+    '  lore search <brain> <query>  Rank the spans of that brain against a query',
     '  lore --help                  Show this message',
     '  lore --version               Print the version',
     '',
@@ -25,7 +26,14 @@ export function usage(version: string): string {
     'already have reports the file that holds it and writes nothing. The URL is',
     'identified, never visited.',
     '',
-    'Search arrives in a later feature.',
+    'Search ranks spans, not files: each result names a path, the heading it sits',
+    'under, its line range, and its score, and prints the lines themselves. Add',
+    '--json for that same result shape as JSON, or --limit to change how many',
+    'come back. A score ranks; it never proves an answer is absent, so if the',
+    'results look wrong, search again in other words.',
+    '',
+    'Search reads. It writes nothing, builds no index file, and works on any',
+    'directory of Markdown, whether or not lore init has run there.',
     'Lorekeeper runs offline and takes no credentials.',
   ].join('\n');
 }

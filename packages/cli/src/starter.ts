@@ -126,8 +126,90 @@ value.
   },
 ];
 
+/**
+ * The agent-facing integration artifact.
+ *
+ * `AGENTS.md` at the brain root, deliberately. Retrieval that never fires
+ * delivers nothing, and an agent only runs `lore` if something already in its
+ * context says to — so the artifact has to sit where a coding agent looks
+ * without being told. `AGENTS.md` is the convention that is read across agent
+ * environments rather than by one vendor, which is also why a path under
+ * `.lorekeeper/` was rejected: it would satisfy the requirement and be found by
+ * nothing.
+ *
+ * The brain root is a path in someone's vault, so the ordinary starter rules
+ * decide what happens when it is taken. A vault that already has its own
+ * `AGENTS.md` keeps it byte for byte: the exclusive write fails, init reports
+ * the path as occupied, and nothing claims it. Automatic discovery is simply
+ * unavailable in that case, and merging into a file the toolkit does not own is
+ * not something this command may do. An existing brain picks the artifact up on
+ * the next `lore init`, as a starter path that is missing and unowned.
+ *
+ * The command below is real and runnable rather than a sketch, and a test
+ * extracts it from this text and runs it through the CLI, so instructions that
+ * stop working fail the build instead of quietly misleading an agent. That is
+ * also why no path is interpolated: this content is static, so two runs of the
+ * same toolkit produce byte-identical files, and the example says what to
+ * substitute instead.
+ */
+const AGENTS_ARTIFACT = `# Agent instructions for this brain
+
+This directory is a Lorekeeper brain: plain Markdown files the owner wrote and
+owns. A command-line tool called \`lore\` searches them and returns the
+individual passages that answer a question, rather than whole files.
+
+## When to search it
+
+Search before answering anything that depends on what this person has written,
+decided, or collected — their projects, their notes, their sources, their
+earlier decisions. Search again whenever an answer would otherwise rest on a
+guess about their situation.
+
+## How to search it
+
+Run this from the directory holding this file:
+
+\`\`\`
+lore search . "how do I rotate the TLS certificate" "certificate renewal steps" "cert expiry runbook" --json
+\`\`\`
+
+Replace \`.\` with the path to this directory if you are working elsewhere, and
+replace the quoted text with your own wordings. Add \`--limit <n>\` to change how
+many results come back.
+
+Give several wordings of one question in a single call, each in its own quotes.
+This is not an optimization. The same question asked three ways retrieves what
+any one phrasing misses, and the ranked lists are fused into a single result
+list for you. A single wording returns a materially worse answer.
+
+## What comes back
+
+Each result is one passage, not a file, and carries five fields:
+
+- \`path\` — the file it came from, relative to this directory
+- \`anchor\` — the heading it sits under, or \`null\` when it sits under none
+- \`startLine\` and \`endLine\` — the lines it occupies, counting from 1
+- \`score\` — how that passage ranked for your wordings
+- \`text\` — the passage itself
+
+Read \`text\` first: it is the evidence. Open the whole file only when the
+passage is not enough, because reading whole notes is the cost this tool exists
+to avoid.
+
+## What a score cannot tell you
+
+A score ranks passages against each other. It never establishes that something
+is absent from this brain.
+
+Treat results as evidence to weigh rather than as an answer. If they do not
+settle the question, search again in different words. If they still do not, say
+the evidence here is insufficient. Never report that this brain lacks something
+because a score looked low.
+`;
+
 /** Every file init writes, apart from the manifest itself. */
 export const STARTER_FILES: readonly StarterFile[] = [
   { path: 'README.md', content: ROOT_README },
+  { path: 'AGENTS.md', content: AGENTS_ARTIFACT },
   ...FOLDER_READMES,
 ];

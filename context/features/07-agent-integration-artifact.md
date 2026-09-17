@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+In Progress
 
 ## Goal
 
@@ -80,3 +80,23 @@ knows to issue multiple wordings — without a human pasting instructions.
 - Approved 2026-09-17: the artifact is created through the existing `lore init`
   and managed-manifest path rather than a separate generation command, unless an
   existing repository invariant makes that impossible.
+- Recorded at the `07.1` review on 2026-09-17, all non-blocking and none
+  addressed inside `07.1`:
+  - **`AGENTS.md` is itself indexed by `lore search`.** For its own example
+    query it outranks the intended note, 0.0492 against 0.0484. Measured across
+    four realistic questions the intended note ranked first every time, with the
+    artifact appearing only lower at roughly a third of the winning score,
+    exactly as the starter READMEs already do. Excluding it by filename would be
+    retrieval deriving meaning from a path, against a Requirement and a Durable
+    Decision, and a frontmatter-based exclusion would need vocabulary that v0.1
+    has deliberately left unfrozen. There is no small correct fix, which is the
+    reason there is none.
+  - **The taught command works as written only from the brain directory.**
+    Starter content is static, so no absolute path can be interpolated; the
+    artifact says what to substitute instead.
+  - **The artifact assumes `lore` is already on `PATH`** and says nothing about
+    installation. Correct for a portable file, but an agent in an environment
+    without it gets a shell error rather than guidance.
+  - **The command-extraction test requires exactly one fenced block.** A second
+    code fence added later fails it on a length assertion rather than a clear
+    message.

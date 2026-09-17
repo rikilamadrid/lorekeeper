@@ -34,6 +34,10 @@ knows to issue multiple wordings — without a human pasting instructions.
 - It is small: a generated snippet or one small skill file.
 - Generation and regeneration go through the managed manifest, so a user-edited
   artifact is reported as drift rather than overwritten.
+- The context cost of the workflow this artifact prescribes is measured against
+  naive whole-note reading and recorded as a number, not claimed. Bytes are the
+  deterministic proxy for token cost; no tokenizer dependency and no provider
+  coupling enters this Feature to produce it.
 
 ## Out of Scope
 
@@ -58,9 +62,21 @@ knows to issue multiple wordings — without a human pasting instructions.
   returns results with all five result fields.
 - The artifact explicitly instructs multiple wordings and explicitly states the
   absence limitation.
+- Over a generated corpus, the bytes a multi-wording search returns are measured
+  against the bytes of the whole notes those spans sit in, and the ratio is
+  recorded in this Feature's verification. Bytes are a labelled proxy for token
+  cost, not a literal token count.
 
 ## Notes / Decisions
 
 - Depends on Features 03 and 05.
 - Architecture must not preclude later capability sync, but no capability sync
   work belongs here.
+- Approved 2026-09-17: the context saving the artifact's advice depends on
+  becomes a measured number, on the precedent Feature 05 set for the
+  interactivity target. Bytes are the proxy because counting real tokens needs a
+  tokenizer, and the CLI ships offline with no vendor dependency — a proxy
+  stated as one is honest where a vendored count would be a coupling.
+- Approved 2026-09-17: the artifact is created through the existing `lore init`
+  and managed-manifest path rather than a separate generation command, unless an
+  existing repository invariant makes that impossible.

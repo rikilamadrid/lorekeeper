@@ -21,11 +21,13 @@ import { realpathSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import {
   buildSpanIndex,
+  fuseRankings,
   readDocument,
   type SearchResult,
   type Span,
   searchSpans,
   spansOf,
+  suppressDuplicates,
 } from '@lorekeeper/core';
 import { isDirectory } from './brain.js';
 import type { Streams } from './run.js';
@@ -34,7 +36,8 @@ import { walkMarkdown } from './walk.js';
 /** How many results are printed when the caller does not say. */
 const DEFAULT_LIMIT = 5;
 
-const USAGE = '  lore search <brain> "<query>" [--limit <n>] [--json]\n';
+const USAGE =
+  '  lore search <brain> "<wording>" ["<wording>" ...] [--limit <n>] [--json]\n';
 
 export interface SearchOptions {
   /** Where a relative brain path resolves from. Defaults to the process's cwd. */
@@ -77,11 +80,19 @@ export function search(
     });
 
     const index = buildSpanIndex(spans);
-    const results = searchSpans(index, parsed.query, parsed.limit);
+    // Each wording is ranked on its own and the rankings are fused, because
+    // BM25 scores from different wordings share no scale while ranks do.
+    // Duplicates go after fusion and before the limit, so a limit of five is
+    // five distinct spans rather than five copies of one.
+    const results = suppressDuplicates(
+      fuseRankings(
+        parsed.wordings.map((wording) => searchSpans(index, wording, -1)),
+      ),
+    ).slice(0, parsed.limit);
 
     if (parsed.json) {
       streams.out(
-        `${renderJson(target, parsed.query, results, walk.exhausted)}\n`,
+        `${renderJson(target, parsed.wordings, results, walk.exhausted)}\n`,
       );
     } else {
       renderText(streams, target, results, walk.exhausted);
@@ -98,7 +109,8 @@ export function search(
 interface ParsedArguments {
   readonly ok: true;
   readonly brain: string;
-  readonly query: string;
+  /** One entry per wording, in the order given. Never empty. */
+  readonly wordings: readonly string[];
   readonly limit: number;
   readonly json: boolean;
 }
@@ -109,7 +121,7 @@ type ParseResult =
 
 function parseArguments(args: readonly string[]): ParseResult {
   let brain: string | undefined;
-  const queryParts: string[] = [];
+  const wordings: string[] = [];
   let limit = DEFAULT_LIMIT;
   let json = false;
 
@@ -149,21 +161,20 @@ function parseArguments(args: readonly string[]): ParseResult {
       brain = argument;
       continue;
     }
-    queryParts.push(argument);
+    // Every positional after the brain is one wording of the question. One
+    // quoted argument is one wording, exactly the call `05.1` shipped; several
+    // are fused. Unquoted words therefore arrive as several one-word wordings,
+    // which is why the usage line shows the quotes.
+    if (argument.trim() !== '') {
+      wordings.push(argument);
+    }
   }
 
-  if (brain === undefined || queryParts.length === 0) {
+  if (brain === undefined || wordings.length === 0) {
     return { ok: false, reason: 'name the brain and what to search for.' };
   }
-  // Unquoted text arrives as several arguments. Joining is safe here in a way
-  // it is not for `capture`, because a query is matched on its words and never
-  // written to a file, so the exact spacing someone typed changes nothing.
-  const query = queryParts.join(' ');
-  if (query.trim() === '') {
-    return { ok: false, reason: 'there is nothing to search for.' };
-  }
 
-  return { ok: true, brain, query, limit, json };
+  return { ok: true, brain, wordings, limit, json };
 }
 
 /**
@@ -201,7 +212,7 @@ function renderText(
     if (position > 0) {
       streams.out('\n');
     }
-    streams.out(`${address(result.span)}  score ${result.score.toFixed(3)}\n`);
+    streams.out(`${address(result.span)}  score ${result.score.toFixed(4)}\n`);
     streams.out(`${join(target, result.span.path)}\n`);
     for (const line of result.span.text.split('\n')) {
       streams.out(line === '' ? '\n' : `    ${line}\n`);
@@ -223,18 +234,25 @@ function address(span: Span): string {
  * `null` rather than absent when a span sits under no heading, so a consumer
  * reads one shape and never two.
  *
+ * `score` is the fused reciprocal-rank score, not BM25: it is what ranked the
+ * list, and unlike BM25 it is comparable across invocations. `queries` lists
+ * the wordings as given. `query` predates it and is kept so a `05.1` consumer
+ * still reads what it read: the one wording when there is one, and the
+ * wordings joined with ` | ` when there are several.
+ *
  * `exhausted` is reported rather than swallowed. A ranking over part of a vault
  * is a different claim from a ranking over all of it.
  */
 function renderJson(
   target: string,
-  query: string,
+  wordings: readonly string[],
   results: readonly SearchResult[],
   exhausted: boolean,
 ): string {
   return JSON.stringify(
     {
-      query,
+      query: wordings.join(' | '),
+      queries: wordings,
       brain: target,
       exhausted,
       count: results.length,

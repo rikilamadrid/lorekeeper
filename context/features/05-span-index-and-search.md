@@ -99,3 +99,22 @@ wordings into one ranked list.
     asserts a type-level truth rather than ranking behavior, and exhaustion is
     reported through `lore search` but exercised only at the walker. The review
     verified both directly against the built binary.
+- Recorded at the `05.2` review on 2026-09-17, all non-blocking and none
+  addressed inside `05.2`:
+  - **The `--help` summary line still reads `lore search <brain> <query>`.**
+    The command's own usage line shows quoted repeatable wordings, and the
+    paragraph beneath the summary explains them; the one-line summary is stale.
+  - **Stop-word-only differences collapse as duplicates.** `retry the policy`
+    and `Retry policy!` are one span under normalized-token equality. This
+    follows the stated rule and matches how ranking already sees them, but is
+    slightly broader than "copies of one document".
+  - **Float summation can mask a rank tie.** Two spans with the same multiset
+    of ranks accumulated in different list orders may differ in the last bit,
+    so the path tiebreak may not engage. Run-to-run determinism holds because
+    input order is fixed.
+  - **A wording given twice votes twice**, as in the prototype. The caller
+    controls it.
+  - **Unquoted multi-word input now fuses one-word wordings** where `05.1`
+    joined the words into one query. The `05.1` ticket, usage, and PR all wrote
+    the query quoted, so this changes an undocumented convenience, not a
+    contract. Feature 07's instructions should show the quotes.

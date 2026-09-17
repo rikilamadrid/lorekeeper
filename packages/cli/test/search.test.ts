@@ -252,9 +252,147 @@ describe('lore search', () => {
     expect(io.err()).toContain('is not a directory');
   });
 
+  it('reports the wordings additively, keeping the 05.1 top-level fields', () => {
+    const io = streams();
+    search([vault, 'exponential backoff jitter', '--json'], io.streams);
+    const payload = JSON.parse(io.out());
+
+    expect(Object.keys(payload).sort()).toEqual([
+      'brain',
+      'count',
+      'exhausted',
+      'queries',
+      'query',
+      'results',
+    ]);
+    expect(payload.query).toBe('exponential backoff jitter');
+    expect(payload.queries).toEqual(['exponential backoff jitter']);
+  });
+
   it('is reachable through the binary dispatch', () => {
     const io = streams();
     expect(run(['search', vault, 'tomatoes'], io.streams)).toBe(0);
     expect(io.out()).toContain('plain.md');
+  });
+});
+
+/**
+ * Fixtures for fusion and suppression, added to the corpus above. Invented for
+ * these tests like everything else here.
+ */
+describe('lore search with several wordings', () => {
+  beforeEach(() => {
+    // A decoy that beats the target on the weakest wording alone.
+    writeFileSync(
+      join(vault, 'notes', 'decoy.md'),
+      [
+        '# Attempt log',
+        '',
+        'Every failed attempt is logged. A failed attempt resets nothing.',
+        'Failed attempt counts are reviewed weekly.',
+      ].join('\n'),
+      'utf8',
+    );
+    // The same paragraph in six places, as a synced vault ends up holding.
+    mkdirSync(join(vault, 'copies'), { recursive: true });
+    for (let i = 0; i < 6; i += 1) {
+      writeFileSync(
+        join(vault, 'copies', `copy-${i}.md`),
+        ['# Copy', '', 'Compost heats up fastest in a covered bin.'].join('\n'),
+        'utf8',
+      );
+    }
+  });
+
+  const rankOf = (payload: {
+    results: { path: string; anchor: string | null }[];
+  }) =>
+    payload.results.findIndex(
+      (r) => r.path === 'notes/retry.md' && r.anchor === 'Backoff',
+    );
+
+  it('ranks the target higher fused than the worst single wording does', () => {
+    const wordings = [
+      'exponential backoff jitter',
+      'retries capped five attempts',
+      'failed attempt',
+    ];
+
+    const single = wordings.map((wording) => {
+      const io = streams();
+      search([vault, wording, '--json', '--limit', '10'], io.streams);
+      return rankOf(JSON.parse(io.out()));
+    });
+    const worst = Math.max(...single);
+
+    const io = streams();
+    search([vault, ...wordings, '--json', '--limit', '10'], io.streams);
+    const fused = rankOf(JSON.parse(io.out()));
+
+    // The decoy wins "failed attempt" alone, so the worst wording is not 0.
+    expect(worst).toBeGreaterThan(0);
+    expect(fused).toBeLessThan(worst);
+    expect(fused).toBe(0);
+  });
+
+  it('does not let content copied across many files crowd the list', () => {
+    const io = streams();
+    search([vault, 'compost covered bin', '--json'], io.streams);
+    const payload = JSON.parse(io.out());
+    const paths: string[] = payload.results.map(
+      (r: { path: string }) => r.path,
+    );
+
+    expect(paths.filter((p) => p.startsWith('copies/'))).toHaveLength(1);
+    // The one different compost span still gets through, instead of being
+    // pushed out by five more copies of the same paragraph.
+    expect(paths).toContain('broken.md');
+  });
+
+  it('picks the same surviving copy every run', () => {
+    const survivor = () => {
+      const io = streams();
+      search([vault, 'covered bin', '--json'], io.streams);
+      return JSON.parse(io.out()).results[0].path;
+    };
+    expect(survivor()).toBe('copies/copy-0.md');
+    expect(survivor()).toBe(survivor());
+  });
+
+  it('returns every low-scoring result rather than withholding it', () => {
+    const io = streams();
+    search([vault, 'tomatoes', 'zeppelins', 'peppers', '--json'], io.streams);
+    const payload = JSON.parse(io.out());
+
+    expect(payload.count).toBeGreaterThan(0);
+    for (const result of payload.results) {
+      expect(result.score).toBeGreaterThan(0);
+      expect(result.score).toBeLessThan(0.05);
+    }
+  });
+
+  it('keeps the 05.1 result shape on every fused result', () => {
+    const io = streams();
+    search([vault, 'compost', 'tomatoes', '--json'], io.streams);
+    const payload = JSON.parse(io.out());
+
+    expect(payload.queries).toEqual(['compost', 'tomatoes']);
+    expect(payload.query).toBe('compost | tomatoes');
+    for (const result of payload.results) {
+      expect(Object.keys(result).sort()).toEqual([
+        'anchor',
+        'endLine',
+        'path',
+        'score',
+        'startLine',
+        'text',
+      ]);
+    }
+  });
+
+  it('still leaves every file byte-identical', () => {
+    const before = snapshot(vault);
+    search([vault, 'compost', 'tomatoes', 'failed attempt'], streams().streams);
+    expect(snapshot(vault)).toEqual(before);
   });
 });

@@ -13,7 +13,8 @@
       "!prototypes",
       "!skills/orchestrate/engine",
       "!skills/render-artifact/engine",
-      "!.claude/hooks"
+      "!.claude/hooks",
+      "!brand/tokens/tokens.css"
     ]
   },
   "formatter": {

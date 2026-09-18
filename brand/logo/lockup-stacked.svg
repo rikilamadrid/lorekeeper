@@ -1,0 +1,50 @@
+<!--
+  Stacked lockup: mark above wordmark.
+  Lorekeeper identity, proposal 0.1.0. See brand/IDENTITY.md for usage rules.
+  Colours are read from the token custom properties in brand/tokens/tokens.css,
+  with the light-variant value as the fallback so the file also stands alone.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 227.24 108" width="227.24" height="108" role="img" aria-labelledby="lk-stacked-title">
+  <title id="lk-stacked-title">Lorekeeper</title>
+  <!-- The same relationship turned vertical: a 64 mark, an 18 gap, and a 26
+       cap height, both centred on the same axis. Clear space is 32 on all four
+       sides. -->
+  <g transform="translate(81.62 0)">
+    <circle cx="32" cy="32" r="22" fill="none" stroke="var(--lk-accent, #343A8C)" stroke-width="8"/>
+    <path d="M 32,14.5 Q 35.54,28.46 49.5,32 Q 35.54,35.54 32,49.5 Q 28.46,35.54 14.5,32 Q 28.46,28.46 32,14.5 Z" fill="var(--lk-gold, #8A6212)"/>
+  </g>
+  <g transform="translate(0 82) scale(0.26)">
+    <g fill="none" stroke="var(--lk-ink, #1B1C2E)" stroke-width="10" stroke-linecap="butt" stroke-linejoin="miter">
+      <path d="M 5,0 L 5,100"/>
+      <path d="M 0,95 L 58,95"/>
+      <ellipse cx="130" cy="50" rx="43" ry="45"/>
+      <path d="M 207,0 L 207,100"/>
+      <path d="M 207,5 L 234,5 A 23,23 0 0 1 234,50 L 207,50"/>
+      <path d="M 232,50 L 264.09,97.19"/>
+      <path d="M 295,0 L 295,100"/>
+      <path d="M 290,5 L 352,5"/>
+      <path d="M 290,50 L 344,50"/>
+      <path d="M 290,95 L 352,95"/>
+      <path d="M 381,0 L 381,100"/>
+      <path d="M 386,52 L 438.05,3.66"/>
+      <path d="M 386,52 L 437.57,96.2"/>
+      <path d="M 471,0 L 471,100"/>
+      <path d="M 466,5 L 528,5"/>
+      <path d="M 466,50 L 520,50"/>
+      <path d="M 466,95 L 528,95"/>
+      <path d="M 557,0 L 557,100"/>
+      <path d="M 552,5 L 614,5"/>
+      <path d="M 552,50 L 606,50"/>
+      <path d="M 552,95 L 614,95"/>
+      <path d="M 643,0 L 643,100"/>
+      <path d="M 643,5 L 670,5 A 25,25 0 0 1 670,54 L 643,54"/>
+      <path d="M 729,0 L 729,100"/>
+      <path d="M 724,5 L 786,5"/>
+      <path d="M 724,50 L 778,50"/>
+      <path d="M 724,95 L 786,95"/>
+      <path d="M 815,0 L 815,100"/>
+      <path d="M 815,5 L 842,5 A 23,23 0 0 1 842,50 L 815,50"/>
+      <path d="M 840,50 L 872.09,97.19"/>
+    </g>
+  </g>
+</svg>

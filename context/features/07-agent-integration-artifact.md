@@ -67,6 +67,57 @@ knows to issue multiple wordings — without a human pasting instructions.
   recorded in this Feature's verification. Bytes are a labelled proxy for token
   cost, not a literal token count.
 
+## Verification
+
+Measured by `npm run bench:context` on 2026-09-17, from a clean build, over the
+same deterministic synthetic corpus Feature 05 measured — 3,000 notes at seed
+`20260917`, generated into a temporary directory and removed. The call follows
+the workflow `AGENTS.md` teaches: three quoted wordings, `--json`, default limit.
+The wordings themselves are drawn from the generator's own vocabulary rather
+than the artifact's illustrative TLS-certificate example, because the synthetic
+corpus holds no certificate content for that example to find. What is measured
+is the shape of the call — several wordings, fused — not those particular words.
+Ticket `07.2`.
+
+**Bytes are a proxy for token cost, not a literal token count.** No tokenizer
+and no provider coupling was added to produce these numbers.
+
+| Measure | Prescribed call | Sensitivity check, `--limit 20` |
+| --- | --- | --- |
+| Results | 5 | 20 |
+| Distinct files behind them | 5 | 18 |
+| Whole notes, baseline | 5,604 bytes | 21,034 bytes |
+| JSON payload received | 2,847 bytes | 9,985 bytes |
+| Span text within it | 1,564 bytes | 5,913 bytes |
+| **Saving, payload against whole notes** | **1.97x** | **2.11x** |
+| Saving, span text against whole notes | 3.6x | 3.6x |
+
+Corpus: 3,193,061 bytes across 3,000 notes, averaging 1,064 bytes each; the
+average returned span is 313 bytes. Machine: Apple M5, macOS 25.6.0 arm64, Node
+v26.5.0.
+
+Every ratio is computed from the byte counts in the table, and
+`npm run bench:context` prints ratios to one decimal — so the measured 1.97x
+appears as `2.0x` in its output, and 2.11x as `2.1x`. Quoted loosely, the
+headline is **approximately 2.0x**, rounded up from the measured 1.97x.
+
+The headline is the JSON payload against the baseline, because the payload is
+what a calling agent actually receives. Span text is recorded beside it as a
+diagnostic: it is the evidence without the addressing that carries it, and no
+agent receives one without the other.
+
+The saving is real and modest, and it is reported as measured rather than
+improved. Three things bound it, and all three are stated rather than tuned
+away. The baseline is deliberately generous, charging only for the files the
+returned spans came from, as though an agent had already known which ones to
+open; without span retrieval it would not have known, so the measured 1.97x is
+a floor rather than a best case. The synthetic notes average roughly a
+kilobyte, so a span can only be about 3.4 times smaller than the note holding
+it — a vault of longer notes would show a larger saving, and the corpus was
+not lengthened to produce one. And the payload is pretty-printed, which is 12%
+of its bytes; compact JSON would read 2.2x, but the output format is a `05.1`
+contract and was not changed to improve this number.
+
 ## Notes / Decisions
 
 - Depends on Features 03 and 05.

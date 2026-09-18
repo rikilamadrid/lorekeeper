@@ -132,9 +132,11 @@ Recorded so that the gaps are visible rather than inferred.
 - **No measurement over a mature personal second brain.** This is a recorded
   evidence boundary: the retrieval prototype was validated over substantial
   real-world Markdown project corpora, not over a populated personal brain. The
-  two real vaults available at the time held 44 notes and about 2,300 words and
-  were rejected as too small to exercise ranking. Proxy corpora
-  under-represent note-to-note conceptual linking and dictated fragments.
+  real vaults available at the time were far too small to exercise ranking and
+  were rejected for that reason, so the real-vault evidence base behind this
+  project is very small and supports no quantitative claim at all. Proxy
+  corpora under-represent note-to-note conceptual linking and dictated
+  fragments.
 - **No token-level measurement.** See the proxy caveat above.
 - **No measurement of answer quality end to end**, with a real agent, on real
   questions. What is measured is what the retrieval layer returns and what it

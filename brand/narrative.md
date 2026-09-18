@@ -153,10 +153,11 @@ worse product than one that issues three.
 **Retrieval cannot prove that something is absent.** This is the known v0.1
 limitation, recorded on 2026-08-21 rather than hidden. A score ranks passages
 against each other; it does not separate knowledge that is present from
-knowledge that is not there. During evaluation, a question with no answer in
-the corpus scored higher than four questions that did have one. That is exactly
-why there is no relevance threshold: a cutoff would turn an honest miss into
-false confidence.
+knowledge that is not there. During evaluation, a control question with no
+answer anywhere in the corpus outranked genuine questions that did have one. A
+top result can therefore be nothing more than the best of a bad field. That is
+exactly why there is no relevance threshold: a cutoff would turn an honest miss
+into false confidence.
 
 So a calling agent must treat results as evidence to weigh, not as proof. When
 the evidence does not settle a question, it searches again in other words; when

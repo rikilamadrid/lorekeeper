@@ -1,6 +1,6 @@
 <!--
   The Lorekeeper mark: a star held in a ring.
-  Lorekeeper identity, proposal 0.1.0. See brand/IDENTITY.md for usage rules.
+  Lorekeeper identity 0.1.0, approved 2026-09-18. See brand/IDENTITY.md for usage rules.
   Colours are read from the token custom properties in brand/tokens/tokens.css,
   with the light-variant value as the fallback so the file also stands alone.
 -->

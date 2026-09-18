@@ -23,7 +23,7 @@ avoid: a generic productivity app, an "AI brain" gimmick, cyberpunk or neon AI
 styling, a clone of Pathfinder, and a clone of any existing second-brain
 project.
 
-How this proposal answers each of those, concretely:
+How the identity answers each of those, concretely:
 
 | Recorded direction | Where it lands |
 | --- | --- |
@@ -33,7 +33,7 @@ How this proposal answers each of those, concretely:
 | Folklore, subtle mysticism | Carried by restraint — a single star, no glow, no rays, no sparkle trail |
 | Modern developer tooling | System font stacks, a plain-JSON token source, no web font, no network call |
 
-| Recorded avoid | How this proposal avoids it |
+| Recorded avoid | How the identity avoids it |
 | --- | --- |
 | Generic productivity app | No rounded-square app tile, no gradient, no three-bar abstraction; the palette leads with a deep indigo and a bronze gilt, not a saturated SaaS blue |
 | "AI brain" gimmick | No brain, no node graph, no circuit, no neural motif anywhere in the system |
@@ -106,6 +106,17 @@ On a dark page the tokens resolve to periwinkle `#99A2F0` and lamplight
 Use `mark-mono.svg` wherever only one ink exists: a monochrome favicon, a stamp,
 an engraving, a terminal-adjacent context.
 
+**`mark-mono.svg` is not self-sufficient, and that is deliberate.** It inks with
+`currentColor` and carries no literal fallback, because its whole purpose is to
+take the colour of whatever encloses it. The standalone-correctness claim above
+is about `mark.svg` only. Referenced through `<img>`, rasterised, or opened on
+its own, `mark-mono.svg` is an independent document with nothing to inherit
+from, so `currentColor` falls back to initial black: 19.63:1 on the light page,
+but **1.15:1 on the dark page, which is invisible**. Anything derived from it —
+`09.2`'s favicon set above all, since a favicon is always an independent
+document — must set the ink explicitly per variant, `#1B1C2E` for light and
+`#EDE7DB` for dark, rather than rasterising the file as it stands.
+
 ### Size
 
 - **Minimum size: 16px.** Verified by rendering `brand/logo/mark.svg` at 16 and
@@ -123,14 +134,25 @@ an engraving, a terminal-adjacent context.
 - Do not recolour it outside the palette. Ring takes `--lk-accent`, star takes
   `--lk-gold`, or the whole mark takes one colour.
 - Do not add a glow, a gradient, a shadow, a ray, or a second star.
-- Do not place it on a background it was not measured against. On anything other
-  than `--lk-page`, `--lk-surface`, `--lk-surface-2`, or a filled `--lk-accent`,
-  use the one-colour mark.
+- Do not place it on a background it was not measured against. The two-colour
+  mark is measured against `--lk-page`, `--lk-surface`, and `--lk-surface-2`,
+  and those three are the only grounds it may sit on.
+- **Never put the two-colour mark on a filled `--lk-accent` surface.** The ring
+  is `--lk-accent`, so ring-on-ground would be 1.00:1 — the ring disappears
+  entirely, leaving a bare gold star at 1.80:1 light and 1.24:1 dark. That
+  destroys the idea the mark exists to carry, and it leaves exactly the
+  free-floating four-point sparkle this identity refuses on the grounds that the
+  star is *always* enclosed. On a filled accent surface use `mark-mono.svg`
+  inked with `--lk-accent-ink`, which is the pairing `brand/CONTRAST.md`
+  actually measures.
+- On any other ground, use the one-colour mark in a token measured against that
+  ground. If the pairing is not in `brand/CONTRAST.md`, it is not a placement
+  this identity permits.
 - Do not put the mark inside another container shape.
 
 ## The wordmark
 
-`brand/logo/wordmark.svg` — 874×100 viewBox
+`brand/logo/wordmark.svg` — 876.23×100 viewBox
 
 LOREKEEPER, set in constructed monoline capitals.
 
@@ -144,6 +166,15 @@ LOREKEEPER, set in constructed monoline capitals.
   font licence. See Typography below.
 - The wordmark is always set in capitals, always with this tracking, and is
   never re-set in a system typeface as a substitute.
+- **The viewBox is the ink box, not the path box.** The widest point of the word
+  is the final R's leg: its centreline stops at `x=872.09`, but a 10-unit stroke
+  on a diagonal carries `4.13` further out, so the ink reaches `876.2246` and
+  the box is `876.23`. Both side bearings are therefore zero, and every
+  diagonal's endpoint is stated to five places so its stroke edge lands exactly
+  on the cap line or the baseline rather than a hair short of or past it. The
+  lockup boxes are this width carried through their scale: `84 + 0.3 × 876.23`
+  and `0.26 × 876.23`. Anything that re-measures or re-crops these files should
+  measure ink, half-stroke included, and not path endpoints.
 
 Colour: `stroke="var(--lk-ink, #1B1C2E)"` — it takes the page's ink, in both
 variants. It is not an accent-coloured element.
@@ -173,6 +204,11 @@ logo, no edge of the containing element.
 
 Use the mark alone where the name is already present or the space is square. Use
 a lockup where Lorekeeper has to introduce itself.
+
+A lockup contains the two-colour mark, so the mark's background rule governs it
+unchanged: `--lk-page`, `--lk-surface`, or `--lk-surface-2`, and nothing else.
+The wordmark beside it is `--lk-ink`, which is measured against those same three
+grounds and no others. There is no accent-ground lockup.
 
 ## Palette
 
@@ -290,7 +326,7 @@ that typeface, which those licences do not permit.
 If a future ticket wants a distinctive display face, it must ship one under a
 licence that permits redistribution — the SIL Open Font License being the usual
 answer — and record that licence here. That is a new decision, not something
-this proposal assumes.
+this identity assumes.
 
 ## Files
 
@@ -301,9 +337,9 @@ brand/
   logo/
     mark.svg               two-colour mark, 64×64
     mark-mono.svg          one-colour mark, currentColor
-    wordmark.svg           drawn capitals, 874×100
-    lockup-horizontal.svg  default lockup
-    lockup-stacked.svg     narrow or centred lockup
+    wordmark.svg           drawn capitals, 876.23×100
+    lockup-horizontal.svg  default lockup, 346.87×64
+    lockup-stacked.svg     narrow or centred lockup, 227.82×108
   tokens/
     tokens.json            SOURCE OF TRUTH — palette, type, space, radius
     tokens.css             generated: CSS custom properties

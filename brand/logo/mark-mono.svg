@@ -1,13 +1,18 @@
 <!--
   The Lorekeeper mark in one colour.
-  Lorekeeper identity, proposal 0.1.0. See brand/IDENTITY.md for usage rules.
+  Lorekeeper identity 0.1.0, approved 2026-09-18. See brand/IDENTITY.md for usage rules.
   Colours are read from the token custom properties in brand/tokens/tokens.css,
   with the light-variant value as the fallback so the file also stands alone.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-labelledby="lk-mark-mono-title">
   <title id="lk-mark-mono-title">Lorekeeper</title>
   <!-- One colour, inherited from the surrounding text colour: favicons, stamps,
-       embroidery, engraving, and any surface that cannot hold two inks. -->
+       embroidery, engraving, and any surface that cannot hold two inks.
+       currentColor carries no fallback on purpose. Referenced through <img>, or
+       rasterised, this file is an independent document with nothing to inherit
+       from, so currentColor resolves to initial black — invisible on the dark
+       page. Anything derived from it must set the ink per variant: #1B1C2E for
+       light, #EDE7DB for dark. See brand/IDENTITY.md. -->
   <circle cx="32" cy="32" r="22" fill="none" stroke="currentColor" stroke-width="8"/>
   <path d="M 32,14.5 Q 35.54,28.46 49.5,32 Q 35.54,35.54 32,49.5 Q 28.46,35.54 14.5,32 Q 28.46,28.46 32,14.5 Z" fill="currentColor"/>
 </svg>

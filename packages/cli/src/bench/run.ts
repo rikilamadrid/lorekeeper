@@ -32,18 +32,12 @@ import {
 import { search } from '../search.js';
 import { walkMarkdown } from '../walk.js';
 import { generateCorpus } from './corpus.js';
+import { NOTES, SEED, WORDINGS } from './parameters.js';
 
-const NOTES = 3_000;
-const SEED = 20260917;
 /** Query repetitions; the median is reported so one GC pause does not decide. */
 const REPEATS = 20;
 
 const SINGLE = 'retry backoff jitter';
-const WORDINGS = [
-  'retry backoff jitter',
-  'queue consumer timeout',
-  'certificate rotation expiry',
-];
 
 function median(samples: readonly number[]): number {
   const sorted = [...samples].sort((a, b) => a - b);

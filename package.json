@@ -20,7 +20,8 @@
     "build": "tsc --build",
     "clean": "tsc --build --clean",
     "test": "vitest run",
-    "bench:search": "npm run build && node packages/cli/dist/bench/run.js"
+    "bench:search": "npm run build && node packages/cli/dist/bench/run.js",
+    "bench:context": "npm run build && node packages/cli/dist/bench/context.js"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.10",

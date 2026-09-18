@@ -23,6 +23,13 @@ holds no brain data.
   installation, quick start, knowledge structure, capture, retrieval,
   existing-vault adoption, agent integration, provenance concepts, CLI
   reference, troubleshooting. Nothing beyond it.
+- Narrative copy, installation and quickstart copy, how-it-works diagrams, and
+  the measured context-savings proof are consumed from Feature 09 rather than
+  authored here. This Feature authors the reference content that derives from
+  the shipped product: knowledge structure, capture, retrieval, existing-vault
+  adoption, agent integration, provenance concepts, CLI reference, and
+  troubleshooting. Every content item is authored in exactly one of the two
+  Features.
 - The site reads no private brain data and offers no capture, browsing, sync,
   authentication, or dashboard.
 - Schema and CLI facts shown in the docs derive from `packages/core` contracts
@@ -31,7 +38,9 @@ holds no brain data.
   motion.
 - Offline behavior is honest: what is cached works offline, and what is not says
   so.
-- Identity is applied only as far as the unresolved design direction allows.
+- Identity is applied by consuming Feature 09's approved mark, palette, and type
+  tokens. This Feature restates no colour or type value the token source already
+  defines, and designs no identity of its own.
 
 ## Out of Scope
 
@@ -39,7 +48,12 @@ holds no brain data.
   dashboards.
 - Any access to a user's brain from the browser.
 - Marketing pages beyond the thesis page.
-- Visual identity design work — logo, palette, typography.
+- Visual identity design work — logo, mark, wordmark, palette, typography,
+  favicon, and social preview. Feature 09 owns all of it.
+- Authoring the product narrative, the thirty-second explanation, the
+  installation and quickstart copy, the how-it-works diagrams, the agent
+  integration demo, and the presentation of the measured context saving.
+  Feature 09 authors them; this Feature renders them.
 
 ## Delivery Chunks
 
@@ -55,7 +69,8 @@ holds no brain data.
 
 - The built site is static, installs as a PWA, and makes no request for user
   data.
-- Every content item in the scope list has a page.
+- Every content item in the scope list has a page, and each one's copy is either
+  authored here or consumed from Feature 09, with none authored twice.
 - An automated accessibility check and a manual keyboard pass both pass on the
   main templates.
 - The CLI reference matches the shipped commands, verified against the built
@@ -68,5 +83,11 @@ holds no brain data.
   human names it.
 - **UNRESOLVED HUMAN DECISION:** hosting for the docs site and its preview
   deploys is `TBD`.
-- Visual identity is `TBD` and deliberately not started.
+- Depends on Feature 09 for identity, narrative, diagrams, and proof. Amended
+  2026-09-18 to record that boundary: Feature 09 authors what this Feature
+  renders, and the two Features are deliberately not merged. Feature 09 does not
+  depend on this Feature and is executable while this one is blocked.
 - Depends on Features 01, 04, 05, and 07 for accurate content.
+- The `## Delivery Chunks` above predate Feature 09 and are kept as the
+  historical planning record they are. Ticket slicing, when it happens, follows
+  the amended Requirements and Out of Scope sections, not those chunks.

@@ -8,7 +8,15 @@ Unless the human explicitly activated a role, assume `developer` for this
 invocation: read `roles/developer.md` and follow it. An explicit role overrides
 this default. A role narrows responsibility and never grants human authority.
 
-1. Resolve the ticket store. Read `skills/ticket/store.md` and follow it.
+1. Resolve the ticket store. Read `skills/ticket/store.md` and follow it. Then
+   read the execution mode as `skills/ticket/SKILL.md` §Execution mode says.
+   An invalid file is reported here, once, and the load proceeds as
+   `human-in-the-loop`. In `orchestrator` mode, running inside a claim's
+   worktree, read `context/tracker.md` and the Feature spec source from the
+   main checkout whenever the worktree has no copy. They may be untracked, and
+   the main checkout is where they live. The worker brief names it, and
+   `node skills/orchestrate/engine/bin/orchestrate.mjs owner <key> --json`
+   reports it as `root`.
 2. Select the ticket the human named, by key. If none was named, list the ready
    tickets — see Readiness below — and stop.
 3. Read the ticket.
@@ -25,7 +33,20 @@ this default. A role narrows responsibility and never grants human authority.
    - A named blocker that does not exist blocks the load. Report it by key.
    Stop before writing anything. A blocked load must leave no trace.
 6. Read only the files or context the ticket's `## Context` names.
-7. Inspect the current Git state.
+7. Inspect the current Git state. In `orchestrator` mode only, also ask who
+   owns the ticket:
+
+   ```sh
+   node skills/orchestrate/engine/bin/orchestrate.mjs owner <key> --json
+   ```
+
+   If `claim` is not `null` and `here` is `false`, stop before writing
+   anything. When `claim.worktree` is set, another worker owns this ticket:
+   name its worktree and branch. When it is `null`, the ticket carries a trace
+   of earlier work with no live worktree — an orphan branch, a branch checked
+   out elsewhere, or an interrupted claim: name `claim.branch` or the claim
+   ref, and leave the decision to the human. In `human-in-the-loop` mode this
+   step asks nothing of the engine.
 8. Stop if a required human decision blocks the work.
 9. Record the approval in the ticket's `## Status`:
    - `Proposed` becomes `Ready`. That is the only value this action writes.
@@ -40,6 +61,9 @@ this default. A role narrows responsibility and never grants human authority.
     first load writes it — with:
     - ticket key, title, and where it is in the store
     - parent Feature number, name, and spec path
+    - execution mode, as read in step 1
+    - in `orchestrator` mode, keep the `Worker`, `Worktree`, `Branch`, `State`,
+      and `Updated` lines the claim wrote, updating `Updated`
     - Git state
     - blocker, if any
     - next action

@@ -13,5 +13,10 @@ context/current-ticket.md
 context/current-feature.md
 context/handoff.md
 
+# Orchestrator-mode worker worktrees and claim state. Machine-local: each
+# worker's worktree lives here, and the orchestration engine refuses to claim
+# a ticket until this entry exists.
+/.pathfinder/
+
 # Editor and OS
 .DS_Store

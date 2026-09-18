@@ -4,6 +4,43 @@ Compact record of completed work.
 
 ## Completed
 
+### 2026-09-18 — Feature 07: Agent-Facing Integration Artifact
+
+- Outcome: `lore init` writes `AGENTS.md` at the brain root as a
+  manifest-owned starter file, so a calling agent learns Lorekeeper is there
+  without a human pasting instructions. The artifact states what the brain is,
+  the exact `lore search` call including several quoted wordings, the five
+  result fields a caller needs to weigh evidence, and the known limitation that
+  score cannot prove knowledge is absent. Regeneration over a user-edited copy
+  reports drift and keeps the file byte for byte, because generation goes
+  through the existing `lore init` and managed-manifest path rather than a
+  command of its own. `npm run bench:context` then turned the Feature's central
+  claim into a measured number: over the same deterministic 3,000-note corpus
+  Feature 05 used, the prescribed call returns a 2,847-byte payload against a
+  5,604-byte baseline of the whole notes those spans sit in — 1.97x, reported
+  as approximately 2.0x. Bytes are a labelled proxy for token cost; no
+  tokenizer and no vendor coupling entered the CLI to produce it.
+- Verification: `npm run lint`, `npm run build`, and `npm test` (709 tests, 21
+  files) clean. CI passed on macOS and Ubuntu for PRs #29 and #30. The `07.2`
+  review re-ran the benchmark twice from a clean build with byte-identical
+  output, reproduced the spec's compact-JSON and whitespace claims
+  independently, confirmed all five result fields in the payload, and re-ran
+  `npm run bench:search` to show the shared-parameters refactor left Feature
+  05's recorded timings intact. The baseline charges only for the files the
+  returned spans came from, so the saving is a floor rather than a best case,
+  and nothing — corpus, seed, or output format — was tuned to improve it.
+- Commit/PR: PRs #29 (`07.1`) and #30 (`07.2`), squash-merged to `main`.
+- Follow-up: four non-blocking observations from the `07.1` review and two from
+  `07.2` are recorded in the Feature spec. The ones most likely to matter:
+  `AGENTS.md` is itself indexed and outranks the intended note on its own
+  example query, with no small correct fix that does not derive meaning from a
+  path; the taught command works as written only from the brain directory; and
+  the artifact assumes `lore` is already on `PATH`. Carried and still open:
+  `dist/bench/` ships in the package until the release process decides
+  otherwise; bump `actions/checkout` and `actions/setup-node` to `@v5`;
+  `npm run clean && npm run build` without a reinstall leaves `lore`
+  non-executable.
+
 ### 2026-09-17 — Feature 05: Span Index and `lore search`
 
 - Outcome: `lore search <brain> "<wording>" ["<wording>" ...]` walks a vault,

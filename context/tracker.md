@@ -4,6 +4,13 @@
 
 GitHub Issues on `rikilamadrid/lorekeeper`. Approved 2026-08-27.
 
+<!-- pathfinder:ticket-store github-issues rikilamadrid/lorekeeper -->
+
+That marker line is authoritative: it is how the orchestration engine learns
+which store to read, without interpreting the prose around it. The prose stays
+authoritative for people. The engine refuses to run at all while the line is
+absent, and names the line to add.
+
 This is the canonical and only place Lorekeeper's tickets exist. There is no
 `context/tickets/` directory in this repository, and nothing publishes, mirrors,
 or synchronizes a ticket — there is never a second copy to reconcile.
@@ -31,17 +38,43 @@ A ticket's key is `NN.TT` — parent Feature number, then ticket number within
 that Feature. Keys are never reused and never renumbered, because blocker edges
 are matched on them.
 
-The key is carried as a stable marker in the issue body:
+The key is carried in the issue body on two lines, which always agree.
+
+**The machine-readable identity**, required by Pathfinder orchestration, is the
+first line of the body and nothing else:
+
+```text
+<!-- pathfinder:ticket NN.TT -->
+```
+
+The orchestration engine reads only the body's first line and matches it
+exactly (`skills/orchestrate/engine/store.mjs`). A ticket whose first line is
+anything else is invisible to orchestration — not reported as malformed, simply
+absent from the board. That failure is silent, so the line's position matters as
+much as its content.
+
+**The human-readable compatibility line** is retained on every existing
+Lorekeeper issue, directly beneath it:
 
 ```text
 Ticket-Key: NN.TT
 ```
 
-That marker is the identity, and the only thing a later run matches on.
+It predates Pathfinder 4.4 and stays because it is what this document, the
+existing issues, and the `--search` query below have always used. It is not
+read by the engine. Both lines carry the same key; if they ever disagree, the
+`<!-- pathfinder:ticket -->` line is what orchestration acts on, and the
+disagreement is a defect to fix rather than a choice to interpret.
+
+All 18 issues were migrated to carry both lines on 2026-09-18, when Lorekeeper
+adopted Pathfinder 4.4.0. Bodies were otherwise unchanged, and no ticket was
+recreated, duplicated, closed, or relabelled.
+
+A new ticket is written with both lines, in this order, at the top of the body.
 
 An issue title may begin with `NN.TT — ` for readability. Titles are never
-identity: they are human-edited, and if a title and the body marker disagree,
-the body marker is correct. GitHub's issue number is also not the key.
+identity: they are human-edited, and if a title and the body markers disagree,
+the body is correct. GitHub's issue number is also not the key.
 
 Find a ticket by its key with:
 

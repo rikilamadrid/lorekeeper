@@ -1,6 +1,11 @@
 # Project Agent Guide
 
-This repository uses an AI-assisted, human-in-the-loop workflow. Project truth lives in `context/`, and reusable behaviors live in `skills/`.
+This repository uses Pathfinder's AI-assisted delivery workflow. Read
+`context/execution-mode.md` as `skills/ticket/SKILL.md` defines it: the marker
+line `<!-- pathfinder:execution-mode orchestrator -->` is the value Pathfinder
+reads, and human-in-the-loop is the default when the file is absent. Lorekeeper
+runs in **orchestrator** mode. Project truth lives in `context/`, and reusable
+behaviors live in `skills/`.
 
 ## This project — Lorekeeper
 
@@ -70,7 +75,10 @@ by hand during execution.
 
 Lifecycle skills assume their responsible role for each invocation and read its
 contract themselves: planning, spec writing, and ticket creation use `planner`;
-ticket load, start, and complete use `developer`; ticket review uses `tester`.
+ticket load, start, and complete use `developer`; ticket review uses `tester`;
+orchestration uses `orchestrator`; integration uses `integrator`. In
+orchestrator mode each worker implements one active ticket in its own Git
+worktree, and roles never call one another directly.
 
 The human can explicitly override that default with `/role <name>`. Read the
 named `roles/<name>.md` before anything else and follow it for the session. A
@@ -128,6 +136,7 @@ An adapter carries the canonical skill's frontmatter and a pointer to it, and no
 - `to-specs` — generate context-sized feature specs
 - `to-tickets` — decompose one approved Feature into blocker-linked tickets
 - `ticket` — run one action of the ticket delivery loop: `load`, `start`, `review`, `complete`
+- `orchestrate` — coordinate several dependency-safe ticket workers at once in orchestrator mode: `status`, `start`, `resume`, `integrate`
 - `debug-issue` — diagnose an observed failure to its root cause, apply the smallest justified fix, and verify it
 - `learn-feature` — create an interactive lesson for a completed feature
 - `learn-codebase` — create a modular learning portal for the repository

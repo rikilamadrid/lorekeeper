@@ -23,9 +23,9 @@ and that Feature 08 can render without authoring anything itself.
 - Read: `context/features/05-span-index-and-search.md` — the `## Verification`
   table, the only source for any published performance figure
 - Read: `context/features/08-docs-pwa.md` — the consuming Feature
-- Relevant area: a new framework-neutral presentation directory (`brand/`
-  proposed), the repository root `README.md`, and the GitHub repository's own
-  settings
+- Relevant area: the framework-neutral presentation root `brand/` — resolved
+  2026-09-18, see Notes / Decisions — the repository root `README.md`, and the
+  GitHub repository's own settings
 - Avoid: `apps/docs` framework selection, build, and hosting — Feature 08 owns
   those, and this Feature must not require them to be resolved first
 - Avoid: `packages/cli` and `packages/core` runtime behavior
@@ -194,7 +194,16 @@ and that Feature 08 can render without authoring anything itself.
 - Changing the GitHub repository's description, topics, or social preview is a
   write outside this repository and needs human approval before it happens, per
   `context/ai-interaction.md`.
-- The presentation directory is proposed as a single framework-neutral top-level
-  `brand/`, holding vector sources, the token source, narrative Markdown, and
-  diagrams. The exact path is a ticket-level decision; that it is framework-
-  neutral and outside `apps/docs` is a requirement.
+- **RESOLVED 2026-09-18 — shared presentation root: `brand/`.** The single
+  framework-neutral top-level `brand/` directory holds vector sources, the token
+  source, narrative Markdown, and diagrams. This was previously left as a
+  ticket-level decision; it is resolved here, at Feature level, so that every
+  ticket of this Feature inherits one path rather than each choosing its own.
+  Tickets 09.1 and 09.3 are dispatched concurrently and cannot negotiate a path
+  between themselves, which is why the decision moved up.
+  - 09.1 writes the identity sources and the token source under `brand/`.
+  - 09.3 writes the narrative, quickstart, and proof under `brand/`.
+  - Later tickets of this Feature use the same root.
+  Remaining framework-neutral and outside `apps/docs` is still a requirement,
+  not a preference. Subdirectory layout within `brand/` stays a ticket-level
+  decision; the root does not.

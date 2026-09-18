@@ -6,7 +6,15 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!**/dist", "!**/node_modules", "!prototypes"]
+    "includes": [
+      "**",
+      "!**/dist",
+      "!**/node_modules",
+      "!prototypes",
+      "!skills/orchestrate/engine",
+      "!skills/render-artifact/engine",
+      "!.claude/hooks"
+    ]
   },
   "formatter": {
     "enabled": true,

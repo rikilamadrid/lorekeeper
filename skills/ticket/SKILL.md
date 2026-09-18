@@ -1,7 +1,7 @@
 ---
 name: ticket
 description: Run one action of the ticket delivery loop — load, start, review, or complete.
-argument-hint: load|start|review|complete
+argument-hint: load|start|review|complete [key]
 ---
 
 # Ticket
@@ -11,7 +11,7 @@ The delivery loop, as one skill. The human names the action:
 `/ticket load <ticket>`
 `/ticket start`
 `/ticket review`
-`/ticket complete`
+`/ticket complete [<ticket>]`
 
 ## Process
 
@@ -54,6 +54,25 @@ hand. `start` and `complete` are the only actions that write it, and each writes
 it only as a consequence of the ticket transition it just made.
 
 `context/current-ticket.md` is transient workspace state and records no status.
+
+## Execution mode
+
+A project records how Pathfinder runs it in `context/execution-mode.md`, on one
+marker line:
+
+`<!-- pathfinder:execution-mode <value> -->`
+
+The values are `human-in-the-loop` and `orchestrator`. No file means
+`human-in-the-loop`; every project installed before the file existed is one,
+and nothing needs migrating. A file whose marker is missing or names anything
+else is invalid: report it once, naming the file and the two values, and
+proceed as `human-in-the-loop`. Never infer a mode from prose, the environment,
+or the harness.
+
+Every reader of the mode — the actions below, `whereami`, and the session
+orientation handler — reads it this way, and nothing else restates it. In
+`human-in-the-loop` mode nothing in this skill behaves differently from before
+the file existed.
 
 ## Rules
 

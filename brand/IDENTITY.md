@@ -1,13 +1,13 @@
-# Lorekeeper identity — proposal
+# Lorekeeper identity
 
-**Status: proposal. Not approved.** This document and the files beside it are
+**Status: approved 2026-09-18.** This document and the files beside it are
 ticket `09.1`'s deliverable: a mark, a wordmark, their lockups, a palette, and a
-type pairing, put forward for the human to accept, change, or reject. The
-`Open decision` row for visual identity in `context/project-overview.md` stays
-`TBD` until that approval happens, and the derived assets in `09.2` do not
-start before it.
+type pairing. The human approved them as proposed, and
+`context/project-overview.md` records that decision with its date, so the values
+here are cited rather than re-decided.
 
-The CLI voice half of that same row is deliberately untouched. It stays open.
+The CLI voice half of that same recorded decision is deliberately untouched. It
+stays open, and is not part of Feature 09.
 
 ## The idea in one line
 
@@ -296,7 +296,7 @@ this proposal assumes.
 
 ```
 brand/
-  IDENTITY.md              this proposal
+  IDENTITY.md              this document
   CONTRAST.md              generated: the measured contrast table
   logo/
     mark.svg               two-colour mark, 64×64
@@ -328,18 +328,17 @@ wins over both.
 
 ## What approval means
 
-Approving this proposal means three things become fixed and cited rather than
-re-decided: the mark and wordmark geometry, the palette values, and the type
-pairing. After approval, and only then:
+Approval fixed three things, which are now cited rather than re-decided: the
+mark and wordmark geometry, the palette values, and the type pairing. It follows
+that:
 
-1. The visual-identity `Open decision` row in `context/project-overview.md` is
-   updated with the decision and its date. The CLI voice part of that row stays
-   open and keeps saying so.
+1. `context/project-overview.md` records the visual-identity decision, dated
+   2026-09-18. The CLI voice part of that record stays open and keeps saying so.
 2. `09.2` generates the favicon set, application icons, and social preview from
    `brand/logo/`.
 3. Later presentation tickets read values from `brand/tokens/`, and none of them
    hard-codes a value the token source already defines.
 
-Rejecting or amending it costs one ticket, not a Feature: the vector sources and
-the token source are small, commented, and regenerate their outputs with one
+Amending any of it costs one ticket, not a Feature: the vector sources and the
+token source are small, commented, and regenerate their outputs with one
 command.

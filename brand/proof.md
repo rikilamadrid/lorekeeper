@@ -51,8 +51,9 @@ The average returned span is 313 bytes.
 ### The headline, and its ceiling
 
 **Approximately 2.0x**, rounded up from the measured **1.97x**. That is the
-ceiling for the prescribed call, not a floor to build on, and it is the JSON
-payload against the baseline — because the payload is what a calling agent
+ceiling on what is published for the prescribed call — not a claim about the
+best case, which the generous-baseline caveat below addresses — and it is the
+JSON payload against the baseline, because the payload is what a calling agent
 actually receives.
 
 Span text is recorded beside it as a diagnostic, not as the headline. It is the

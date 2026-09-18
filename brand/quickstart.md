@@ -25,8 +25,10 @@ npm ci
 npm run build
 ```
 
-`npm ci` puts a `lore` executable in the workspace's `node_modules/.bin`, and
-`npm run build` is what fills it in. Put it on your `PATH` for this shell:
+`npm ci` builds the toolkit — the CLI package's `prepare` script compiles it —
+and puts a `lore` executable in the workspace's `node_modules/.bin`. The
+explicit `npm run build` above is there so the step is visible, and to rebuild
+after you change sources. Put the directory on your `PATH` for this shell:
 
 ```sh
 export PATH="$PWD/node_modules/.bin:$PATH"

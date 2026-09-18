@@ -68,15 +68,24 @@ phrasing was built from.
 Measured on 2026-09-17 over a synthetic corpus of 3,000 notes, the prescribed
 agent call returned a JSON payload **approximately 2.0x** smaller than the
 whole notes those passages came from. The measured ratio was 1.97x; 2.0x is it
-rounded up, and it is the ceiling, not a floor to build on.
+rounded up, and it is the ceiling on what we publish — not a claim about the
+best case.
 
-Three caveats travel with that number wherever it appears:
+Four caveats sit behind that number. The proxy caveat travels with every byte
+figure; the generous-baseline and pretty-printed caveats travel with this
+saving wherever it appears:
 
 - **Bytes are a proxy for token cost, not a literal token count.** No tokenizer
   and no provider coupling was added to produce it.
 - **The baseline is deliberately generous.** It charges only for the files the
   returned passages came from, as though the agent had already known which
-  files to open. Without span retrieval it would not have known.
+  files to open. Without span retrieval it would not have known — which is why
+  Feature 07 recorded 1.97x as a floor for the realistic case rather than a
+  best case. The ceiling above is a ceiling on what is published, not on what
+  the tool can do.
+- **The payload is pretty-printed**, which is 12% of its bytes. Compact JSON
+  would read 2.2x. The output format is a retrieval contract and was not
+  changed to improve this number.
 - **The corpus was not shaped to flatter the result.** Its notes average about
   a kilobyte, which bounds how much smaller a passage can be than the note
   holding it.

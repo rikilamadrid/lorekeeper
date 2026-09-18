@@ -11,9 +11,10 @@ same arguments this page shows.
 npm run demo:agent
 ```
 
-That builds the toolkit and runs the demo. It writes nothing into the
-repository: the brain it searches is created in a temporary directory and
-removed when it finishes.
+That builds the toolkit and runs the demo. The build writes compiled output
+under each package's `dist/`; the demo itself writes only into a temporary
+directory, which holds the brain it searches and is removed when it finishes.
+Nothing it creates is left in the working tree.
 
 The output is deterministic. The vault is static bytes, retrieval is
 deterministic, and the one thing that differs between two runs — the temporary
@@ -130,7 +131,7 @@ on a question. A score ranks passages against each other. If the
 evidence does not settle the question, the agent searches again in
 other words, or says the evidence is insufficient.
 
-The temporary brain has been removed. Nothing was written to this repository.
+The temporary brain has been removed. The demo wrote nothing outside it.
 ```
 
 ## What that shows

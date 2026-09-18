@@ -125,7 +125,7 @@ if (failure !== null) {
   process.exitCode = 1;
 } else {
   process.stdout.write(
-    '\nThe temporary brain has been removed. Nothing was written to this repository.\n',
+    '\nThe temporary brain has been removed. The demo wrote nothing outside it.\n',
   );
 }
 

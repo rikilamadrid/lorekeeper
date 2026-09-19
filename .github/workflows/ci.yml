@@ -46,6 +46,13 @@ jobs:
       - name: Build
         run: npm run build
 
+      # The generated favicons, application icons, and social preview claim to
+      # be reproducible build products of brand/logo/ and the token source.
+      # Running the check on both runners, on a Node the assets were not
+      # generated with, is what makes that a fact rather than a claim.
+      - name: Verify the generated identity assets reproduce
+        run: npm run brand:assets:check
+
       - name: Verify the built binary runs
         run: |
           ./node_modules/.bin/lore --version

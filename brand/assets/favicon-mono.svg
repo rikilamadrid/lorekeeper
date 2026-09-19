@@ -1,0 +1,20 @@
+<!--
+  The one-colour mark for single-ink contexts, inked per colour scheme.
+
+  GENERATED, do not edit. Source: brand/logo/mark-mono.svg for the
+  geometry and brand/tokens/tokens.json for the colour.
+  Regenerate with: node brand/assets/build.mjs
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-labelledby="lk-mark-mono-title">
+  <title id="lk-mark-mono-title">Lorekeeper</title>
+  <style>
+    .ink-stroke { stroke: #1b1c2e; }
+    .ink-fill { fill: #1b1c2e; }
+    @media (prefers-color-scheme: dark) {
+      .ink-stroke { stroke: #ede7db; }
+      .ink-fill { fill: #ede7db; }
+    }
+  </style>
+  <circle class="ink-stroke" cx="32" cy="32" r="22" fill="none" stroke-width="8"/>
+  <path class="ink-fill" d="M 32,14.5 Q 35.54,28.46 49.5,32 Q 35.54,35.54 32,49.5 Q 28.46,35.54 14.5,32 Q 28.46,28.46 32,14.5 Z"/>
+</svg>

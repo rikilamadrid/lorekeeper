@@ -2,3 +2,10 @@
 # normalization would silently rewrite the CRLF fixture and break the very
 # property it exists to prove.
 packages/core/test/fixtures/** -text
+
+# Generated identity assets are byte-exact build products: `npm run
+# brand:assets:check` reproduces them from the vector sources and compares
+# bytes. Any line-ending translation would break that comparison on the
+# platform that applied it.
+brand/assets/*.png -text
+brand/assets/*.ico -text

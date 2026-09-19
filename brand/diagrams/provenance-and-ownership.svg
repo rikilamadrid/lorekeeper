@@ -1,0 +1,148 @@
+<!--
+  Where a note came from, and who owns it: the provenance chain, and the
+  manifest's toolkit-owned against user-owned distinction.
+  Lorekeeper identity 0.1.0. See brand/diagrams.md for the text alternative
+  and brand/IDENTITY.md for the usage rules.
+
+  Colours are the token custom properties from brand/tokens/tokens.css, each
+  with its light-variant value as the literal fallback. Standing alone this
+  file is its own document, so `svg:root` matches and it carries the palette
+  itself, dark variant included. Inlined into a themed page `svg:root` matches
+  nothing, the page's tokens win, and the fallbacks never fire. Verified by
+  `node brand/diagrams/check.mjs`.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 672" width="960" height="672"
+     role="img" aria-labelledby="lk-d-po-title lk-d-po-desc">
+  <title id="lk-d-po-title">Provenance and file ownership in a Lorekeeper brain</title>
+  <desc id="lk-d-po-desc">Two parts. One: provenance. Four stages sit in a row — an external artifact such as an article, a video, a talk or a thread; sources/, holding the raw capture and where it came from; notes/, what you made of it in your own words; and entities/, the projects, areas and people a note concerns. The links between them are drawn beneath the row and they run backwards: a `derived_from` link points from notes/ to sources/, and another from sources/ to the external artifact, each naming the origin it was derived from. One `about` link runs the other way, from notes/ to entities/. So provenance points backwards, from the derived artifact to its origin, and adding a note never edits the source it came from, while aboutness points forward to the project, area or person a note concerns. Frontmatter is authoritative for both. Two: ownership. A manifest at .lorekeeper/manifest.json inside your brain records two classes of file. The toolkit's files are the starter files `lore init` wrote, AGENTS.md among them, and these can be updated. Yours are everything else, and they are never rewritten, moved or reformatted. Absence is a statement: a file the manifest does not list is yours by definition, which is a positive statement of ownership rather than missing information. A toolkit file you edited is reported as drifted rather than overwritten, and adopting a vault you already have is adoption, not migration.</desc>
+
+  <style>
+    svg:root {
+      --lk-page: #FAF7F1;
+      --lk-surface: #FFFFFF;
+      --lk-surface-2: #F0EAE0;
+      --lk-ink: #1B1C2E;
+      --lk-muted: #55566B;
+      --lk-line-strong: #7D7885;
+      --lk-accent: #343A8C;
+      --lk-gold: #8A6212;
+    }
+    @media (prefers-color-scheme: dark) {
+      svg:root {
+        --lk-page: #141521;
+        --lk-surface: #1C1E2C;
+        --lk-surface-2: #262939;
+        --lk-ink: #EDE7DB;
+        --lk-muted: #ABA7B8;
+        --lk-line-strong: #71748F;
+        --lk-accent: #99A2F0;
+        --lk-gold: #E2B45C;
+      }
+    }
+
+    .lk-d-page { fill: var(--lk-page, #FAF7F1); }
+    .lk-d-band { fill: var(--lk-surface-2, #F0EAE0); }
+    .lk-d-node { fill: var(--lk-surface, #FFFFFF); stroke: var(--lk-line-strong, #7D7885); stroke-width: 1.5; }
+
+    .lk-d-flow { fill: none; stroke: var(--lk-accent, #343A8C); stroke-width: 2; }
+    .lk-d-flow-gold { fill: none; stroke: var(--lk-gold, #8A6212); stroke-width: 2; }
+    .lk-d-head { fill: var(--lk-accent, #343A8C); }
+    .lk-d-head-gold { fill: var(--lk-gold, #8A6212); }
+    .lk-d-swatch-toolkit { fill: var(--lk-accent, #343A8C); }
+    .lk-d-swatch-user { fill: var(--lk-line-strong, #7D7885); }
+
+    text { font-family: var(--lk-sans, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif); }
+    .lk-d-h1 { font-family: var(--lk-display, "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Times New Roman", serif); font-size: 24px; fill: var(--lk-ink, #1B1C2E); }
+    .lk-d-sub { font-size: 13.5px; fill: var(--lk-muted, #55566B); }
+    .lk-d-step { font-size: 12px; font-weight: 650; letter-spacing: 0.08em; fill: var(--lk-accent, #343A8C); }
+    .lk-d-strong { font-size: 15px; font-weight: 650; fill: var(--lk-ink, #1B1C2E); }
+    .lk-d-title-sm { font-size: 13.5px; font-weight: 650; fill: var(--lk-ink, #1B1C2E); }
+    .lk-d-note { font-size: 13px; fill: var(--lk-muted, #55566B); }
+    .lk-d-note-sm { font-size: 12.5px; fill: var(--lk-muted, #55566B); }
+    .lk-d-foot { font-size: 12.5px; fill: var(--lk-muted, #55566B); }
+    .lk-d-dir { font-family: var(--lk-mono, ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace); font-size: 13.5px; font-weight: 650; fill: var(--lk-ink, #1B1C2E); }
+    .lk-d-code-accent { font-family: var(--lk-mono, ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace); font-size: 12px; fill: var(--lk-accent, #343A8C); }
+    .lk-d-code-gold { font-family: var(--lk-mono, ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace); font-size: 12px; fill: var(--lk-gold, #8A6212); }
+    .lk-d-code-muted { font-family: var(--lk-mono, ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace); font-size: 12px; fill: var(--lk-muted, #55566B); }
+    .lk-d-mid { text-anchor: middle; }
+  </style>
+
+  <defs>
+    <marker id="lk-d-po-arrow" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0,1 L 9,5 L 0,9 Z" class="lk-d-head"/>
+    </marker>
+    <marker id="lk-d-po-arrow-gold" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0,1 L 9,5 L 0,9 Z" class="lk-d-head-gold"/>
+    </marker>
+  </defs>
+
+  <rect class="lk-d-page" width="960" height="672"/>
+
+  <text class="lk-d-h1" x="48" y="44">Where a note came from, and who owns it</text>
+  <text class="lk-d-sub" x="48" y="68">Links point from the derived artifact back to its origin, and a manifest says which files are the toolkit's.</text>
+
+  <!-- 1 · PROVENANCE -->
+  <rect class="lk-d-band" x="32" y="88" width="896" height="296" rx="10"/>
+  <text class="lk-d-step" x="48" y="110">1 · PROVENANCE</text>
+
+  <rect class="lk-d-node" x="48" y="128" width="184" height="88" rx="8"/>
+  <text class="lk-d-title-sm" x="64" y="154">An external artifact</text>
+  <text class="lk-d-note-sm" x="64" y="176">an article, a video,</text>
+  <text class="lk-d-note-sm" x="64" y="194">a talk, a thread</text>
+
+  <rect class="lk-d-node" x="276" y="128" width="184" height="88" rx="8"/>
+  <text class="lk-d-dir" x="292" y="154">sources/</text>
+  <text class="lk-d-note-sm" x="292" y="176">the raw capture and</text>
+  <text class="lk-d-note-sm" x="292" y="194">where it came from</text>
+
+  <rect class="lk-d-node" x="504" y="128" width="184" height="88" rx="8"/>
+  <text class="lk-d-dir" x="520" y="154">notes/</text>
+  <text class="lk-d-note-sm" x="520" y="176">what you made of it,</text>
+  <text class="lk-d-note-sm" x="520" y="194">in your own words</text>
+
+  <rect class="lk-d-node" x="732" y="128" width="184" height="88" rx="8"/>
+  <text class="lk-d-dir" x="748" y="154">entities/</text>
+  <text class="lk-d-note-sm" x="748" y="176">the projects, areas,</text>
+  <text class="lk-d-note-sm" x="748" y="194">and people it concerns</text>
+
+  <!-- provenance points backwards -->
+  <path class="lk-d-flow" d="M 332,216 C 332,262 172,262 172,222" marker-end="url(#lk-d-po-arrow)"/>
+  <text class="lk-d-code-accent lk-d-mid" x="252" y="280">derived_from</text>
+  <path class="lk-d-flow" d="M 560,216 C 560,262 400,262 400,222" marker-end="url(#lk-d-po-arrow)"/>
+  <text class="lk-d-code-accent lk-d-mid" x="480" y="280">derived_from</text>
+
+  <!-- aboutness points forward -->
+  <path class="lk-d-flow-gold" d="M 640,216 C 640,308 790,308 790,222" marker-end="url(#lk-d-po-arrow-gold)"/>
+  <text class="lk-d-code-gold lk-d-mid" x="715" y="326">about</text>
+
+  <text class="lk-d-note-sm" x="48" y="348">Provenance points backwards, from the derived artifact to its origin, so adding a note never edits the source it came from.</text>
+  <text class="lk-d-note-sm" x="48" y="366">Aboutness points forward, to the project, area, or person a note concerns. Frontmatter is authoritative for both.</text>
+
+  <!-- 2 · OWNERSHIP -->
+  <rect class="lk-d-band" x="32" y="400" width="896" height="216" rx="10"/>
+  <text class="lk-d-step" x="48" y="422">2 · OWNERSHIP</text>
+
+  <rect class="lk-d-node" x="48" y="432" width="420" height="168" rx="8"/>
+  <text class="lk-d-strong" x="64" y="458">The manifest</text>
+  <text class="lk-d-code-muted" x="64" y="478">.lorekeeper/manifest.json</text>
+  <rect class="lk-d-swatch-toolkit" x="64" y="496" width="12" height="12" rx="2"/>
+  <text class="lk-d-title-sm" x="86" y="507">The toolkit's</text>
+  <text class="lk-d-note-sm" x="86" y="525">the starter files <tspan class="lk-d-code-muted">lore init</tspan> wrote, AGENTS.md</text>
+  <text class="lk-d-note-sm" x="86" y="543">among them. These can be updated.</text>
+  <rect class="lk-d-swatch-user" x="64" y="558" width="12" height="12" rx="2"/>
+  <text class="lk-d-title-sm" x="86" y="569">Yours</text>
+  <text class="lk-d-note-sm" x="86" y="587">everything else — never rewritten, moved, or reformatted.</text>
+
+  <rect class="lk-d-node" x="488" y="432" width="416" height="168" rx="8"/>
+  <text class="lk-d-strong" x="504" y="458">Absence is a statement</text>
+  <text class="lk-d-note" x="504" y="482">A file the manifest does not list is yours by</text>
+  <text class="lk-d-note" x="504" y="500">definition. That is a positive statement of</text>
+  <text class="lk-d-note" x="504" y="518">ownership, not missing information.</text>
+  <text class="lk-d-note" x="504" y="548">A toolkit file you edited is reported as</text>
+  <text class="lk-d-note" x="504" y="566">drifted, not overwritten. Adopting a vault</text>
+  <text class="lk-d-note" x="504" y="584">you already have is adoption, not migration.</text>
+
+  <text class="lk-d-foot" x="48" y="648">One manifest, inside your brain, and no second record anywhere to reconcile against it.</text>
+</svg>

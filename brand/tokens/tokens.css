@@ -1,0 +1,97 @@
+/*
+ * Lorekeeper identity tokens — GENERATED, do not edit.
+ *
+ * Source:    brand/tokens/tokens.json
+ * Regenerate: node brand/tokens/build.mjs
+ * Contrast:   brand/CONTRAST.md, measured by brand/tokens/contrast.mjs
+ *
+ * Light is the written default so a consumer that sets nothing still gets a
+ * readable page. The system preference is followed unless the document opts
+ * out with data-lk-theme="light", and an explicit data-lk-theme="dark"
+ * wins over both because it sits on the element.
+ */
+
+:root {
+  color-scheme: light;
+  --lk-page: #faf7f1;
+  --lk-surface: #ffffff;
+  --lk-surface-2: #f0eae0;
+  --lk-ink: #1b1c2e;
+  --lk-muted: #55566b;
+  --lk-line: #e0d8ca;
+  --lk-line-strong: #7d7885;
+  --lk-accent: #343a8c;
+  --lk-accent-ink: #faf7f1;
+  --lk-gold: #8a6212;
+  --lk-gold-ink: #faf7f1;
+  --lk-ok: #1c6b46;
+  --lk-no: #a32a1f;
+
+  --lk-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Times New Roman", serif;
+  --lk-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --lk-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  --lk-text--1: 0.875rem;
+  --lk-text-0: 1rem;
+  --lk-text-1: 1.125rem;
+  --lk-text-2: 1.375rem;
+  --lk-text-3: 1.75rem;
+  --lk-text-4: 2.25rem;
+  --lk-text-5: 3rem;
+
+  --lk-leading-tight: 1.2;
+  --lk-leading-body: 1.65;
+  --lk-tracking-display: -0.011em;
+  --lk-tracking-wordmark: 0.08em;
+  --lk-weight-body: 400;
+  --lk-weight-heading: 650;
+  --lk-measure: 68ch;
+
+  --lk-space-1: 0.25rem;
+  --lk-space-2: 0.5rem;
+  --lk-space-3: 0.75rem;
+  --lk-space-4: 1rem;
+  --lk-space-5: 1.5rem;
+  --lk-space-6: 2rem;
+  --lk-space-7: 3rem;
+  --lk-space-8: 4rem;
+
+  --lk-radius-sm: 6px;
+  --lk-radius-md: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-lk-theme="light"]) {
+    color-scheme: dark;
+    --lk-page: #141521;
+    --lk-surface: #1c1e2c;
+    --lk-surface-2: #262939;
+    --lk-ink: #ede7db;
+    --lk-muted: #aba7b8;
+    --lk-line: #30334a;
+    --lk-line-strong: #71748f;
+    --lk-accent: #99a2f0;
+    --lk-accent-ink: #141521;
+    --lk-gold: #e2b45c;
+    --lk-gold-ink: #141521;
+    --lk-ok: #6fd6a0;
+    --lk-no: #f2908a;
+  }
+}
+
+:root[data-lk-theme="dark"] {
+  color-scheme: dark;
+  --lk-page: #141521;
+  --lk-surface: #1c1e2c;
+  --lk-surface-2: #262939;
+  --lk-ink: #ede7db;
+  --lk-muted: #aba7b8;
+  --lk-line: #30334a;
+  --lk-line-strong: #71748f;
+  --lk-accent: #99a2f0;
+  --lk-accent-ink: #141521;
+  --lk-gold: #e2b45c;
+  --lk-gold-ink: #141521;
+  --lk-ok: #6fd6a0;
+  --lk-no: #f2908a;
+}

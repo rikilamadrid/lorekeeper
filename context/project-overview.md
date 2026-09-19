@@ -101,7 +101,8 @@ human resolves it.
 | Requirement | Product name is Lorekeeper; identity direction is recorded in Durable Decisions | Resolved 2026-08-21 |
 | Requirement | The CLI binary name is `lore` | Resolved 2026-08-21. Replaces the `brain` placeholder |
 | Open decision | Command vocabulary below the binary name | `TBD` — the subcommand names are not settled; do not rename them as a side effect of other work |
-| Open decision | Visual identity, logo, typography, palette, CLI voice | `TBD` — direction recorded, design deliberately not started |
+| Requirement | Visual identity: mark, wordmark, palette, typography, and the token source | Resolved 2026-09-18 by Feature 09, ticket 09.1. Approved as proposed in `brand/IDENTITY.md`; see Durable Decisions. `brand/tokens/tokens.json` is the source of truth and nothing downstream hard-codes a value it defines |
+| Open decision | CLI voice | `TBD` — direction recorded, design deliberately not started |
 | Open decision | Whether internal domain vocabulary adopts lore terminology | `TBD` — terminology must earn its place; do not rename concepts merely to match the product name |
 | Open decision | Mobile capture path under local-first | `TBD` — spike required; see Durable Decisions |
 | Requirement | `system/` is neither created nor reserved in the v0.1 generated structure | Resolved 2026-08-27 by Feature 03. An empty reserved folder shipping no tooling is a promise with no delivery behind it |
@@ -263,6 +264,7 @@ anything a prototype proved must not reach production.
 | 2026-08-21 | Monorepo retained, in the smallest sensible shape | Two real v0.1 product surfaces justify it. `apps/docs`, `packages/cli`, `packages/core`; no further fragmentation without a real boundary |
 | 2026-08-21 | Windows is out of scope for v0.1; macOS and Linux are supported | A scope decision, not a licence for sloppy paths. Use platform-neutral Node APIs so later support is not made harder, but add no Windows-specific work now |
 | 2026-08-21 | Rejected the `title_hint` field | Invented while writing fixtures and justified nothing. Recorded as a reminder that fixture presence does not justify a field |
+| 2026-09-18 | Visual identity approved: a four-point celestial star enclosed in a ring, a drawn inscriptional-capitals wordmark and its lockups, light and dark palettes, and an old-style serif display over a system-sans body and UI stack | Approved by the human from the proposal in `brand/IDENTITY.md`, resolving the visual-identity half of the 2026-08-21 open decision. The framework-neutral source of truth is `brand/tokens/tokens.json`, with `brand/tokens/tokens.css` generated from it and every text and meaningful-UI pair measured against WCAG 2.1 AA in `brand/CONTRAST.md`. No typeface is shipped or fetched. The CLI voice half of that decision remains open and is outside Feature 09 |
 
 ## Learning
 

@@ -1,0 +1,16 @@
+<!--
+  The Lorekeeper mark: a star held in a ring.
+  Lorekeeper identity 0.1.0, approved 2026-09-18. See brand/IDENTITY.md for usage rules.
+  Colours are read from the token custom properties in brand/tokens/tokens.css,
+  with the light-variant value as the fallback so the file also stands alone.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-labelledby="lk-mark-title">
+  <title id="lk-mark-title">Lorekeeper</title>
+  <!-- The ring: what is kept. Radius 22, stroke 8, so the outer edge sits at 26
+       and the mark clears the 64 box by 6 on every side. -->
+  <circle cx="32" cy="32" r="22" fill="none" stroke="var(--lk-accent, #343A8C)" stroke-width="8"/>
+  <!-- The star: what is found. Four points with concave flanks, drawn as
+       quadratics through a control radius of 5, so the form stays stellar at
+       display sizes and resolves to a clean lozenge at favicon sizes. -->
+  <path d="M 32,14.5 Q 35.54,28.46 49.5,32 Q 35.54,35.54 32,49.5 Q 28.46,35.54 14.5,32 Q 28.46,28.46 32,14.5 Z" fill="var(--lk-gold, #8A6212)"/>
+</svg>

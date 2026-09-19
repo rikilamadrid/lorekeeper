@@ -1,0 +1,160 @@
+<!--
+  How a search works: capture, spans, fused retrieval, and the span text an
+  agent receives.
+  Lorekeeper identity 0.1.0. See brand/diagrams.md for the text alternative
+  and brand/IDENTITY.md for the usage rules.
+
+  Colours are the token custom properties from brand/tokens/tokens.css, each
+  with its light-variant value as the literal fallback. Standing alone this
+  file is its own document, so `svg:root` matches and it carries the palette
+  itself, dark variant included. Inlined into a themed page `svg:root` matches
+  nothing, the page's tokens win, and the fallbacks never fire. Verified by
+  `node brand/diagrams/check.mjs`.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 740" width="960" height="740"
+     role="img" aria-labelledby="lk-d-rp-title lk-d-rp-desc">
+  <title id="lk-d-rp-title">How a search works in Lorekeeper</title>
+  <desc id="lk-d-rp-desc">A four-step pipeline. One: capture. A thought or a link is filed by `lore capture` into your Markdown files, which stay plain and readable with no tool installed. Two: index. Every search builds an index in memory and then drops it, writing nothing to your notes; what it indexes is spans, a heading's passage addressed by file, anchor and line range, such as notes/consumer-leases.md#A lease is lost silently:15-22. Three: search. A coding agent asks one question three ways in a single call; each wording produces its own ranked list; the ranked lists are fused into one, where ranks vote together rather than scores, and near-duplicate suppression collapses copies of one passage to a single line. Four: answer. One result comes back in full — path, anchor, line range, score, and the span text itself — and that span text, rather than the whole notes it came from, is what reaches the agent's context. Version 0.1 makes no model call and no network call, and a score ranks passages against each other; it cannot prove a thing is absent.</desc>
+
+  <style>
+    svg:root {
+      --lk-page: #FAF7F1;
+      --lk-surface: #FFFFFF;
+      --lk-surface-2: #F0EAE0;
+      --lk-ink: #1B1C2E;
+      --lk-muted: #55566B;
+      --lk-line-strong: #7D7885;
+      --lk-accent: #343A8C;
+      --lk-gold: #8A6212;
+    }
+    @media (prefers-color-scheme: dark) {
+      svg:root {
+        --lk-page: #141521;
+        --lk-surface: #1C1E2C;
+        --lk-surface-2: #262939;
+        --lk-ink: #EDE7DB;
+        --lk-muted: #ABA7B8;
+        --lk-line-strong: #71748F;
+        --lk-accent: #99A2F0;
+        --lk-gold: #E2B45C;
+      }
+    }
+
+    .lk-d-page { fill: var(--lk-page, #FAF7F1); }
+    .lk-d-band { fill: var(--lk-surface-2, #F0EAE0); }
+    .lk-d-node { fill: var(--lk-surface, #FFFFFF); stroke: var(--lk-line-strong, #7D7885); stroke-width: 1.5; }
+    .lk-d-node-accent { fill: var(--lk-surface, #FFFFFF); stroke: var(--lk-accent, #343A8C); stroke-width: 2; }
+    .lk-d-node-gold { fill: var(--lk-surface, #FFFFFF); stroke: var(--lk-gold, #8A6212); stroke-width: 2; }
+
+    .lk-d-flow { fill: none; stroke: var(--lk-accent, #343A8C); stroke-width: 2; }
+    .lk-d-head { fill: var(--lk-accent, #343A8C); }
+
+    text { font-family: var(--lk-sans, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif); }
+    .lk-d-h1 { font-family: var(--lk-display, "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Times New Roman", serif); font-size: 24px; fill: var(--lk-ink, #1B1C2E); }
+    .lk-d-sub { font-size: 13.5px; fill: var(--lk-muted, #55566B); }
+    .lk-d-step { font-size: 12px; font-weight: 650; letter-spacing: 0.08em; fill: var(--lk-accent, #343A8C); }
+    .lk-d-strong { font-size: 15px; font-weight: 650; fill: var(--lk-ink, #1B1C2E); }
+    .lk-d-strong-sm { font-size: 14px; font-weight: 650; fill: var(--lk-ink, #1B1C2E); }
+    .lk-d-body { font-size: 13.5px; fill: var(--lk-ink, #1B1C2E); }
+    .lk-d-note { font-size: 13px; fill: var(--lk-muted, #55566B); }
+    .lk-d-note-sm { font-size: 12.5px; fill: var(--lk-muted, #55566B); }
+    .lk-d-foot { font-size: 12.5px; fill: var(--lk-muted, #55566B); }
+    .lk-d-code { font-family: var(--lk-mono, ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace); font-size: 11px; fill: var(--lk-ink, #1B1C2E); }
+    .lk-d-code-accent { font-family: var(--lk-mono, ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace); font-size: 12px; fill: var(--lk-accent, #343A8C); }
+    .lk-d-code-span { font-family: var(--lk-mono, ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace); font-size: 11px; fill: var(--lk-accent, #343A8C); }
+    .lk-d-code-gold { font-family: var(--lk-mono, ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace); font-size: 11px; fill: var(--lk-gold, #8A6212); }
+    .lk-d-code-muted { font-family: var(--lk-mono, ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace); font-size: 11px; fill: var(--lk-muted, #55566B); }
+    .lk-d-mid { text-anchor: middle; }
+  </style>
+
+  <defs>
+    <marker id="lk-d-rp-arrow" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0,1 L 9,5 L 0,9 Z" class="lk-d-head"/>
+    </marker>
+  </defs>
+
+  <rect class="lk-d-page" width="960" height="740"/>
+
+  <text class="lk-d-h1" x="48" y="44">How a search works</text>
+  <text class="lk-d-sub" x="48" y="68">One capture, then every search rebuilds the index, ranks passages, and hands the agent span text.</text>
+
+  <!-- 1 · CAPTURE -->
+  <rect class="lk-d-band" x="32" y="88" width="896" height="104" rx="10"/>
+  <text class="lk-d-step" x="48" y="110">1 · CAPTURE</text>
+  <rect class="lk-d-node" x="48" y="120" width="192" height="60" rx="8"/>
+  <text class="lk-d-body lk-d-mid" x="144" y="146">A thought, a link,</text>
+  <text class="lk-d-body lk-d-mid" x="144" y="164">something worth keeping</text>
+  <path class="lk-d-flow" d="M 240,150 L 338,150" marker-end="url(#lk-d-rp-arrow)"/>
+  <text class="lk-d-code-accent lk-d-mid" x="292" y="140">lore capture</text>
+  <rect class="lk-d-node" x="344" y="120" width="256" height="60" rx="8"/>
+  <text class="lk-d-strong" x="360" y="144">Your Markdown files</text>
+  <text class="lk-d-code-muted" x="360" y="164">notes/consumer-leases.md</text>
+  <text class="lk-d-note" x="624" y="146">Plain files you own, readable</text>
+  <text class="lk-d-note" x="624" y="164">with no tool installed, this one included.</text>
+
+  <!-- 2 · INDEX -->
+  <rect class="lk-d-band" x="32" y="208" width="896" height="140" rx="10"/>
+  <text class="lk-d-step" x="48" y="230">2 · INDEX</text>
+  <rect class="lk-d-node" x="48" y="240" width="232" height="92" rx="8"/>
+  <text class="lk-d-strong" x="64" y="264">Every search</text>
+  <text class="lk-d-body" x="64" y="284">builds the index</text>
+  <text class="lk-d-body" x="64" y="302">in memory, then drops it.</text>
+  <text class="lk-d-note-sm" x="64" y="322">Your notes are never written.</text>
+  <path class="lk-d-flow" d="M 280,286 L 330,286" marker-end="url(#lk-d-rp-arrow)"/>
+  <rect class="lk-d-node" x="336" y="240" width="424" height="92" rx="8"/>
+  <text class="lk-d-strong-sm" x="352" y="262">Spans — a heading's passage, addressed</text>
+  <text class="lk-d-code-span" x="352" y="284">notes/nightly-export.md#When it runs:16-18</text>
+  <text class="lk-d-code-span" x="352" y="302">notes/consumer-leases.md#A lease is lost silently:15-22</text>
+  <text class="lk-d-code-span" x="352" y="320">notes/oncall-triage.md#A run that reported success:20-22</text>
+  <text class="lk-d-note" x="776" y="262">A span carries its</text>
+  <text class="lk-d-note" x="776" y="280">file, its anchor, and</text>
+  <text class="lk-d-note" x="776" y="298">its line range.</text>
+
+  <!-- 3 · SEARCH -->
+  <rect class="lk-d-band" x="32" y="364" width="896" height="188" rx="10"/>
+  <text class="lk-d-step" x="48" y="386">3 · SEARCH</text>
+  <rect class="lk-d-node" x="48" y="396" width="176" height="140" rx="8"/>
+  <text class="lk-d-strong" x="64" y="424">Your coding</text>
+  <text class="lk-d-strong" x="64" y="442">agent</text>
+  <text class="lk-d-note" x="64" y="468">asks one question</text>
+  <text class="lk-d-note" x="64" y="486">three ways, in one</text>
+  <text class="lk-d-note" x="64" y="504">call.</text>
+  <path class="lk-d-flow" d="M 224,466 L 250,466" marker-end="url(#lk-d-rp-arrow)"/>
+
+  <rect class="lk-d-node" x="256" y="400" width="208" height="38" rx="8"/>
+  <text class="lk-d-code" x="268" y="423">"nightly export failed"</text>
+  <rect class="lk-d-node" x="256" y="447" width="208" height="38" rx="8"/>
+  <text class="lk-d-code" x="268" y="470">"run stopped partway…"</text>
+  <rect class="lk-d-node" x="256" y="494" width="208" height="38" rx="8"/>
+  <text class="lk-d-code" x="268" y="517">"consumer lease renewal…"</text>
+
+  <path class="lk-d-flow" d="M 464,419 C 496,419 492,454 514,454" marker-end="url(#lk-d-rp-arrow)"/>
+  <path class="lk-d-flow" d="M 464,466 L 514,466" marker-end="url(#lk-d-rp-arrow)"/>
+  <path class="lk-d-flow" d="M 464,513 C 496,513 492,478 514,478" marker-end="url(#lk-d-rp-arrow)"/>
+
+  <rect class="lk-d-node-accent" x="520" y="440" width="168" height="52" rx="8"/>
+  <text class="lk-d-strong-sm" x="536" y="462">Fused</text>
+  <text class="lk-d-note-sm" x="536" y="480">into one ranked list</text>
+  <path class="lk-d-flow" d="M 688,466 L 714,466" marker-end="url(#lk-d-rp-arrow)"/>
+  <rect class="lk-d-node-accent" x="720" y="440" width="184" height="52" rx="8"/>
+  <text class="lk-d-strong-sm" x="736" y="462">Near-duplicate</text>
+  <text class="lk-d-note-sm" x="736" y="480">suppression</text>
+  <text class="lk-d-note-sm" x="520" y="516">A span every wording found rises. Copies of one</text>
+  <text class="lk-d-note-sm" x="520" y="534">passage collapse to one line.</text>
+
+  <!-- 4 · ANSWER -->
+  <rect class="lk-d-band" x="32" y="568" width="896" height="132" rx="10"/>
+  <text class="lk-d-step" x="48" y="590">4 · ANSWER</text>
+  <rect class="lk-d-node-gold" x="48" y="600" width="424" height="84" rx="8"/>
+  <text class="lk-d-strong-sm" x="64" y="624">One result, in full</text>
+  <text class="lk-d-code-gold" x="64" y="646">notes/consumer-leases.md#A lease is lost silently</text>
+  <text class="lk-d-code-muted" x="64" y="664">lines 15-22 · score 0.032 · and the span text</text>
+  <path class="lk-d-flow" d="M 472,642 L 510,642" marker-end="url(#lk-d-rp-arrow)"/>
+  <rect class="lk-d-node" x="516" y="600" width="388" height="84" rx="8"/>
+  <text class="lk-d-strong-sm" x="532" y="624">The agent's context</text>
+  <text class="lk-d-note" x="532" y="646">The passages that answer the question,</text>
+  <text class="lk-d-note" x="532" y="664">not the whole notes they came from.</text>
+
+  <text class="lk-d-foot" x="48" y="722">v0.1 makes no model call and no network call. A score ranks passages against each other; it cannot prove a thing is absent.</text>
+</svg>

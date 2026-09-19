@@ -25,7 +25,8 @@
     "demo:agent": "npm run build && node brand/demo/agent-demo.mjs",
     "brand:check": "node brand/tokens/build.mjs --check",
     "brand:assets": "node brand/assets/build.mjs",
-    "brand:assets:check": "node brand/assets/build.mjs --check"
+    "brand:assets:check": "node brand/assets/build.mjs --check",
+    "brand:diagrams": "node brand/diagrams/check.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.10",

@@ -65,16 +65,22 @@ Every colour a diagram names sits on `--lk-page`, `--lk-surface`, or
   list**, the narrative's own words for it; its mechanism is reciprocal rank
   fusion, named in Feature 05 and not on the diagram.
 
-  One exception, recorded rather than smoothed over: **near-duplicate
-  suppression** appears nowhere in `09.3`. The narrative does not discuss it, so
-  there is no narrative name to match and none was invented — the diagram uses
+  One exception, recorded rather than smoothed over: `09.3` never names or
+  discusses **near-duplicate suppression**. The term itself is not absent from
+  `09.3` — `proof.md` carries the past participle in a benchmark row copied from
+  Feature 05 — but no 09.3 text names the concept or explains it, so there is no
+  narrative name to match and none was invented. The diagram uses
   Feature 05's term, which is also the term ticket `09.4` asked for. If a later
   narrative names it differently, the diagram follows the narrative.
-- **No published figure.** A measured number may not appear here, because the
-  caveats it must travel with do not fit in a label and a figure that outruns
-  its caveats is the failure mode `proof.md` exists to prevent. The diagrams
-  point at the shape of the saving — passages rather than whole notes — and
-  `proof.md` carries the number.
+- **No published figure.** A measured claim about the saving may not appear
+  here, because the caveats it must travel with do not fit in a label and a
+  figure that outruns its caveats is the failure mode `proof.md` exists to
+  prevent. The diagrams point at the shape of the saving — passages rather than
+  whole notes — and `proof.md` carries the number. The one number on a diagram
+  is the rank score in the search diagram's result card: it is a value that
+  result carries, not a measurement of what Lorekeeper saves, and the caveat it
+  travels with is short enough to sit on the same diagram — "a score ranks
+  passages against each other; it cannot prove a thing is absent".
 
 The wordings in the search diagram are the demo's own, elided to fit. In full
 they are `"nightly export failed"`, `"run stopped partway and reported

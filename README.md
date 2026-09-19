@@ -50,8 +50,6 @@ whatever agent you were already using.
 
 ## The look of it
 
-<img src="brand/assets/favicon.svg" width="28" align="left" hspace="10" alt="">
-
 Lorekeeper is a star held in a ring: what was found, and what keeps it. The
 identity leans on folklore, field journals, and archival knowledge rather than
 on the neon-and-circuitry that usually signals "AI" — a warm parchment page,
@@ -114,7 +112,7 @@ Full walkthrough: [`brand/quickstart.md`](brand/quickstart.md).
 
 <p align="center">
   <img src="brand/diagrams/retrieval-path.svg" width="760"
-       alt="How a search works in Lorekeeper.">
+       alt="How a search works in Lorekeeper. A four-step pipeline. One: capture — a thought or a link is filed by lore capture into your Markdown files, which stay plain and readable with no tool installed. Two: index — every search builds an index in memory and then drops it, writing nothing to your notes; what it indexes is spans, a heading's passage addressed by file, anchor and line range. Three: search — a coding agent asks one question three ways in a single call, each wording produces its own ranked list, and the ranked lists are fused into one. Four: answer — one result carries its path, anchor, line range, score and span text, and the agent's context holds the passages that answer the question, not the whole notes they came from. Version 0.1 makes no model call and no network call, and a score ranks passages against each other; it cannot prove a thing is absent. The full description is inside the file.">
 </p>
 
 A capture becomes spans; a question becomes fused, deduplicated results; those
@@ -123,7 +121,7 @@ drops it — there is no index file, and nothing is written to your notes.
 
 <p align="center">
   <img src="brand/diagrams/three-surfaces.svg" width="760"
-       alt="The three surfaces Lorekeeper keeps separate.">
+       alt="The three surfaces Lorekeeper keeps separate. Two public surfaces sit above a dashed boundary line, and one private surface sits below it. Above: this repository, holding the CLI, its contracts and its tests, the identity, the narrative and this diagram, and no brain data ever; and the documentation site, which renders what this repository authors and holds no brain data. The dashed boundary reads: no brain data crosses this line, nothing private is committed here. Below it: your brain, holding your Markdown files and the manifest that says which of them the toolkit owns — private, on your machine, and never committed to this repository. The full description is inside the file.">
 </p>
 
 Three surfaces stay cleanly separated: this repository, your private brain, and

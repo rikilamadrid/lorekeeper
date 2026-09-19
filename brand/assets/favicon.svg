@@ -1,0 +1,20 @@
+<!--
+  The two-colour mark, inked per colour scheme rather than inherited.
+
+  GENERATED, do not edit. Source: brand/logo/mark.svg for the
+  geometry and brand/tokens/tokens.json for the colour.
+  Regenerate with: node brand/assets/build.mjs
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-labelledby="lk-mark-title">
+  <title id="lk-mark-title">Lorekeeper</title>
+  <style>
+    .accent-stroke { stroke: #343a8c; }
+    .gold-fill { fill: #8a6212; }
+    @media (prefers-color-scheme: dark) {
+      .accent-stroke { stroke: #99a2f0; }
+      .gold-fill { fill: #e2b45c; }
+    }
+  </style>
+  <circle class="accent-stroke" cx="32" cy="32" r="22" fill="none" stroke-width="8"/>
+  <path class="gold-fill" d="M 32,14.5 Q 35.54,28.46 49.5,32 Q 35.54,35.54 32,49.5 Q 28.46,35.54 14.5,32 Q 28.46,28.46 32,14.5 Z"/>
+</svg>

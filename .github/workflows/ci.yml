@@ -32,6 +32,29 @@ jobs:
           node-version: 24
           cache: npm
 
+      # The Wonder Wagon foundations are `file:` devDependencies on a sibling
+      # checkout until they publish, so CI recreates that sibling at a pinned
+      # commit and builds the two packages brand/terminal/build.mjs reads.
+      # Nothing at runtime depends on them. Bump the ref together with
+      # `npm run brand:terminal`.
+      - name: Check out the Wonder Wagon foundations beside this repository
+        env:
+          WONDER_WAGON_UI_REF: 1559671802c993ddcf1b0d78bd9c01aec57c4368
+        run: |
+          git clone --quiet --no-checkout https://github.com/rikilamadrid/wonder-wagon-ui.git ../wonder-wagon-ui
+          git -C ../wonder-wagon-ui checkout --quiet "$WONDER_WAGON_UI_REF"
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: ../wonder-wagon-ui/package.json
+
+      - name: Build @wonder-wagon/tokens and @wonder-wagon/themes
+        working-directory: ../wonder-wagon-ui
+        run: |
+          bun install --frozen-lockfile
+          bun run --filter '@wonder-wagon/tokens' build
+          bun run --filter '@wonder-wagon/themes' build
+
       # This also runs the prepare script in packages/cli, which builds and
       # links the lore binary.
       - name: Install
@@ -52,6 +75,12 @@ jobs:
       # generated with, is what makes that a fact rather than a claim.
       - name: Verify the generated identity assets reproduce
         run: npm run brand:assets:check
+
+      # The CLI's accent and serial are generated from brand/tokens/tokens.json
+      # and the Wonder Wagon theme. This fails if the committed module is stale
+      # or if the foundation's copy of the Lorekeeper hue has drifted.
+      - name: Verify the terminal identity is current
+        run: npm run brand:terminal:check
 
       - name: Verify the built binary runs
         run: |

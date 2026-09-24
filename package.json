@@ -26,11 +26,15 @@
     "brand:check": "node brand/tokens/build.mjs --check",
     "brand:assets": "node brand/assets/build.mjs",
     "brand:assets:check": "node brand/assets/build.mjs --check",
-    "brand:diagrams": "node brand/diagrams/check.mjs"
+    "brand:diagrams": "node brand/diagrams/check.mjs",
+    "brand:terminal": "node brand/terminal/build.mjs",
+    "brand:terminal:check": "node brand/terminal/build.mjs --check"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.10",
     "@types/node": "24.13.3",
+    "@wonder-wagon/themes": "file:../wonder-wagon-ui/packages/themes",
+    "@wonder-wagon/tokens": "file:../wonder-wagon-ui/packages/tokens",
     "typescript": "7.0.2",
     "vitest": "4.1.11"
   }

@@ -1,13 +1,19 @@
 import { PRODUCT_NAME, TAGLINE } from '@lorekeeper/core';
+import { type Paint, PLAIN } from './terminal.js';
 
 /**
  * The command vocabulary below `lore` is still an open decision, so this lists
  * only what a Feature has actually delivered. Nothing is named here in
  * anticipation of shipping it.
+ *
+ * At a colour terminal the name takes the accent and the serial closes the
+ * message. Everywhere else the text is exactly what it was before either
+ * existed, which is what `PLAIN` guarantees.
  */
-export function usage(version: string): string {
+export function usage(version: string, paint: Paint = PLAIN): string {
+  const serial = paint.serial();
   return [
-    `${PRODUCT_NAME} ${version}`,
+    `${paint.name(PRODUCT_NAME)} ${version}`,
     TAGLINE,
     '',
     'Usage:',
@@ -39,5 +45,6 @@ export function usage(version: string): string {
     'Search reads. It writes nothing, builds no index file, and works on any',
     'directory of Markdown, whether or not lore init has run there.',
     'Lorekeeper runs offline and takes no credentials.',
+    ...(serial === '' ? [] : ['', serial]),
   ].join('\n');
 }

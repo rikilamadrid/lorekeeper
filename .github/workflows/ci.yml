@@ -39,7 +39,7 @@ jobs:
       # `npm run brand:terminal`.
       - name: Check out the Wonder Wagon foundations beside this repository
         env:
-          WONDER_WAGON_UI_REF: 1559671802c993ddcf1b0d78bd9c01aec57c4368
+          WONDER_WAGON_UI_REF: ae940492ddce1419ba29f0d04b468a042004a06a
         run: |
           git clone --quiet --no-checkout https://github.com/rikilamadrid/wonder-wagon-ui.git ../wonder-wagon-ui
           git -C ../wonder-wagon-ui checkout --quiet "$WONDER_WAGON_UI_REF"
@@ -78,7 +78,8 @@ jobs:
 
       # The CLI's accent and serial are generated from brand/tokens/tokens.json
       # and the Wonder Wagon theme. This fails if the committed module is stale
-      # or if the foundation's copy of the Lorekeeper hue has drifted.
+      # or if any colour the foundation's theme copies from tokens.json has
+      # drifted (nine values, the same map as its proof/lorekeeper.ts).
       - name: Verify the terminal identity is current
         run: npm run brand:terminal:check
 

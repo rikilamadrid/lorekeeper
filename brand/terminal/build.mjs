@@ -45,14 +45,13 @@ const tokensVersion = require('@wonder-wagon/tokens/package.json').version;
 
 /**
  * Every value the `lorekeeper` theme restates from tokens.json: theme field,
- * environment, token. Night enamel is absent on purpose — the ecosystem
- * assigned it and tokens.json has no equivalent. At night `accent` and `link`
- * are both the periwinkle and `enamel` is not: the fill and the object are two
- * roles, and this map keeps them from collapsing into one.
+ * environment, and the token it copies. The same map as the foundation's
+ * `proof/lorekeeper.ts`, which checks it from the other side. Night enamel is
+ * absent on purpose: Atelier Feature 02 assigned it and no token here holds it.
  *
  * @type {ReadonlyArray<readonly [string, 'day' | 'night', string]>}
  */
-const FOUNDATION_COPIES = [
+const THEME_MAP = [
   ['enamel', 'day', 'light.accent'],
   ['accent', 'day', 'light.accent'],
   ['accent', 'night', 'dark.accent'],
@@ -82,26 +81,20 @@ function quote(text) {
 /** @returns {{ source: string, problems: string[] }} */
 function generate() {
   const tokens = JSON.parse(readFileSync(TOKENS, 'utf8'));
-  const accent = {
-    day: tokens.color.light.accent.value,
-    night: tokens.color.dark.accent.value,
-  };
-
   const family = terminalIdentity(lorekeeper, 'night');
-  const brand = terminalPaint(accent.night);
+  const brand = terminalPaint(tokens.color.dark.accent.value);
   const problems = [];
 
-  // The foundation carries copies of Lorekeeper's values in the `lorekeeper`
-  // theme. A copy that drifts is two sources of truth, so any disagreement
-  // fails here rather than surfacing as a second, unmeasured colour somewhere
-  // else. Wonder Wagon's proof/lorekeeper.ts runs the same map the other way.
-  for (const [field, env, token] of FOUNDATION_COPIES) {
-    const [scheme, name] = token.split('.');
-    const expected = tokens.color[scheme][name].value;
-    const copied = lorekeeper[field][env];
-    if (copied.toUpperCase() !== expected.toUpperCase()) {
+  // The foundation carries copies of Lorekeeper's colours in the theme. A copy
+  // that drifts is two sources of truth, so disagreement fails here rather
+  // than surfacing as a second, unmeasured indigo somewhere else.
+  for (const [field, env, token] of THEME_MAP) {
+    const [mode, name] = token.split('.');
+    const shipped = tokens.color[mode][name].value;
+    const copy = lorekeeper[field][env];
+    if (copy.toUpperCase() !== shipped.toUpperCase()) {
       problems.push(
-        `@wonder-wagon/themes lorekeeper.${field}.${env} is ${copied} but tokens.json ${token} is ${expected}`,
+        `@wonder-wagon/themes lorekeeper.${field}.${env} is ${copy} but tokens.json ${token} is ${shipped}`,
       );
     }
   }
@@ -172,9 +165,7 @@ function main() {
     process.exitCode = 1;
     return;
   }
-  console.log(
-    `brand terminal check clean: ${where} is current; ${FOUNDATION_COPIES.length} foundation copies match tokens.json.`,
-  );
+  console.log(`brand terminal check clean: ${where} is current.`);
 }
 
 main();

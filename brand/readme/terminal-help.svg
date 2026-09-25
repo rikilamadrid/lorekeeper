@@ -1,0 +1,87 @@
+<!--
+  The lore help screen, as a truecolour terminal shows it.
+
+  GENERATED, do not edit. Sources: brand/readme/lore-help.pty, the bytes the
+  built binary wrote to a real pty (TERM=xterm-256color COLORTERM=truecolor),
+  and brand/tokens/tokens.json (0.1.0) for the ground and type.
+  Regenerate with: npm run brand:readme
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 730" width="720" height="730" role="img" aria-labelledby="lk-help-title lk-help-desc">
+  <title id="lk-help-title">lore --help in a truecolour terminal</title>
+  <desc id="lk-help-desc">The output of lore --help on a dark terminal. The product name Lorekeeper is in periwinkle and the closing serial LK-047 is dimmed; every other line is the terminal's plain text. The full output reads:
+Lorekeeper 0.1.0
+Pathfinder finds the way; Lorekeeper remembers the journey.
+
+Usage:
+  lore init &lt;dir&gt;              Create a brain, or adopt an existing vault
+  lore capture &lt;brain&gt; &lt;item&gt;  Write a thought or a URL into that brain
+  lore search &lt;brain&gt; &lt;query&gt;  Rank the spans of that brain against a query
+  lore --help                  Show this message
+  lore --version               Print the version
+
+A captured thought lands in inbox/ as YYYYMMDD-HHMMSS-subject.md, with the
+same name as its id. Two captures in one second never collide: the second
+one takes the next free -2, -3 suffix.
+
+A captured URL lands in sources/ instead, named for the stable source id it
+carries. URLs that name the same thing are one source, so capturing one you
+already have reports the file that holds it and writes nothing. The URL is
+identified, never visited.
+
+Search ranks spans, not files: each result names a path, the heading it sits
+under, its line range, and its score, and prints the lines themselves. Add
+--json for that same result shape as JSON, or --limit to change how many
+come back. A score ranks; it never proves an answer is absent.
+
+Give several wordings of one question, each in its own quotes, and search
+fuses their rankings into one list. Three wordings find what one misses,
+so ask in other words rather than trusting a single phrasing. Spans that
+repeat the same text in several files are reported once.
+
+Search reads. It writes nothing, builds no index file, and works on any
+directory of Markdown, whether or not lore init has run there.
+Lorekeeper runs offline and takes no credentials.
+
+LK-047</desc>
+  <style>
+    .ground { fill: #141521; stroke: #30334a; }
+    text { fill: #ede7db; font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; font-size: 14px; white-space: pre; }
+    .accent { fill: #99a2f0; }
+    .muted { fill: #aba7b8; }
+  </style>
+  <rect class="ground" x="0.5" y="0.5" width="719" height="729" rx="10"/>
+  <text x="28" y="39" xml:space="preserve"><tspan class="accent">Lorekeeper</tspan> 0.1.0</text>
+  <text x="28" y="59" xml:space="preserve">Pathfinder finds the way; Lorekeeper remembers the journey.</text>
+  <text x="28" y="79" xml:space="preserve"></text>
+  <text x="28" y="99" xml:space="preserve">Usage:</text>
+  <text x="28" y="119" xml:space="preserve">  lore init &lt;dir&gt;              Create a brain, or adopt an existing vault</text>
+  <text x="28" y="139" xml:space="preserve">  lore capture &lt;brain&gt; &lt;item&gt;  Write a thought or a URL into that brain</text>
+  <text x="28" y="159" xml:space="preserve">  lore search &lt;brain&gt; &lt;query&gt;  Rank the spans of that brain against a query</text>
+  <text x="28" y="179" xml:space="preserve">  lore --help                  Show this message</text>
+  <text x="28" y="199" xml:space="preserve">  lore --version               Print the version</text>
+  <text x="28" y="219" xml:space="preserve"></text>
+  <text x="28" y="239" xml:space="preserve">A captured thought lands in inbox/ as YYYYMMDD-HHMMSS-subject.md, with the</text>
+  <text x="28" y="259" xml:space="preserve">same name as its id. Two captures in one second never collide: the second</text>
+  <text x="28" y="279" xml:space="preserve">one takes the next free -2, -3 suffix.</text>
+  <text x="28" y="299" xml:space="preserve"></text>
+  <text x="28" y="319" xml:space="preserve">A captured URL lands in sources/ instead, named for the stable source id it</text>
+  <text x="28" y="339" xml:space="preserve">carries. URLs that name the same thing are one source, so capturing one you</text>
+  <text x="28" y="359" xml:space="preserve">already have reports the file that holds it and writes nothing. The URL is</text>
+  <text x="28" y="379" xml:space="preserve">identified, never visited.</text>
+  <text x="28" y="399" xml:space="preserve"></text>
+  <text x="28" y="419" xml:space="preserve">Search ranks spans, not files: each result names a path, the heading it sits</text>
+  <text x="28" y="439" xml:space="preserve">under, its line range, and its score, and prints the lines themselves. Add</text>
+  <text x="28" y="459" xml:space="preserve">--json for that same result shape as JSON, or --limit to change how many</text>
+  <text x="28" y="479" xml:space="preserve">come back. A score ranks; it never proves an answer is absent.</text>
+  <text x="28" y="499" xml:space="preserve"></text>
+  <text x="28" y="519" xml:space="preserve">Give several wordings of one question, each in its own quotes, and search</text>
+  <text x="28" y="539" xml:space="preserve">fuses their rankings into one list. Three wordings find what one misses,</text>
+  <text x="28" y="559" xml:space="preserve">so ask in other words rather than trusting a single phrasing. Spans that</text>
+  <text x="28" y="579" xml:space="preserve">repeat the same text in several files are reported once.</text>
+  <text x="28" y="599" xml:space="preserve"></text>
+  <text x="28" y="619" xml:space="preserve">Search reads. It writes nothing, builds no index file, and works on any</text>
+  <text x="28" y="639" xml:space="preserve">directory of Markdown, whether or not lore init has run there.</text>
+  <text x="28" y="659" xml:space="preserve">Lorekeeper runs offline and takes no credentials.</text>
+  <text x="28" y="679" xml:space="preserve"></text>
+  <text x="28" y="699" xml:space="preserve"><tspan class="muted">LK-047</tspan></text>
+</svg>

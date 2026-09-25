@@ -101,7 +101,8 @@ describe('paint', () => {
 });
 
 describe('the built binary', () => {
-  const cli = join(REPO_ROOT, 'packages', 'cli', 'dist', 'cli.js');
+  // The bundled file npm ships, so these cases run the bytes users install.
+  const cli = join(REPO_ROOT, 'packages', 'cli', 'dist', 'lore.js');
   let brain: string;
 
   // A minimal environment, so nothing inherited from the developer's shell

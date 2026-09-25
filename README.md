@@ -1,14 +1,44 @@
-<p align="center">
-  <img src="brand/assets/social-preview.png" width="560"
-       alt="Lorekeeper: a four-point gold star held inside an indigo ring, beside the wordmark LOREKEEPER.">
-</p>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="brand/readme/header-night.svg">
+  <img src="brand/readme/header-day.svg" width="1200"
+       alt="Lorekeeper: a four-point gold star held inside a ring, beside the wordmark LOREKEEPER, and the line: You already wrote it down. Find the passage that answers. LK-047, a Wonder Wagon tool.">
+</picture>
 
-<p align="center">
-  <strong>An AI-native second brain made of plain Markdown files you own.</strong><br>
-  Pathfinder finds the way; Lorekeeper remembers the journey.
-</p>
+**An AI-native second brain made of plain Markdown files you own.**<br>
+Pathfinder finds the way; Lorekeeper remembers the journey.
 
----
+`LK-047` · a [Wonder Wagon](https://github.com/rikilamadrid/wonder-wagon-ui) tool.
+Its terminal identity is generated from `@wonder-wagon/themes` and checked for
+drift.
+
+[Quickstart](brand/quickstart.md) ·
+[How it works](#how-it-works) ·
+[Proof](brand/proof.md) ·
+[Identity](brand/IDENTITY.md) ·
+[GitHub](https://github.com/rikilamadrid/lorekeeper)
+
+## Install
+
+You need **Node.js 24 or newer** and **macOS or Linux**. Nothing else — no
+account, no API key, no network access at run time.
+
+Try it without installing anything:
+
+```sh
+npx create-lorekeeper init ~/brain
+```
+
+Then install it, so the `lore` command is on your `PATH` where the brain's
+`AGENTS.md` tells agents to find it:
+
+```sh
+npm install -g create-lorekeeper
+lore --version
+```
+
+The package is `create-lorekeeper` because the bare name `lorekeeper` on npm
+belongs to an unrelated project. The command is `lore`. To work on the toolkit
+itself, build it from a clone instead: `npm ci && npm run build`.
 
 ## Lorekeeper in thirty seconds
 
@@ -30,7 +60,7 @@ its pricing, or its mind.
 
 ## Why it matters
 
-You already wrote it down. You cannot find it again.
+You already wrote it down. Find the passage that answers.
 
 Knowledge accumulates across notes, articles, videos, and long conversations
 with AI agents, and almost none of it comes back when it is needed. So you
@@ -50,45 +80,21 @@ whatever agent you were already using.
 
 ## The look of it
 
-Lorekeeper is a star held in a ring: what was found, and what keeps it. The
-identity leans on folklore, field journals, and archival knowledge rather than
-on the neon-and-circuitry that usually signals "AI" — a warm parchment page,
-iron-gall ink, a deep indigo and a bronze gilt, and a mark with no glow and no
-sparkle trail. Every colour pairing it defines is measured against WCAG 2.1 AA
-in both light and dark rather than eyeballed.
+<p align="center">
+  <img src="brand/readme/terminal-help.svg" width="720"
+       alt="The output of lore --help on a dark terminal: the product name Lorekeeper in periwinkle, the usage for lore init, capture and search, and the serial LK-047 dimmed at the end. The full text is inside the file.">
+</p>
 
-Sibling to [Pathfinder](https://github.com/rikilamadrid/pathfinder), not a copy
-of it: the same paper-and-ink bones and the same measured token architecture,
-split by hue, geometry, and letterform. Pathfinder's colour is a trail blaze,
-directional and out ahead of you. Lorekeeper's mark is a closed ring:
-enclosing, held, already arrived.
-
-See [`brand/IDENTITY.md`](brand/IDENTITY.md) for the mark, the palette, the
-type pairing, and the usage rules.
+That is `lore --help` at a truecolour terminal, drawn from the bytes the built
+binary wrote — the name in the night accent, the serial dimmed, everything
+else the terminal's own text — and the mark, palette, and type rules behind it
+are in [`brand/IDENTITY.md`](brand/IDENTITY.md).
 
 ## Quickstart
 
-You need **Node.js 24 or newer** and **macOS or Linux**. Nothing else — no
-account, no API key, no network access at run time.
-
-Lorekeeper is not published to a package registry yet, so install from source:
-
-```sh
-git clone https://github.com/rikilamadrid/lorekeeper.git
-cd lorekeeper
-npm ci
-npm run build
-export PATH="$PWD/node_modules/.bin:$PATH"
-```
-
-Make a brain:
-
-```sh
-lore init ~/brain
-```
-
-That creates five folders, seven starter files, and a manifest at
-`.lorekeeper/manifest.json` recording which of those files the toolkit owns.
+The `lore init ~/brain` above creates five folders, seven starter files, and a
+manifest at `.lorekeeper/manifest.json` recording which of those files the
+toolkit owns.
 Everything else you ever put in that directory is yours, and `lore` will not
 rewrite, move, or reformat it. **Already have a Markdown or Obsidian vault?**
 Point `init` at it instead — this is adoption, not migration.
@@ -221,9 +227,20 @@ would turn an honest miss into false confidence.
 search, no MCP server, no mobile capture, no automated ingestion of web pages
 or video, no server component of any kind, and no Windows support.
 
+## Catalogue card
+
+| Field | Entry |
+| --- | --- |
+| Accession | `LK-047` |
+| Maker | 047, the Wonder Wagon bench |
+| Kept in | plain Markdown, in a directory you own |
+| Retrieval | deterministic · offline · no model |
+| Shelved beside | Pathfinder (`PF-047`), Forge (`FG-047`) |
+| Licence | MIT |
+
 ## Where to go next
 
-| | |
+| Document | What it covers |
 | --- | --- |
 | [`brand/narrative.md`](brand/narrative.md) | What Lorekeeper is, what it is not, and where v0.1 stops |
 | [`brand/quickstart.md`](brand/quickstart.md) | From nothing to a working `lore search` |

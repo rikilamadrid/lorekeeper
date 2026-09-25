@@ -14,25 +14,15 @@ something for you to work around.
 
 ## Install
 
-Lorekeeper is not published to a package registry yet — the release process is
-still an open decision in `context/project-overview.md`. Until it is, install
-from source:
+Install the `lore` command from npm:
 
 ```sh
-git clone https://github.com/rikilamadrid/lorekeeper.git
-cd lorekeeper
-npm ci
-npm run build
+npm install -g create-lorekeeper
 ```
 
-`npm ci` builds the toolkit — the CLI package's `prepare` script compiles it —
-and puts a `lore` executable in the workspace's `node_modules/.bin`. The
-explicit `npm run build` above is there so the step is visible, and to rebuild
-after you change sources. Put the directory on your `PATH` for this shell:
-
-```sh
-export PATH="$PWD/node_modules/.bin:$PATH"
-```
+The package is `create-lorekeeper` because the bare name `lorekeeper` on npm
+belongs to an unrelated project; the command it installs is `lore`. To try it
+once without installing, `npx create-lorekeeper init ~/brain` runs step 1 below.
 
 Then check it:
 
@@ -43,9 +33,9 @@ lore --help
 
 `lore --help` is the full command surface. There are three commands.
 
-> Every later command on this page is written as `lore …`. If you would rather
-> not touch your `PATH`, run `node /path/to/lorekeeper/packages/cli/dist/cli.js`
-> in its place — it is the same program, and the arguments are identical.
+> Every later command on this page is written as `lore …`. Without a global
+> install, `npx create-lorekeeper …` runs the same program with the same
+> arguments.
 
 ## 1. Make a brain
 

@@ -17,7 +17,7 @@
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
     "format:check": "biome format .",
-    "build": "tsc --build",
+    "build": "tsc --build && npm run bundle --workspace create-lorekeeper",
     "clean": "tsc --build --clean",
     "test": "vitest run",
     "bench:search": "npm run build && node packages/cli/dist/bench/run.js",
@@ -27,6 +27,8 @@
     "brand:assets": "node brand/assets/build.mjs",
     "brand:assets:check": "node brand/assets/build.mjs --check",
     "brand:diagrams": "node brand/diagrams/check.mjs",
+    "brand:readme": "node brand/readme/build.mjs",
+    "brand:readme:check": "node brand/readme/build.mjs --check",
     "brand:terminal": "node brand/terminal/build.mjs",
     "brand:terminal:check": "node brand/terminal/build.mjs --check"
   },

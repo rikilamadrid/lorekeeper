@@ -1,0 +1,62 @@
+<!--
+  README header, night: the shipped horizontal lockup at 1.5x on the page ground,
+  the thesis, and the accession plate.
+
+  GENERATED, do not edit. Sources: brand/logo/lockup-horizontal.svg for the
+  lockup, brand/tokens/tokens.json (0.1.0) for colour and type,
+  brand/narrative.md for the thesis.
+  Regenerate with: npm run brand:readme
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 240" width="1200" height="240" role="img" aria-labelledby="lk-readme-night-title lk-readme-night-desc">
+  <title id="lk-readme-night-title">Lorekeeper</title>
+  <desc id="lk-readme-night-desc">The Lorekeeper lockup, a gold four-point star held in a periwinkle ring beside the wordmark LOREKEEPER, on night blue-black. Beside it, after a thin rule, the line: You already wrote it down. Find the passage that answers. Bottom right, the accession plate: LK-047, a Wonder Wagon tool.</desc>
+  <style>
+    .page { fill: #141521; }
+    .rule { stroke: #30334a; }
+    .thesis { fill: #ede7db; font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Times New Roman", serif; font-size: 32px; letter-spacing: -0.011em; }
+    .plate { fill: #e2b45c; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 16px; font-weight: 650; letter-spacing: 0.08em; }
+  </style>
+  <rect class="page" width="1200" height="240"/>
+  <g transform="translate(72 72) scale(1.5)">
+      <circle cx="32" cy="32" r="22" fill="none" stroke="#99a2f0" stroke-width="8"/>
+      <path d="M 32,14.5 Q 35.54,28.46 49.5,32 Q 35.54,35.54 32,49.5 Q 28.46,35.54 14.5,32 Q 28.46,28.46 32,14.5 Z" fill="#e2b45c"/>
+      <g transform="translate(84 17) scale(0.3)">
+        <g fill="none" stroke="#ede7db" stroke-width="10" stroke-linecap="butt" stroke-linejoin="miter">
+          <path d="M 5,0 L 5,100"/>
+          <path d="M 0,95 L 58,95"/>
+          <ellipse cx="130" cy="50" rx="43" ry="45"/>
+          <path d="M 207,0 L 207,100"/>
+          <path d="M 207,5 L 234,5 A 23,23 0 0 1 234,50 L 207,50"/>
+          <path d="M 232,50 L 264.09,97.18833"/>
+          <path d="M 295,0 L 295,100"/>
+          <path d="M 290,5 L 352,5"/>
+          <path d="M 290,50 L 344,50"/>
+          <path d="M 290,95 L 352,95"/>
+          <path d="M 381,0 L 381,100"/>
+          <path d="M 386,52 L 438.05,3.66383"/>
+          <path d="M 386,52 L 437.57,96.20374"/>
+          <path d="M 471,0 L 471,100"/>
+          <path d="M 466,5 L 528,5"/>
+          <path d="M 466,50 L 520,50"/>
+          <path d="M 466,95 L 528,95"/>
+          <path d="M 557,0 L 557,100"/>
+          <path d="M 552,5 L 614,5"/>
+          <path d="M 552,50 L 606,50"/>
+          <path d="M 552,95 L 614,95"/>
+          <path d="M 643,0 L 643,100"/>
+          <path d="M 643,5 L 670,5 A 25,25 0 0 1 670,54 L 643,54"/>
+          <path d="M 729,0 L 729,100"/>
+          <path d="M 724,5 L 786,5"/>
+          <path d="M 724,50 L 778,50"/>
+          <path d="M 724,95 L 786,95"/>
+          <path d="M 815,0 L 815,100"/>
+          <path d="M 815,5 L 842,5 A 23,23 0 0 1 842,50 L 815,50"/>
+          <path d="M 840,50 L 872.09,97.18833"/>
+        </g>
+      </g>
+  </g>
+  <line class="rule" x1="644.5" y1="72" x2="644.5" y2="168" stroke-width="1.5"/>
+  <text class="thesis" x="692" y="108">You already wrote it down.</text>
+  <text class="thesis" x="692" y="150">Find the passage that answers.</text>
+  <text class="plate" x="1128" y="204" text-anchor="end">LK-047 · A WONDER WAGON TOOL</text>
+</svg>

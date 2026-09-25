@@ -9,3 +9,7 @@ packages/core/test/fixtures/** -text
 # platform that applied it.
 brand/assets/*.png -text
 brand/assets/*.ico -text
+
+# The lore --help recording is the exact byte stream a pty received, carriage
+# returns included; `npm run brand:readme:check` compares it with the binary.
+brand/readme/*.pty -text

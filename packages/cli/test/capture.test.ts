@@ -743,7 +743,8 @@ describe('a URL carrying a control character', () => {
 });
 
 describe('the built capture binary', () => {
-  const cli = join(REPO_ROOT, 'packages', 'cli', 'dist', 'cli.js');
+  // The bundled file npm ships, so these cases run the bytes users install.
+  const cli = join(REPO_ROOT, 'packages', 'cli', 'dist', 'lore.js');
 
   beforeAll(() => {
     execFileSync('npm', ['run', 'build'], { cwd: REPO_ROOT, stdio: 'pipe' });
@@ -972,7 +973,7 @@ describe('capture explains a filesystem failure instead of leaking it', () => {
     rmSync(join(brain, 'inbox'), { recursive: true });
     writeFileSync(join(brain, 'inbox'), 'not a directory\n');
 
-    const cli = join(REPO_ROOT, 'packages', 'cli', 'dist', 'cli.js');
+    const cli = join(REPO_ROOT, 'packages', 'cli', 'dist', 'lore.js');
     const result = spawnSync(
       process.execPath,
       [cli, 'capture', brain, 'a thought'],

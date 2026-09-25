@@ -1,0 +1,21 @@
+---
+/**
+ * Output of the built binary, as it printed. Standard error is shown in the
+ * same block, marked, because that is where a refusal is written.
+ */
+import type { Run } from '../lib/lore';
+
+interface Props {
+  runs: readonly Run[];
+  label?: string;
+  showCode?: boolean;
+}
+const { runs, label, showCode = false } = Astro.props;
+---
+<figure class="terminal">
+  {label && <figcaption>{label}</figcaption>}
+  <!-- biome-ignore lint/a11y/noNoninteractiveTabindex: scrolls sideways when a line is long; WCAG 2.1.1 needs it reachable by keyboard -->
+  <pre tabindex="0"><code>{runs.map((r) => (
+    <Fragment><span class="prompt" aria-hidden="true">$ </span><span class="cmd">{r.command}</span>{'\n'}{r.stdout}{r.stderr && <span class="stderr">{r.stderr}</span>}{showCode && <span class="exit">{`[exit ${r.code}]\n`}</span>}{'\n'}</Fragment>
+  ))}</code></pre>
+</figure>

@@ -1,0 +1,49 @@
+---
+/**
+ * One `##` section of a Feature 09 copy file, rendered as written. The heading
+ * is the file's own unless a page needs a shorter one in its index.
+ *
+ * `lead` sets the section's first paragraph as the page title and renders the
+ * rest beneath it: the thesis page opens on the thesis, in the file's words.
+ */
+import { getEntry, render } from 'astro:content';
+import Prov from './Prov.astro';
+
+interface Props {
+  id: string;
+  heading?: string;
+  level?: 2 | 3;
+  showHeading?: boolean;
+  lead?: boolean;
+}
+const {
+  id,
+  heading,
+  level = 2,
+  showHeading = true,
+  lead = false,
+} = Astro.props;
+const entry = await getEntry('brand', id);
+if (!entry)
+  throw new Error(
+    `brand section ${id} does not exist; brand/ changed its headings.`,
+  );
+const { Content } = await render(entry);
+const title = heading ?? entry.data.heading;
+const anchor = id.split('/')[1];
+const H = level === 2 ? 'h2' : 'h3';
+---
+<section class="copy" id={anchor}>
+  {lead ? (
+    <Fragment>
+      <h1 class="thesis-head">{entry.data.lead}</h1>
+      <Fragment set:html={entry.data.restHtml} />
+    </Fragment>
+  ) : (
+    <Fragment>
+      {showHeading && <H>{title}</H>}
+      <Content />
+    </Fragment>
+  )}
+  <Prov from={entry.data.file} section={entry.data.heading} />
+</section>

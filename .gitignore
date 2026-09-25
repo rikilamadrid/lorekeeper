@@ -5,6 +5,9 @@ node_modules/
 dist/
 *.tsbuildinfo
 
+# Astro's generated types and content cache, rebuilt on every build.
+.astro/
+
 # Transient workspace state.
 # Never ignore context/ wholesale — it holds durable project truth.
 # current-feature.md is the file current-ticket.md replaced; it stays listed so

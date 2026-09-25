@@ -1,0 +1,20 @@
+---
+/**
+ * Thesis. Consumed: every word here is `brand/narrative.md`, except the one
+ * caption naming where the terminal output came from.
+ */
+import BrandSection from '../components/BrandSection.astro';
+import Diagram from '../components/Diagram.astro';
+import Terminal from '../components/Terminal.astro';
+import Base from '../layouts/Base.astro';
+import { lore } from '../lib/lore';
+
+const help = lore('--help');
+---
+<Base href="/">
+  <BrandSection id="narrative/the-thesis" lead />
+  <BrandSection id="narrative/lorekeeper-in-thirty-seconds" />
+  <Terminal runs={[help]} label="The whole command surface, printed by the built binary when this site was built." />
+  <Diagram name="three-surfaces" />
+  <BrandSection id="narrative/lorekeeper-and-pathfinder" />
+</Base>

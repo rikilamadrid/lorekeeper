@@ -1,0 +1,62 @@
+---
+/**
+ * Retrieval. Authored here, from the shipped product: the constants are read
+ * from `@lorekeeper/core`, and every search runs the built binary over the
+ * agent demo's synthetic vault. The measured figures are consumed from
+ * `brand/proof.md`.
+ */
+import {
+  BM25_B,
+  BM25_K1,
+  FUSION_DEPTH,
+  MAX_SPAN_LINES,
+  METADATA_WEIGHT,
+  RRF_K,
+} from '@lorekeeper/core';
+import BrandSection from '../components/BrandSection.astro';
+import Diagram from '../components/Diagram.astro';
+import Terminal from '../components/Terminal.astro';
+import Base from '../layouts/Base.astro';
+import { at, DEMO_WORDINGS, demoVault, session } from '../lib/lore';
+
+const [first] = DEMO_WORDINGS;
+const runs = session(
+  [
+    ['search', 'vault', first, '--limit', '3'],
+    ['search', 'vault', ...DEMO_WORDINGS, '--limit', '3'],
+    ['search', 'vault', ...DEMO_WORDINGS, '--limit', '1', '--json'],
+  ],
+  demoVault('vault'),
+);
+const one = at(runs, 0);
+const three = at(runs, 1);
+const json = at(runs, 2);
+---
+<Base href="/retrieval/">
+  <p class="lede"><code>lore search</code> ranks passages, not files. It takes several wordings of one question in one call, runs offline, and never claims an answer is missing.</p>
+
+  <Diagram name="retrieval-path" />
+
+  <h2 id="spans">Spans</h2>
+  <p>Every Markdown file is cut into spans. Headings come first, because a heading is where the author already decided one idea ends and the next begins. A section longer than {MAX_SPAN_LINES} lines is then divided at a blank line, so no span is longer than one screen.</p>
+  <p>Each result is a span, with five fields: <code>path</code>, <code>anchor</code> (the heading it sits under, or none), <code>startLine</code> and <code>endLine</code> (counted from the first byte of the file, frontmatter included, so they match your editor's gutter), <code>score</code>, and <code>text</code>.</p>
+  <p>Nothing is derived from a path. Meaning is read from the text, which is why you can reorganize the folders without breaking retrieval.</p>
+
+  <h2 id="wordings">Several wordings</h2>
+  <p>Lexical search, one wording at a time, is not good enough, and this project measured that rather than assuming it. The same question asked in other words reaches notes the first wording could not. The examples below search the eight invented notes from the <a href="/agents/">agent demo</a>.</p>
+  <Terminal runs={[one]} label="One wording." />
+  <Terminal runs={[three]} label="Three wordings, one call." />
+  <p>Each wording is ranked on its own, with BM25 (<code>k1</code> {BM25_K1}, <code>b</code> {BM25_B}) over the span's text, plus a second BM25 over its metadata, weighted at {METADATA_WEIGHT}. The metadata is the title, the heading trail, the anchor, tags, aliases, <code>about</code>, and the folder. The top {FUSION_DEPTH} of each list are then fused by reciprocal rank fusion with <code>k</code> = {RRF_K}. A span that repeats the same text in several files is reported once. Every one of these numbers was fixed before the evaluation ran and has never been tuned against a failing question.</p>
+
+  <h2 id="json">JSON</h2>
+  <p><code>--json</code> prints the same results in a machine-readable shape. It is the retrieval contract an agent reads, and it does not change to make a number look better.</p>
+  <Terminal runs={[json]} />
+  <p><code>score</code> is the fused reciprocal-rank score that ordered the list, not a BM25 value. <code>queries</code> lists the wordings as given. <code>exhausted</code> is <code>true</code> when the brain holds more files than one search reads, so the ranking covers only part of it. A ranking over part of a vault is a different claim from a ranking over all of it, so the flag is reported, never swallowed. At a terminal, the same condition is written to standard error.</p>
+
+  <h2 id="absence">What a score cannot say</h2>
+  <p>A score ranks spans against each other. It does not separate knowledge that is present from knowledge that is missing, so there is no relevance threshold: a cutoff would turn an honest miss into false confidence. When the results do not settle a question, search again in other words. When they still do not, say that the evidence is insufficient. Never report that the brain lacks something because a score looked low.</p>
+
+  <BrandSection id="proof/the-context-saving" heading="Measured: the context saving" />
+  <BrandSection id="proof/retrieval-performance" heading="Measured: retrieval performance" />
+  <BrandSection id="proof/what-has-not-been-measured" />
+</Base>

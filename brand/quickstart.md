@@ -22,7 +22,8 @@ npm install -g create-lorekeeper
 
 The package is `create-lorekeeper` because the bare name `lorekeeper` on npm
 belongs to an unrelated project; the command it installs is `lore`. To try it
-once without installing, `npx create-lorekeeper init ~/brain` runs step 1 below.
+once without installing, `npx create-lorekeeper init ~/brain` makes the same
+brain `lore init ~/brain` does.
 
 Then check it:
 

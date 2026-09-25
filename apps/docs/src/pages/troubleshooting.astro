@@ -1,0 +1,99 @@
+---
+/**
+ * Troubleshooting. Authored here: what to do about each message. The messages
+ * themselves are the built binary's, produced by running each case at build
+ * time, so a reworded refusal reaches this page on the next build.
+ */
+import Terminal from '../components/Terminal.astro';
+import Base from '../layouts/Base.astro';
+import { at, type Run, seed, session } from '../lib/lore';
+
+interface Case {
+  readonly id: string;
+  readonly title: string;
+  readonly run: Run;
+  readonly fix: string;
+}
+
+// One scratch home: a stray notes/ folder and notes.md, then a brain for
+// the cases that need one. The init itself is not a case.
+const runs = session(
+  [
+    ['capture', 'notes', 'a thought'],
+    ['search', 'breain', 'retry budget'],
+    ['init', 'notes.md'],
+    ['init', 'brain'],
+    ['capture', 'brain', 'ftp://example.com/talk'],
+    ['search', 'brain', 'retry budget', '--limit', '0'],
+    ['search', 'brain', 'zebra crossing'],
+    ['search', 'brain'],
+  ],
+  seed({ 'notes/idea.md': '# An idea\n', 'notes.md': '# Notes\n' }),
+).filter((r) => r.command !== 'lore init brain');
+
+const CASES: Case[] = [
+  {
+    id: 'not-a-brain',
+    title: 'Capture says the directory is not a brain',
+    run: at(runs, 0),
+    fix: 'Capture writes only into a brain, because it records what it writes in the manifest. Run lore init on that directory first. Nothing of yours there is rewritten.',
+  },
+  {
+    id: 'not-a-directory',
+    title: 'Search says there is nothing to search',
+    run: at(runs, 1),
+    fix: 'The path does not exist, or is a file. Check the spelling. Search needs a directory; it does not need lore init to have run there.',
+  },
+  {
+    id: 'init-on-a-file',
+    title: 'Init says the target is not a directory',
+    run: at(runs, 2),
+    fix: 'Name a directory, or a path that does not exist yet. Init never replaces a file.',
+  },
+  {
+    id: 'scheme',
+    title: 'Capture refuses a URL',
+    run: at(runs, 3),
+    fix: 'A source must be an http or https URL. To keep a note about something else, capture it as text.',
+  },
+  {
+    id: 'limit',
+    title: 'Search refuses --limit',
+    run: at(runs, 4),
+    fix: 'Give --limit a whole number of at least 1, right after the flag.',
+  },
+  {
+    id: 'no-match',
+    title: 'Search finds nothing',
+    run: at(runs, 5),
+    fix: 'This is not an error, and it is not proof the brain lacks the answer. No span shared a word with any wording. Ask again in the words the note would have used, and give several wordings in one call.',
+  },
+  {
+    id: 'incomplete',
+    title: 'A command prints its usage line and exits 2',
+    run: at(runs, 6),
+    fix: 'Something was missing. Each wording goes in its own quotes after the brain: lore search ~/brain "first wording" "second wording".',
+  },
+];
+---
+<Base href="/troubleshooting/">
+  <p class="lede">Every refusal says what failed and what to do next, and writes nothing. These are the messages, as the built binary prints them.</p>
+
+  <nav aria-label="Cases on this page">
+    <ul>
+      <li><a href="#not-found"><code>lore: command not found</code></a></li>
+      {CASES.map((c) => <li><a href={`#${c.id}`}>{c.title}</a></li>)}
+    </ul>
+  </nav>
+
+  <h2 id="not-found"><code>lore: command not found</code></h2>
+  <p>The shell cannot find <code>lore</code> on your <code>PATH</code>. Install it globally with <code>npm install -g create-lorekeeper</code> (see <a href="/install/">Installation</a>), then check with <code>lore --version</code>. If npm's global bin directory is not on your <code>PATH</code>, <code>npm prefix -g</code> prints where it is; add its <code>bin</code> folder. Without a global install, <code>npx create-lorekeeper</code> runs the same program with the same arguments.</p>
+
+  {CASES.map((c) => (
+    <Fragment>
+      <h2 id={c.id}>{c.title}</h2>
+      <Terminal runs={[c.run]} showCode />
+      <p>{c.fix}</p>
+    </Fragment>
+  ))}
+</Base>

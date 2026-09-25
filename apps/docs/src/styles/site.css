@@ -1,0 +1,604 @@
+/*
+ * The reading room.
+ *
+ * Every colour, type stack, size, measure, radius and space below is a
+ * --lk-* token from brand/tokens/tokens.css. The only --ww-* properties are
+ * the family chrome — the environment lever and the family plate — from the
+ * generated wonder-wagon-lorekeeper.css. This file defines no colour of its own.
+ *
+ * Ornament budget, from the brief: parchment, a generous measure, engraved
+ * headings, gilt rules. `--lk-line` is decorative only; a boundary a reader
+ * must perceive uses `--lk-line-strong`.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--lk-page);
+  color: var(--lk-ink);
+  font-family: var(--lk-sans);
+  font-size: var(--lk-text-1);
+  font-weight: var(--lk-weight-body);
+  line-height: var(--lk-leading-body);
+}
+
+/* The environment follows the lever as well as the system: tokens.css keys
+   dark on data-lk-theme, which the lever sets alongside data-ww-env. */
+
+a {
+  color: var(--lk-accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--lk-accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+::selection {
+  background: var(--lk-accent);
+  color: var(--lk-accent-ink);
+}
+
+code,
+kbd,
+pre,
+samp {
+  font-family: var(--lk-mono);
+  font-size: 0.9em;
+}
+
+:not(pre) > code {
+  padding: 0.05em 0.3em;
+  border-radius: var(--lk-radius-sm);
+  background: var(--lk-surface-2);
+  overflow-wrap: anywhere;
+}
+
+p,
+ul,
+ol,
+dl,
+table,
+blockquote {
+  margin: 0 0 var(--lk-space-4);
+}
+
+li + li {
+  margin-top: var(--lk-space-2);
+}
+
+/* Read by assistive technology, not drawn. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip link: off-screen until focused. */
+.skip {
+  position: absolute;
+  left: var(--lk-space-4);
+  top: var(--lk-space-4);
+  z-index: 10;
+  padding: var(--lk-space-2) var(--lk-space-4);
+  background: var(--lk-accent);
+  color: var(--lk-accent-ink);
+  transform: translateY(-200%);
+}
+
+.skip:focus {
+  transform: none;
+}
+
+/* ── Masthead ─────────────────────────────────────────────────────────── */
+
+.masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--lk-space-4);
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: var(--lk-space-5) var(--lk-space-5) var(--lk-space-4);
+}
+
+.home {
+  display: inline-flex;
+  /* The lockup's clear space is half the mark's height; the masthead's
+     padding supplies it, so the link box itself adds none. */
+  line-height: 0;
+}
+
+.lockup svg {
+  display: block;
+  width: auto;
+  max-width: 100%;
+}
+
+/* The environment lever — family chrome. Quiet on purpose: the reading room
+   earns no depth, so the pressed side is the theme's accent fill and nothing
+   more. */
+.lever {
+  display: inline-flex;
+  flex: none;
+  margin: 0;
+  min-inline-size: 0;
+  border: 1px solid var(--lk-line-strong);
+  border-radius: var(--lk-radius-sm);
+  padding: 2px;
+  gap: 2px;
+}
+
+.lever button {
+  appearance: none;
+  border: 0;
+  margin: 0;
+  padding: var(--lk-space-1) var(--lk-space-3);
+  border-radius: calc(var(--lk-radius-sm) - 2px);
+  background: transparent;
+  color: var(--lk-ink);
+  font: inherit;
+  font-size: var(--lk-text--1);
+  line-height: 1.6;
+  cursor: pointer;
+}
+
+.lever button[aria-pressed="true"] {
+  background: var(--ww-accent);
+  color: var(--ww-accent-ink);
+}
+
+.lever button:focus-visible {
+  outline-offset: 1px;
+}
+
+/* ── The room: index beside one column ────────────────────────────────── */
+
+.room {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--lk-space-6);
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 var(--lk-space-5);
+}
+
+@media (min-width: 60rem) {
+  .room {
+    grid-template-columns: 13rem minmax(0, 1fr);
+    gap: var(--lk-space-8);
+  }
+}
+
+.index {
+  font-size: var(--lk-text--1);
+  border-top: 1px solid var(--lk-line);
+  padding-top: var(--lk-space-3);
+}
+
+.index summary {
+  cursor: pointer;
+  font-weight: var(--lk-weight-heading);
+  padding: var(--lk-space-1) 0;
+}
+
+@media (min-width: 60rem) {
+  .index {
+    position: sticky;
+    top: var(--lk-space-5);
+    align-self: start;
+    max-height: calc(100vh - 2 * var(--lk-space-5));
+    overflow: auto;
+    border-top: 0;
+    padding-top: var(--lk-space-2);
+  }
+
+  /* On a wide screen a script holds the index open, and the summary is
+     hidden. Without the script it stays a working disclosure. */
+  .index details[open] summary {
+    display: none;
+  }
+}
+
+.index-heading {
+  margin: var(--lk-space-4) 0 var(--lk-space-1);
+  color: var(--lk-muted);
+  font-size: var(--lk-text--1);
+  letter-spacing: var(--lk-tracking-wordmark);
+  text-transform: uppercase;
+}
+
+.index ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.index li a {
+  display: block;
+  padding: var(--lk-space-1) var(--lk-space-2);
+  margin-left: calc(-1 * var(--lk-space-2));
+  border-left: 2px solid transparent;
+  color: var(--lk-ink);
+  text-decoration: none;
+}
+
+.index li a:hover {
+  color: var(--lk-accent);
+  text-decoration: underline;
+}
+
+.index li a[aria-current="page"] {
+  border-left-color: var(--lk-gold);
+  color: var(--lk-accent);
+  font-weight: var(--lk-weight-heading);
+}
+
+/* ── The column ───────────────────────────────────────────────────────── */
+
+main {
+  min-width: 0;
+  padding-bottom: var(--lk-space-8);
+}
+
+main:focus {
+  outline: none;
+}
+
+article {
+  max-width: var(--lk-measure);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--lk-display);
+  font-weight: var(--lk-weight-heading);
+  letter-spacing: var(--lk-tracking-display);
+  line-height: var(--lk-leading-tight);
+  text-wrap: balance;
+}
+
+h1 {
+  margin: var(--lk-space-5) 0 var(--lk-space-6);
+  font-size: var(--lk-text-4);
+}
+
+/* The gilt rule: one per page, under the title. */
+h1::after,
+.thesis-head::after {
+  content: "";
+  display: block;
+  width: var(--lk-space-8);
+  margin-top: var(--lk-space-4);
+  border-bottom: 2px solid var(--lk-gold);
+}
+
+h2 {
+  margin: var(--lk-space-7) 0 var(--lk-space-4);
+  font-size: var(--lk-text-3);
+}
+
+h3 {
+  margin: var(--lk-space-6) 0 var(--lk-space-3);
+  font-size: var(--lk-text-2);
+}
+
+strong {
+  font-weight: var(--lk-weight-heading);
+}
+
+blockquote {
+  margin-left: 0;
+  padding-left: var(--lk-space-4);
+  border-left: 2px solid var(--lk-line-strong);
+  color: var(--lk-muted);
+}
+
+.lede {
+  font-size: var(--lk-text-2);
+  line-height: var(--lk-leading-tight);
+  color: var(--lk-muted);
+}
+
+/* The thesis page opens on the thesis itself, set as the heading. */
+.thesis-head {
+  margin: var(--lk-space-5) 0 var(--lk-space-6);
+  font-family: var(--lk-display);
+  font-size: var(--lk-text-5);
+  font-weight: var(--lk-weight-heading);
+  letter-spacing: var(--lk-tracking-display);
+  line-height: var(--lk-leading-tight);
+}
+
+@media (max-width: 40rem) {
+  body {
+    font-size: var(--lk-text-0);
+  }
+
+  h1 {
+    font-size: var(--lk-text-3);
+  }
+
+  .thesis-head {
+    font-size: var(--lk-text-4);
+  }
+
+  h2 {
+    font-size: var(--lk-text-2);
+  }
+}
+
+/* Code blocks: Astro's Markdown pipeline and the terminal share one surface. */
+pre {
+  margin: 0 0 var(--lk-space-5);
+  padding: var(--lk-space-4);
+  overflow-x: auto;
+  border: 1px solid var(--lk-line);
+  border-radius: var(--lk-radius-md);
+  background: var(--lk-surface-2);
+  color: var(--lk-ink);
+  font-size: var(--lk-text--1);
+  line-height: 1.55;
+  tab-size: 2;
+}
+
+pre code {
+  font-size: inherit;
+}
+
+pre:focus-visible {
+  outline-offset: 2px;
+}
+
+.terminal {
+  margin: 0 0 var(--lk-space-5);
+}
+
+.terminal figcaption {
+  margin-bottom: var(--lk-space-2);
+  color: var(--lk-muted);
+  font-size: var(--lk-text--1);
+}
+
+.terminal .prompt {
+  color: var(--lk-muted);
+  user-select: none;
+}
+
+.terminal .cmd {
+  color: var(--lk-accent);
+  font-weight: var(--lk-weight-heading);
+}
+
+.terminal .stderr {
+  color: var(--lk-no);
+}
+
+.terminal .exit {
+  color: var(--lk-muted);
+}
+
+/* Tables: a catalogue's ruled columns, no fills. */
+.table-wrap {
+  overflow-x: auto;
+  margin: 0 0 var(--lk-space-5);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--lk-text-0);
+}
+
+th,
+td {
+  padding: var(--lk-space-2) var(--lk-space-3) var(--lk-space-2) 0;
+  border-bottom: 1px solid var(--lk-line-strong);
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  font-weight: var(--lk-weight-heading);
+}
+
+tbody th {
+  white-space: nowrap;
+}
+
+/* ── Diagrams ─────────────────────────────────────────────────────────── */
+
+.diagram {
+  margin: var(--lk-space-5) 0 var(--lk-space-6);
+  max-width: 60rem;
+}
+
+.diagram svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+@media (max-width: 40rem) {
+  /* Below this width the diagrams' 12px labels fall under 5px; the figure
+     scrolls instead of shrinking, and its full text alternative is in the SVG. */
+  .diagram {
+    overflow-x: auto;
+  }
+
+  .diagram svg {
+    width: 44rem;
+    max-width: none;
+  }
+}
+
+/* ── Provenance ───────────────────────────────────────────────────────── */
+
+.copy {
+  scroll-margin-top: var(--lk-space-5);
+}
+
+.prov {
+  margin-top: calc(-1 * var(--lk-space-2));
+  color: var(--lk-muted);
+  font-size: var(--lk-text--1);
+}
+
+.prov-label {
+  letter-spacing: var(--lk-tracking-wordmark);
+  text-transform: uppercase;
+  margin-right: var(--lk-space-1);
+}
+
+.prov a {
+  color: var(--lk-muted);
+}
+
+.prov code {
+  background: none;
+  padding: 0;
+}
+
+/* ── Notes: offline, and anything else the page must admit ────────────── */
+
+.note {
+  margin: 0 0 var(--lk-space-5);
+  padding: var(--lk-space-3) var(--lk-space-4);
+  border: 1px solid var(--lk-line-strong);
+  border-radius: var(--lk-radius-md);
+  background: var(--lk-surface);
+}
+
+.note > :last-child {
+  margin-bottom: 0;
+}
+
+/* ── Pager ────────────────────────────────────────────────────────────── */
+
+.pager {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--lk-space-4);
+  max-width: var(--lk-measure);
+  margin-top: var(--lk-space-7);
+  padding-top: var(--lk-space-4);
+  border-top: 1px solid var(--lk-line);
+}
+
+.pager a {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  font-family: var(--lk-display);
+  font-size: var(--lk-text-1);
+}
+
+.pager a[rel="next"] {
+  text-align: right;
+  margin-left: auto;
+}
+
+.pager a span {
+  color: var(--lk-muted);
+  font-family: var(--lk-sans);
+  font-size: var(--lk-text--1);
+}
+
+.pager a:hover {
+  text-decoration: underline;
+}
+
+/* ── Colophon and the family plate ────────────────────────────────────── */
+
+.colophon {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: var(--lk-space-6) var(--lk-space-5) var(--lk-space-7);
+  color: var(--lk-muted);
+  font-size: var(--lk-text--1);
+}
+
+.colophon::before {
+  content: "";
+  display: block;
+  width: var(--lk-space-8);
+  margin-bottom: var(--lk-space-5);
+  border-top: 2px solid var(--lk-gold);
+}
+
+/* The plate: the serial in the theme's signal, the family named once. */
+.plate {
+  margin: 0 0 var(--lk-space-2);
+  color: var(--lk-ink);
+  font-family: var(--lk-display);
+  font-size: var(--lk-text-0);
+}
+
+.plate abbr {
+  color: var(--ww-signal);
+  font-family: var(--lk-mono);
+  font-weight: var(--lk-weight-heading);
+  letter-spacing: var(--lk-tracking-wordmark);
+  text-decoration: none;
+}
+
+.colophon-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lk-space-2);
+  margin: 0;
+}
+
+.colophon a {
+  color: var(--lk-muted);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@media print {
+  .masthead .lever,
+  .index,
+  .pager,
+  .skip {
+    display: none;
+  }
+
+  .room {
+    display: block;
+  }
+}
+
+/* A command in a heading is set in the mono face without the inline box. */
+:is(h1, h2, h3) code {
+  padding: 0;
+  background: none;
+  font-size: 0.92em;
+}

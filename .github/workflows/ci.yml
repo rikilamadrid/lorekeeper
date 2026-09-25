@@ -83,6 +83,12 @@ jobs:
       - name: Verify the terminal identity is current
         run: npm run brand:terminal:check
 
+      # The docs site's family chrome (the lever and the plate) reads a
+      # committed bridge generated from the same Wonder Wagon theme. This fails
+      # if the bridge no longer matches the package at the pinned ref.
+      - name: Verify the docs site's Wonder Wagon theme bridge is current
+        run: npm run theme:check -w @lorekeeper/docs
+
       # The README's header pair and terminal specimen are generated from the
       # lockup, the token source, and a recording of lore --help. This fails if
       # a generated file is stale or if the recording no longer matches what

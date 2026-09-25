@@ -1,0 +1,22 @@
+---
+/**
+ * One of the three how-it-works diagrams, inlined so it takes the page's
+ * environment. Each file carries its own title and long description, so the
+ * text alternative travels with it; its styles are scoped to it, so two
+ * diagrams on one page cannot restyle each other.
+ */
+import { inlineSvg, scopeSvgStyle } from '../lib/brand';
+
+interface Props {
+  name: 'three-surfaces' | 'retrieval-path' | 'provenance-and-ownership';
+}
+const { name } = Astro.props;
+const svg = scopeSvgStyle(
+  inlineSvg(`diagrams/${name}.svg`)
+    .replace(/ width="[^"]*"/, '')
+    .replace(/ height="[^"]*"/, ''),
+  `.diagram[data-diagram="${name}"]`,
+);
+---
+<!-- biome-ignore lint/a11y/noNoninteractiveTabindex: at phone width the figure scrolls sideways; WCAG 2.1.1 needs it reachable by keyboard -->
+<figure class="diagram" data-diagram={name} tabindex="0" set:html={svg} />

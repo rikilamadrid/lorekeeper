@@ -1152,7 +1152,8 @@ describe('init interrupted part way', () => {
 });
 
 describe('the built init binary', () => {
-  const cli = join(REPO_ROOT, 'packages', 'cli', 'dist', 'cli.js');
+  // The bundled file npm ships, so these cases run the bytes users install.
+  const cli = join(REPO_ROOT, 'packages', 'cli', 'dist', 'lore.js');
 
   beforeAll(() => {
     execFileSync('npm', ['run', 'build'], { cwd: REPO_ROOT, stdio: 'pipe' });

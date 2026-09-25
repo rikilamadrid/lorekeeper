@@ -35,7 +35,8 @@ import { fileURLToPath } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const BRAND = join(HERE, '..');
 const ROOT = join(BRAND, '..');
-const CLI = join(ROOT, 'packages/cli/dist/cli.js');
+// The bundled file npm ships, so the specimen shows the bytes users install.
+const CLI = join(ROOT, 'packages/cli/dist/lore.js');
 const FIXTURE = join(HERE, 'lore-help.pty');
 
 const tokens = JSON.parse(
@@ -388,7 +389,7 @@ function capture() {
 /** @returns {string[]} why the recording no longer matches the binary */
 function recordingDrift() {
   if (!existsSync(CLI)) {
-    return ['packages/cli/dist/cli.js is missing: run npm run build first'];
+    return ['packages/cli/dist/lore.js is missing: run npm run build first'];
   }
   const live = execFileSync(process.execPath, [CLI, '--help'], {
     env: {

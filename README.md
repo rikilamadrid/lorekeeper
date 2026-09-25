@@ -22,21 +22,23 @@ drift.
 You need **Node.js 24 or newer** and **macOS or Linux**. Nothing else — no
 account, no API key, no network access at run time.
 
-Lorekeeper is not published to a package registry yet, so install from source:
+Try it without installing anything:
 
 ```sh
-git clone https://github.com/rikilamadrid/lorekeeper.git
-cd lorekeeper
-npm ci
-npm run build
-export PATH="$PWD/node_modules/.bin:$PATH"
+npx create-lorekeeper init ~/brain
 ```
 
-Make a brain:
+Then install it, so the `lore` command is on your `PATH` where the brain's
+`AGENTS.md` tells agents to find it:
 
 ```sh
-lore init ~/brain
+npm install -g create-lorekeeper
+lore --version
 ```
+
+The package is `create-lorekeeper` because the bare name `lorekeeper` on npm
+belongs to an unrelated project. The command is `lore`. To work on the toolkit
+itself, build it from a clone instead: `npm ci && npm run build`.
 
 ## Lorekeeper in thirty seconds
 

@@ -9,7 +9,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 730" width="720" height="730" role="img" aria-labelledby="lk-help-title lk-help-desc">
   <title id="lk-help-title">lore --help in a truecolour terminal</title>
   <desc id="lk-help-desc">The output of lore --help on a dark terminal. The product name Lorekeeper is in periwinkle and the closing serial LK-047 is dimmed; every other line is the terminal's plain text. The full output reads:
-Lorekeeper 0.0.0
+Lorekeeper 0.1.0
 Pathfinder finds the way; Lorekeeper remembers the journey.
 
 Usage:
@@ -50,7 +50,7 @@ LK-047</desc>
     .muted { fill: #aba7b8; }
   </style>
   <rect class="ground" x="0.5" y="0.5" width="719" height="729" rx="10"/>
-  <text x="28" y="39" xml:space="preserve"><tspan class="accent">Lorekeeper</tspan> 0.0.0</text>
+  <text x="28" y="39" xml:space="preserve"><tspan class="accent">Lorekeeper</tspan> 0.1.0</text>
   <text x="28" y="59" xml:space="preserve">Pathfinder finds the way; Lorekeeper remembers the journey.</text>
   <text x="28" y="79" xml:space="preserve"></text>
   <text x="28" y="99" xml:space="preserve">Usage:</text>

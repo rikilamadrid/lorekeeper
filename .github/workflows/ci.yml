@@ -94,3 +94,10 @@ jobs:
         run: |
           ./node_modules/.bin/lore --version
           ./node_modules/.bin/lore --help
+
+      # The published package is self-contained: the private @lorekeeper/core
+      # workspace is inlined into dist/lore.js. This packs the tarball `npm
+      # publish` would upload, checks its files, manifest and imports, installs
+      # it into a clean prefix, and runs the installed `lore`.
+      - name: Verify the npm package
+        run: node packages/cli/scripts/verify-package.mjs

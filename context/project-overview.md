@@ -175,7 +175,7 @@ build/package: npm run build
 | Merge strategy | Squash merge |
 | CI/CD | Required on pull request: install, lint, test, build |
 | Versioning and changelog | Semver; changelog maintained from Conventional Commits |
-| Release process | `TBD` — npm publish expected; confirm before first release |
+| Release process | npm, one public package `create-lorekeeper` (bin `lore`), with the private `@lorekeeper/core` inlined into `dist/lore.js` at pack time; `yaml` is the only runtime dependency. `CHANGELOG.md` is the version's source of truth; `.github/workflows/release.yml` (manual dispatch on `main`, npm trusted publishing with provenance, registry readback, then annotated `vX.Y.Z` tag and GitHub Release). The first publication of `0.1.0` is a one-time human bootstrap — **pending** — see `RELEASING.md` |
 
 ## Environments and Integrations
 
@@ -265,6 +265,7 @@ anything a prototype proved must not reach production.
 | 2026-08-21 | Windows is out of scope for v0.1; macOS and Linux are supported | A scope decision, not a licence for sloppy paths. Use platform-neutral Node APIs so later support is not made harder, but add no Windows-specific work now |
 | 2026-08-21 | Rejected the `title_hint` field | Invented while writing fixtures and justified nothing. Recorded as a reminder that fixture presence does not justify a field |
 | 2026-09-18 | Visual identity approved: a four-point celestial star enclosed in a ring, a drawn inscriptional-capitals wordmark and its lockups, light and dark palettes, and an old-style serif display over a system-sans body and UI stack | Approved by the human from the proposal in `brand/IDENTITY.md`, resolving the visual-identity half of the 2026-08-21 open decision. The framework-neutral source of truth is `brand/tokens/tokens.json`, with `brand/tokens/tokens.css` generated from it and every text and meaningful-UI pair measured against WCAG 2.1 AA in `brand/CONTRAST.md`. No typeface is shipped or fetched. The CLI voice half of that decision remains open and is outside Feature 09 |
+| 2026-09-25 | `esbuild` 0.28.2 approved as a build-time devDependency of `create-lorekeeper` | Approved by the human (Atelier Feature 08, decision D-b) after verification: declared only in `packages/cli` `devDependencies`; used only by `scripts/bundle.mjs` to inline the private `@lorekeeper/core` into `dist/lore.js`; the packed `create-lorekeeper@0.1.0` (sha1 `3ef401e3…`) ships four files, imports only `node:*` and `yaml`, and declares `yaml` as its one runtime dependency; an isolated global install requests `yaml` and nothing under `@lorekeeper/*`. Development keeps the workspace boundary: core stays `private`, the CLI source imports it by name through the workspace link, 719/719 tests. Not a licence to add runtime dependencies |
 
 ## Learning
 

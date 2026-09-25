@@ -1,25 +1,56 @@
 {
   "name": "create-lorekeeper",
-  "version": "0.0.0",
-  "description": "Deterministic CLI over a directory of plain Markdown files with validated frontmatter.",
+  "version": "0.1.0",
+  "description": "Lorekeeper — an AI-native second brain made of plain Markdown files you own. `lore` is a deterministic, offline CLI that ranks the passages answering a question.",
+  "keywords": [
+    "lorekeeper",
+    "second-brain",
+    "markdown",
+    "cli",
+    "knowledge-base",
+    "retrieval",
+    "ai-agents",
+    "local-first",
+    "wonder-wagon"
+  ],
+  "homepage": "https://github.com/rikilamadrid/lorekeeper#readme",
+  "bugs": {
+    "url": "https://github.com/rikilamadrid/lorekeeper/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rikilamadrid/lorekeeper.git",
+    "directory": "packages/cli"
+  },
   "license": "MIT",
+  "author": {
+    "name": "Ricardo Lamadrid",
+    "url": "https://github.com/rikilamadrid"
+  },
   "type": "module",
   "bin": {
-    "lore": "./dist/cli.js"
+    "lore": "./dist/lore.js"
   },
   "files": [
-    "dist"
+    "dist/lore.js"
   ],
   "engines": {
     "node": ">=24.0.0"
   },
   "dependencies": {
-    "@lorekeeper/core": "0.0.0"
+    "yaml": "^2.9.0"
+  },
+  "devDependencies": {
+    "@lorekeeper/core": "0.0.0",
+    "esbuild": "0.28.2"
   },
   "scripts": {
-    "build": "tsc --build",
+    "build": "tsc --build && npm run bundle",
+    "bundle": "node scripts/bundle.mjs",
     "clean": "tsc --build --clean",
-    "prepare": "tsc --build",
+    "prepare": "npm run build",
+    "prepack": "npm run build",
+    "prepublishOnly": "node scripts/publish-guard.mjs",
     "test": "vitest run"
   }
 }

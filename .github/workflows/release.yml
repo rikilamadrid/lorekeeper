@@ -1,0 +1,296 @@
+name: release
+
+# Publish `create-lorekeeper`, then make the release public, in that order.
+#
+# Modelled on Pathfinder's release workflow, and for its reasons:
+#
+#   1. There is no human credential. npm mints a short-lived publish token from
+#      this workflow's OIDC identity (trusted publishing), so there is no OTP to
+#      answer and no token to expire. Provenance is attached automatically for a
+#      public package published from a public repository this way.
+#   2. Nothing irreversible happens before the registry has the package. The tag
+#      and the GitHub Release are created only after the registry has been read
+#      back and confirmed.
+#
+# The trigger is a manual dispatch, not a tag push, because a tag-triggered
+# workflow would perform the irreversible act first.
+#
+# Every step is convergent: it checks whether its effect already exists and
+# skips if so. A run that dies halfway is repaired by dispatching it again, not
+# by inventing a new version.
+#
+# INERT UNTIL THE BOOTSTRAP PUBLISH. npm can bind a trusted publisher only to a
+# package that already exists, so the first publication of `create-lorekeeper`
+# is a one-time human act (RELEASING.md). Until it has happened, the plan step
+# below refuses to run. The trusted publisher on npmjs.com is configured
+# against this file's *name*, so renaming it breaks publishing.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version, no leading v (for example 0.1.1)"
+        required: true
+        type: string
+
+# `contents: write` pushes the tag and creates the Release; `id-token: write`
+# mints the OIDC token npm trades for a publish credential. Nothing else.
+permissions:
+  contents: write
+  id-token: write
+
+# Never cancel a release in flight: cancelling between publish and tag is the
+# state this workflow exists to avoid.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Publish and release
+    # Trusted publishing rejects self-hosted runners.
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Refuse any trigger but a dispatch against main
+        if: github.event_name != 'workflow_dispatch' || github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::release runs only as a manual dispatch against main" \
+               "(got ${{ github.event_name }} on ${{ github.ref }})"
+          exit 1
+
+      - name: Check out the release commit
+        uses: actions/checkout@v4
+        with:
+          # The publish guard reads origin/main.
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          # Deliberately NO `registry-url`: it writes an .npmrc with an empty
+          # `_authToken`, which npm prefers over the OIDC exchange, and the
+          # publish then fails with an unhelpful 404 or 403.
+
+      - name: Ensure npm supports trusted publishing
+        run: |
+          set -euo pipefail
+          npm install --global npm@latest
+          echo "npm $(npm --version), node $(node --version)"
+          if [ "$(printf '11.5.1\n%s\n' "$(npm --version)" | sort -V | head -1)" != "11.5.1" ]; then
+            echo "::error::npm $(npm --version) is older than 11.5.1 and cannot publish via OIDC"
+            exit 1
+          fi
+
+      - name: Plan the release
+        id: plan
+        env:
+          VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          case "$VERSION" in
+            v*) echo "::error::give the version without the leading v: ${VERSION#v}"; exit 1 ;;
+          esac
+          if ! printf '%s' "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::'$VERSION' is not a MAJOR.MINOR.PATCH version"
+            exit 1
+          fi
+
+          # The changelog is the source of truth; the manifest is derived from
+          # it; the dispatcher's input is a third statement of the same fact.
+          changelog="$(node -e '
+            const text = require("fs").readFileSync("CHANGELOG.md", "utf8");
+            const match = text.match(/^## \[(\d+\.\d+\.\d+)\]/m);
+            process.stdout.write(match ? match[1] : "");
+          ')"
+          manifest="$(node -p 'require("./packages/cli/package.json").version')"
+
+          echo "dispatched: $VERSION"
+          echo "changelog:  $changelog"
+          echo "manifest:   $manifest"
+          echo "commit:     $GITHUB_SHA"
+
+          if [ "$changelog" != "$VERSION" ] || [ "$manifest" != "$VERSION" ]; then
+            echo "::error::version disagreement — dispatched $VERSION," \
+                 "changelog $changelog, manifest $manifest."
+            exit 1
+          fi
+
+          git fetch --quiet origin main
+          if [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
+            echo "::error::$GITHUB_SHA is not the tip of origin/main" \
+                 "($(git rev-parse origin/main)). Re-dispatch after main settles."
+            exit 1
+          fi
+
+          # The bootstrap gate. A 404 packument means the package has never been
+          # published, so no trusted publisher can exist for it yet.
+          status="$(curl -s -o packument.json -w '%{http_code}' https://registry.npmjs.org/create-lorekeeper)"
+          if [ "$status" = "404" ]; then
+            echo "::error::create-lorekeeper has never been published. The first" \
+                 "publication is a one-time human bootstrap; see RELEASING.md."
+            exit 1
+          fi
+          if [ "$status" != "200" ]; then
+            echo "::error::the registry answered $status for create-lorekeeper"
+            exit 1
+          fi
+
+          published=no
+          if node -e 'process.exit(require("./packument.json").versions?.[process.argv[1]] ? 0 : 1)' "$VERSION"; then
+            published=yes
+            echo "::notice::create-lorekeeper@$VERSION is already on the registry; publish will be skipped"
+          fi
+          rm -f packument.json
+
+          tagged=no
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null 2>&1; then
+            tagged=yes
+            echo "::notice::tag v$VERSION already exists on the remote; tagging will be skipped"
+          fi
+
+          released=no
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            released=yes
+            echo "::notice::GitHub Release v$VERSION already exists; it will be left alone"
+          fi
+
+          if [ "$published$tagged$released" = "yesyesyes" ]; then
+            echo "::error::v$VERSION is already published, tagged, and released. Nothing to do."
+            exit 1
+          fi
+
+          {
+            echo "version=$VERSION"
+            echo "published=$published"
+            echo "tagged=$tagged"
+            echo "released=$released"
+          } >> "$GITHUB_OUTPUT"
+
+      # The Wonder Wagon foundations are `file:` devDependencies on a sibling
+      # checkout until they publish; the build needs them present. Keep this
+      # ref equal to the one in ci.yml.
+      - name: Check out the Wonder Wagon foundations beside this repository
+        env:
+          WONDER_WAGON_UI_REF: 1559671802c993ddcf1b0d78bd9c01aec57c4368
+        run: |
+          git clone --quiet --no-checkout https://github.com/rikilamadrid/wonder-wagon-ui.git ../wonder-wagon-ui
+          git -C ../wonder-wagon-ui checkout --quiet "$WONDER_WAGON_UI_REF"
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: ../wonder-wagon-ui/package.json
+
+      - name: Build @wonder-wagon/tokens and @wonder-wagon/themes
+        working-directory: ../wonder-wagon-ui
+        run: |
+          bun install --frozen-lockfile
+          bun run --filter '@wonder-wagon/tokens' build
+          bun run --filter '@wonder-wagon/themes' build
+
+      - name: Install, test and verify the package
+        run: |
+          set -euo pipefail
+          npm ci
+          npm test
+          npm run brand:terminal:check
+          node packages/cli/scripts/verify-package.mjs
+
+      - name: Publish to npm
+        # The single authenticated step, and the first irreversible one. No
+        # secret is referenced: the credential is minted from this job's OIDC
+        # identity against the trusted publisher configured on npmjs.com. The
+        # package's prepublishOnly guard checks intent, version, changelog and
+        # tree once more against the real working directory.
+        if: steps.plan.outputs.published == 'no'
+        working-directory: packages/cli
+        env:
+          LOREKEEPER_PUBLISH: "yes"
+        run: npm publish
+
+      - name: Confirm the registry serves this version
+        env:
+          VERSION: ${{ steps.plan.outputs.version }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 12); do
+            if curl -fsS "https://registry.npmjs.org/create-lorekeeper/$VERSION" -o packument.json; then
+              break
+            fi
+            echo "attempt $attempt: not visible yet, waiting"
+            sleep 10
+          done
+          if [ ! -s packument.json ]; then
+            echo "::error::create-lorekeeper@$VERSION never appeared on the registry." \
+                 "Nothing was tagged or released. Investigate, then re-dispatch."
+            exit 1
+          fi
+
+          head="$(node -p 'require("./packument.json").gitHead || ""')"
+          echo "registry gitHead: ${head:-<absent>}"
+          if [ -z "$head" ]; then
+            echo "::warning::the registry recorded no gitHead, so the published" \
+                 "tree cannot be tied to a commit from here"
+          elif [ "$head" != "$GITHUB_SHA" ]; then
+            echo "::error::published gitHead $head is not the release commit $GITHUB_SHA." \
+                 "Do not tag this. A wrong version can only be superseded."
+            exit 1
+          fi
+          rm -f packument.json
+          echo "create-lorekeeper@$VERSION is live and matches $GITHUB_SHA."
+
+      - name: Tag the release commit
+        if: steps.plan.outputs.tagged == 'no'
+        env:
+          VERSION: ${{ steps.plan.outputs.version }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "v$VERSION" -m "v$VERSION — released by .github/workflows/release.yml"
+          git push origin "refs/tags/v$VERSION"
+
+      - name: Create the GitHub Release
+        # Notes come verbatim from the changelog section.
+        if: steps.plan.outputs.released == 'no'
+        env:
+          VERSION: ${{ steps.plan.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          node -e '
+            const version = process.argv[1];
+            const text = require("fs").readFileSync("CHANGELOG.md", "utf8");
+            const escaped = version.replace(/\./g, "\\.");
+            const start = new RegExp(`^## \\[${escaped}\\][^\\n]*\\n`, "m").exec(text);
+            if (!start) { console.error(`no CHANGELOG.md section for ${version}`); process.exit(1); }
+            const rest = text.slice(start.index + start[0].length);
+            const end = /^## /m.exec(rest);
+            process.stdout.write((end ? rest.slice(0, end.index) : rest).replace(/^\n+|\n+$/g, "") + "\n");
+          ' "$VERSION" > notes.md
+          gh release create "v$VERSION" \
+            --verify-tag \
+            --target "$GITHUB_SHA" \
+            --title "Lorekeeper v$VERSION" \
+            --notes-file notes.md
+          rm -f notes.md
+
+      - name: Summarise
+        if: always()
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          {
+            echo "### create-lorekeeper v$VERSION"
+            echo
+            echo "| | |"
+            echo "| --- | --- |"
+            echo "| commit | \`$GITHUB_SHA\` |"
+            echo "| npm | https://www.npmjs.com/package/create-lorekeeper/v/$VERSION |"
+            echo "| release | $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/v$VERSION |"
+            echo
+            echo "Verify from outside: \`npx create-lorekeeper@$VERSION init scratch-brain\`."
+          } >> "$GITHUB_STEP_SUMMARY"

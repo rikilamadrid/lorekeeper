@@ -1,0 +1,21 @@
+---
+/**
+ * The provenance line under a section: where its words came from. Lorekeeper
+ * keeps where a note came from; its own documentation does the same.
+ */
+import { REPOSITORY } from '../lib/nav';
+
+interface Props {
+  from: string;
+  section?: string;
+}
+const { from, section } = Astro.props;
+const href = /^(brand|packages|apps)\//.test(from)
+  ? `${REPOSITORY}/blob/main/${from}`
+  : undefined;
+---
+<p class="prov">
+  <span class="prov-label">From</span>
+  {href ? <a href={href}><code>{from}</code></a> : <span>{from}</span>}
+  {section && <span> · {section}</span>}
+</p>

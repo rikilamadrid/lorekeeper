@@ -1,0 +1,100 @@
+---
+/**
+ * CLI reference. Authored here, and read from the built binary rather than
+ * written from memory: every block below is the binary's own output at build
+ * time. The exit-code table is asserted against real runs, so the build fails
+ * if the CLI's behaviour and this page part ways.
+ */
+import Terminal from '../components/Terminal.astro';
+import Base from '../layouts/Base.astro';
+import { lore, session } from '../lib/lore';
+
+const help = lore('--help');
+const version = lore('--version');
+const usage = {
+  init: lore('init'),
+  capture: lore('capture'),
+  search: lore('search'),
+};
+const [refusal] = session([['capture', 'brain', 'a thought']]);
+const unknown = lore('frobnicate');
+
+const EXIT = [
+  {
+    code: 0,
+    meaning:
+      'It did what was asked. This includes a capture that found the URL already filed, and a search that matched nothing.',
+    run: version,
+  },
+  {
+    code: 1,
+    meaning:
+      'It refused, and wrote nothing. The message says why and what to do.',
+    run: refusal,
+  },
+  {
+    code: 2,
+    meaning:
+      'The command was incomplete or malformed. The message repeats the usage line.',
+    run: usage.search,
+  },
+];
+for (const row of EXIT) {
+  if (row.run?.code !== row.code) {
+    throw new Error(
+      `cli: expected exit ${row.code} from \`${row.run?.command}\`, got ${row.run?.code}.`,
+    );
+  }
+}
+if (unknown.code !== 1)
+  throw new Error(`cli: an unknown argument now exits ${unknown.code}.`);
+---
+<Base href="/cli/" heading="CLI reference">
+  <p class="lede">Three commands. This is the whole surface, as the built binary prints it.</p>
+
+  <h2 id="help"><code>lore --help</code></h2>
+  <Terminal runs={[help]} />
+
+  <h2 id="version"><code>lore --version</code></h2>
+  <Terminal runs={[version]} />
+  <p>Prints the version and nothing else, so scripts can read it.</p>
+
+  <h2 id="init"><code>lore init &lt;dir&gt;</code></h2>
+  <p>Creates a brain at <code>dir</code>, or adopts the vault already there. It is safe to run again. See <a href="/knowledge-structure/">Knowledge structure</a> and <a href="/adoption/">Existing vaults</a>.</p>
+  <Terminal runs={[usage.init]} showCode />
+
+  <h2 id="capture"><code>lore capture &lt;brain&gt; &lt;item&gt;</code></h2>
+  <p>Files one thought into <code>inbox/</code>, or one http or https URL into <code>sources/</code>. Quote the item. See <a href="/capture/">Capture</a>.</p>
+  <Terminal runs={[usage.capture]} showCode />
+
+  <h2 id="search"><code>lore search &lt;brain&gt; &lt;query&gt;…</code></h2>
+  <p>Ranks the spans of <code>brain</code> against one or more wordings, each in its own quotes. It reads any directory of Markdown and writes nothing. See <a href="/retrieval/">Retrieval</a>.</p>
+  <Terminal runs={[usage.search]} showCode />
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th scope="col">Flag</th><th scope="col">Effect</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>--json</code></th><td>The same results as JSON: <code>path</code>, <code>anchor</code>, <code>startLine</code>, <code>endLine</code>, <code>score</code>, <code>text</code> per result.</td></tr>
+        <tr><th scope="row"><code>--limit &lt;n&gt;</code></th><td>How many results come back. A whole number, at least 1.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="exit-codes">Exit codes</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th scope="col">Code</th><th scope="col">Meaning</th><th scope="col">For example</th></tr></thead>
+      <tbody>
+        {EXIT.map((row) => (
+          <tr><th scope="row"><code>{row.code}</code></th><td>{row.meaning}</td><td><code>{row.run?.command}</code></td></tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>An argument <code>lore</code> does not know exits 1:</p>
+  <Terminal runs={[unknown]} showCode />
+
+  <h2 id="environment">Colour and output</h2>
+  <p>At a terminal that can show colour, <code>lore --help</code> sets the name in the accent and closes with the serial <code>LK-047</code>. Nothing else is coloured, and nothing a script reads is touched: <code>--version</code>, <code>--json</code>, every error, and every run that is piped or has <code>NO_COLOR</code> or <code>TERM=dumb</code> set keeps the same bytes. Results go to standard output; refusals go to standard error.</p>
+  <p><code>lore</code> runs offline, takes no credentials, and makes no network call.</p>
+</Base>

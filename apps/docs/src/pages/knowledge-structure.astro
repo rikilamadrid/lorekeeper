@@ -1,0 +1,100 @@
+---
+/**
+ * Knowledge structure. Authored here, from the shipped product: the folders
+ * and their READMEs are read back from a real `lore init`, and the field list
+ * is `RECOGNIZED_FIELDS` from `@lorekeeper/core`. The build fails if the
+ * contract gains or loses a field this page does not describe.
+ */
+import { MANIFEST_PATH, RECOGNIZED_FIELDS } from '@lorekeeper/core';
+import Prov from '../components/Prov.astro';
+import Terminal from '../components/Terminal.astro';
+import Base from '../layouts/Base.astro';
+import { lore, starter } from '../lib/lore';
+
+const init = lore('init', 'brain');
+const brain = starter();
+
+/** The first paragraph after a README's title: what the folder is for. */
+function purpose(readme: string): string {
+  return (
+    readme
+      .split(/\n\s*\n/)[1]
+      ?.replace(/\s+/g, ' ')
+      .trim() ?? ''
+  );
+}
+
+const FIELDS: Record<(typeof RECOGNIZED_FIELDS)[number], string> = {
+  id: 'A stable identifier. Sources carry one; ordinary notes do not need one, and a note without one is not a defect.',
+  type: 'Browsing ergonomics only. Retrieval never depends on it. Provisional in v0.1: its values are not fixed.',
+  kind: 'A free string, not validated in v0.1.',
+  url: 'Where a source came from, exactly as it was written.',
+  created:
+    'When the file was made, kept exactly as written — never reparsed into another timezone.',
+  updated: 'When the file last changed, kept exactly as written.',
+  tags: 'A list of tags.',
+  aliases:
+    'Other names for this file. The last thing a link is resolved against.',
+  derived_from:
+    'The stable ids of the sources this was derived from. Absent means unknown or unrecorded, never original.',
+  about:
+    'Provisional in v0.1. What the file is structurally about, added alongside its links rather than copied from them.',
+};
+const missing = RECOGNIZED_FIELDS.filter((f) => !(f in FIELDS));
+const extra = Object.keys(FIELDS).filter(
+  (f) => !(RECOGNIZED_FIELDS as readonly string[]).includes(f),
+);
+if (missing.length || extra.length) {
+  throw new Error(
+    `knowledge-structure: the frontmatter contract changed (missing ${missing.join(', ') || 'none'}, extra ${extra.join(', ') || 'none'}).`,
+  );
+}
+---
+<Base href="/knowledge-structure/">
+  <p class="lede">A brain is a directory of Markdown. The folders help you browse it, the frontmatter says what each file is, and one manifest says which files belong to the toolkit.</p>
+
+  <h2 id="what-init-writes">What <code>lore init</code> writes</h2>
+  <Terminal runs={[init]} />
+  <p>Five folders, a README in each, a README and an <code>AGENTS.md</code> at the root, and the manifest. That is all.</p>
+
+  <h2 id="folders">The folders</h2>
+  <p>The folders give each file an epistemic role, and nothing more. There are no numeric prefixes and no sort order to preserve. Meaning lives in frontmatter, so moving a file between folders changes nothing about how it is found.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th scope="col">Folder</th><th scope="col">What it is for, from its own README</th></tr></thead>
+      <tbody>
+        {brain.folders.map((f) => (
+          <tr><th scope="row"><code>{f.name}/</code></th><td>{purpose(f.readme)}</td></tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <Prov from="packages/cli/src/starter.ts" section="read back from a real lore init" />
+
+  <h2 id="frontmatter">Frontmatter</h2>
+  <p>Frontmatter is optional. A Markdown file with none is still valid knowledge, and <code>lore search</code> indexes it. These are the fields this version of the contract recognizes:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th scope="col">Field</th><th scope="col">Meaning</th></tr></thead>
+      <tbody>
+        {RECOGNIZED_FIELDS.map((f) => (
+          <tr><th scope="row"><code>{f}</code></th><td>{FIELDS[f]}</td></tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <Prov from="packages/core/src/fields.ts" section="RECOGNIZED_FIELDS" />
+  <p>A field the contract does not recognize is kept, never dropped. The schema only ever grows, so a file written for a later version still reads here, and a write never loses what it did not understand.</p>
+
+  <h2 id="manifest">The manifest</h2>
+  <p><code>{MANIFEST_PATH}</code> records every file the toolkit wrote, with a SHA-256 of what it wrote. It is the only way <code>lore</code> tells its files from yours, and it checks the manifest before it writes anything.</p>
+  <ul>
+    <li>A file in the manifest is the toolkit's. If you edit it, <code>lore</code> reports it as modified and leaves your version in place.</li>
+    <li>A file not in the manifest is yours. <code>lore</code> never rewrites, moves or reformats it.</li>
+  </ul>
+  <p>These are the files a fresh <code>lore init</code> claims:</p>
+  <ul>
+    {brain.owned.map((p) => <li><code>{p}</code></li>)}
+  </ul>
+  <p>The manifest also records each thought and URL you capture, because <code>lore</code> wrote those files too. Anything you write yourself is never listed. <a href="/provenance/">Provenance</a> covers ownership in more detail.</p>
+</Base>

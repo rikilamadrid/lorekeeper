@@ -14,7 +14,8 @@
       "!skills/orchestrate/engine",
       "!skills/render-artifact/engine",
       "!.claude/hooks",
-      "!brand/tokens/tokens.css"
+      "!brand/tokens/tokens.css",
+      "!apps/docs/src/styles/wonder-wagon-lorekeeper.css"
     ]
   },
   "formatter": {
@@ -40,5 +41,8 @@
     "formatter": {
       "enabled": true
     }
+  },
+  "html": {
+    "experimentalFullSupportEnabled": true
   }
 }

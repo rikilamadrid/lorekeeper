@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+In progress — at the website visual-acceptance gate
 
 ## Goal
 
@@ -78,11 +78,14 @@ holds no brain data.
 
 ## Notes / Decisions
 
-- **UNRESOLVED HUMAN DECISION:** the docs framework is `TBD` in
-  `context/project-overview.md`. This Feature cannot move to `Ready` until a
-  human names it.
-- **UNRESOLVED HUMAN DECISION:** hosting for the docs site and its preview
-  deploys is `TBD`.
+- **Resolved 2026-09-25 (human, Atelier Feature 08 decision W):** plain Astro —
+  static, no Starlight, no React — evolving `apps/docs` in place, with no
+  second site app. Identity from `brand/tokens/tokens.css`; the Wonder Wagon
+  `lorekeeper` theme only for the family chrome, as a generated, drift-checked
+  file (`npm run theme:check -w @lorekeeper/docs`).
+- **Resolved 2026-09-25 (decision W):** hosted on Vercel, root directory
+  `apps/docs`, preview deploys per PR. The Vercel project is created by the
+  human after the site's visual acceptance, not before.
 - Depends on Feature 09 for identity, narrative, diagrams, and proof. Amended
   2026-09-18 to record that boundary: Feature 09 authors what this Feature
   renders, and the two Features are deliberately not merged. Feature 09 does not

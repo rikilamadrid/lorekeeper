@@ -1,0 +1,42 @@
+/*
+ * @wonder-wagon/themes 0.1.0, lorekeeper theme (pilot) — GENERATED, do not edit.
+ *
+ * Regenerate: npm run theme -w @lorekeeper/docs
+ * Check:      npm run theme:check -w @lorekeeper/docs
+ *
+ * Family chrome only: the environment lever and the family plate read these
+ * --ww-* properties. Every other colour on the site is a --lk-* token.
+ */
+@layer ww.theme {
+  /* @wonder-wagon/themes/lorekeeper — Lorekeeper (pilot). Generated; do not edit. */
+  :root, [data-ww-env="day"] {
+    --ww-accent: #343A8C;
+    --ww-accent-low: #E1E3F5;
+    --ww-accent-ink: #FAF7F1;
+    --ww-link: #343A8C;
+    --ww-signal: #8A6212;
+    --ww-signal-edge: transparent;
+    --ww-m-enamel: #343A8C;
+    --ww-radius-object: 4px 4px 10px 10px;
+  }
+  [data-ww-env="night"] {
+    --ww-accent: #99A2F0;
+    --ww-accent-low: #1E2140;
+    --ww-accent-ink: #141521;
+    --ww-link: #99A2F0;
+    --ww-signal: #E2B45C;
+    --ww-signal-edge: transparent;
+    --ww-m-enamel: #5D64C3;
+  }
+  @media (prefers-color-scheme: dark) {
+    [data-ww-env="auto"] {
+      --ww-accent: #99A2F0;
+      --ww-accent-low: #1E2140;
+      --ww-accent-ink: #141521;
+      --ww-link: #99A2F0;
+      --ww-signal: #E2B45C;
+      --ww-signal-edge: transparent;
+      --ww-m-enamel: #5D64C3;
+    }
+  }
+}

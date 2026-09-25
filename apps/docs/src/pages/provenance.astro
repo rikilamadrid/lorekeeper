@@ -1,0 +1,60 @@
+---
+/**
+ * Provenance. Authored here, from the shipped product and its frozen
+ * contract; the diagram is Feature 09's.
+ */
+import Diagram from '../components/Diagram.astro';
+import Base from '../layouts/Base.astro';
+import { at, capturedPath, explore } from '../lib/lore';
+
+const source = explore(
+  [
+    ['init', 'brain'],
+    ['capture', 'brain', 'https://example.com/queue-semantics-talk'],
+  ],
+  { inspect: (read, runs) => read(capturedPath(at(runs, 1))) },
+);
+const id = /^id: (\S+)$/m.exec(source.found)?.[1];
+if (!id) throw new Error('provenance: the captured source carries no id.');
+const FENCE = '-'.repeat(3);
+const derived = [
+  FENCE,
+  'derived_from:',
+  `  - ${id}`,
+  FENCE,
+  '',
+  '# Consumer leases',
+  '',
+  'A consumer that holds a batch longer than its lease loses the partition.',
+  '',
+].join('\n');
+---
+<Base href="/provenance/" heading="Provenance and ownership">
+  <p class="lede">Two records Lorekeeper keeps: where a note came from, and whose file it is.</p>
+
+  <Diagram name="provenance-and-ownership" />
+
+  <h2 id="where-from">Where a note came from</h2>
+  <p>A captured source carries a stable id in its frontmatter:</p>
+  <!-- biome-ignore lint/a11y/noNoninteractiveTabindex: scrolls sideways when a line is long; WCAG 2.1.1 needs it reachable by keyboard -->
+  <pre tabindex="0"><code>{source.found}</code></pre>
+  <p>A note you write from it names that id in <code>derived_from</code>:</p>
+  <!-- biome-ignore lint/a11y/noNoninteractiveTabindex: scrolls sideways when a line is long; WCAG 2.1.1 needs it reachable by keyboard -->
+  <pre tabindex="0"><code>{derived}</code></pre>
+  <ul>
+    <li><strong>The link points backwards,</strong> from what was derived to what it came from. Writing a note never edits the source it came from, and the reverse link is never stored.</li>
+    <li><strong>It names an id, not a path.</strong> Rename or move the source file and the link still resolves.</li>
+    <li><strong>Absence is not a claim.</strong> A note with no <code>derived_from</code> has an origin that is unknown or unrecorded. That never means the thought was your own.</li>
+    <li><strong><code>about</code> points the other way,</strong> forward to the project, area or person a note concerns. It is provisional in v0.1.</li>
+  </ul>
+  <p>Frontmatter is the authority for both. Links written in the body are not read as provenance.</p>
+
+  <h2 id="whose-file">Whose file it is</h2>
+  <p><code>.lorekeeper/manifest.json</code> lists every file the toolkit wrote. A file not on that list is yours by definition: not listing a file is a positive statement of ownership, not missing information.</p>
+  <ul>
+    <li><strong>The toolkit's files</strong> are the starter files <code>lore init</code> wrote, and the captures it filed. Only these can ever be updated by the toolkit.</li>
+    <li><strong>Your files</strong> are everything else. They are never rewritten, moved or reformatted.</li>
+    <li><strong>A toolkit file you edited</strong> is reported as modified and left as you wrote it. <code>lore</code> does not overwrite it.</li>
+  </ul>
+  <p>Before any write, <code>lore</code> reads the manifest. If the manifest is missing, or anything in it is ambiguous, <code>lore</code> refuses and writes nothing rather than guessing.</p>
+</Base>

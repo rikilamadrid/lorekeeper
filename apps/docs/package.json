@@ -2,12 +2,19 @@
   "name": "@lorekeeper/docs",
   "version": "0.0.0",
   "private": true,
-  "description": "Placeholder for the documentation PWA. Framework is unresolved; see Feature 08.",
+  "description": "The Lorekeeper product and documentation site: static Astro, installable, reads no brain data.",
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "build": "tsc --build",
-    "clean": "tsc --build --clean",
-    "test": "vitest run"
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "test": "vitest run",
+    "theme": "node scripts/wonder-wagon-theme.mjs",
+    "theme:check": "node scripts/wonder-wagon-theme.mjs --check"
+  },
+  "dependencies": {
+    "@lorekeeper/core": "0.0.0",
+    "astro": "7.3.4"
   }
 }

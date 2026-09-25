@@ -27,6 +27,8 @@
     "brand:assets": "node brand/assets/build.mjs",
     "brand:assets:check": "node brand/assets/build.mjs --check",
     "brand:diagrams": "node brand/diagrams/check.mjs",
+    "brand:readme": "node brand/readme/build.mjs",
+    "brand:readme:check": "node brand/readme/build.mjs --check",
     "brand:terminal": "node brand/terminal/build.mjs",
     "brand:terminal:check": "node brand/terminal/build.mjs --check"
   },

@@ -82,6 +82,13 @@ jobs:
       - name: Verify the terminal identity is current
         run: npm run brand:terminal:check
 
+      # The README's header pair and terminal specimen are generated from the
+      # lockup, the token source, and a recording of lore --help. This fails if
+      # a generated file is stale or if the recording no longer matches what
+      # the built binary prints.
+      - name: Verify the README identity is current
+        run: npm run brand:readme:check
+
       - name: Verify the built binary runs
         run: |
           ./node_modules/.bin/lore --version

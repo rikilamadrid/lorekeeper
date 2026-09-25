@@ -10,7 +10,7 @@ in `proof.md`.
 
 ## The thesis
 
-You already wrote it down. You cannot find it again.
+You already wrote it down. Find the passage that answers.
 
 Knowledge accumulates across notes, articles, videos, and long conversations
 with AI agents, and almost none of it comes back when it is needed. So you

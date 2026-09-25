@@ -50,14 +50,22 @@ function check(name, ok, detail = '') {
 }
 
 // Pack. `npm pack` runs `prepack`, which rebuilds and re-bundles, so this is
-// the same artefact `npm publish` would upload.
-const [packed] = JSON.parse(
+// the same artefact `npm publish` would upload. npm 11 prints an array of
+// entries; npm 12 prints an object keyed by package name. Accept both, since
+// the release workflow runs the newest npm and contributors run their own.
+const packJson = JSON.parse(
   execFileSync('npm', ['pack', '--json', '--pack-destination', work], {
     cwd: PACKAGE_ROOT,
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'inherit'],
   }),
 );
+const packed = Array.isArray(packJson)
+  ? packJson[0]
+  : packJson['create-lorekeeper'];
+if (packed?.filename === undefined) {
+  throw new Error('unrecognised npm pack --json output');
+}
 const tarball = join(work, packed.filename);
 const files = packed.files.map((file) => file.path).sort();
 

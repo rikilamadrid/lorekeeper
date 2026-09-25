@@ -44,6 +44,26 @@ const themesVersion = require('@wonder-wagon/themes/package.json').version;
 const tokensVersion = require('@wonder-wagon/tokens/package.json').version;
 
 /**
+ * Every value the `lorekeeper` theme restates from tokens.json: theme field,
+ * environment, and the token it copies. The same map as the foundation's
+ * `proof/lorekeeper.ts`, which checks it from the other side. Night enamel is
+ * absent on purpose: Atelier Feature 02 assigned it and no token here holds it.
+ *
+ * @type {ReadonlyArray<readonly [string, 'day' | 'night', string]>}
+ */
+const THEME_MAP = [
+  ['enamel', 'day', 'light.accent'],
+  ['accent', 'day', 'light.accent'],
+  ['accent', 'night', 'dark.accent'],
+  ['accentInk', 'day', 'light.accent-ink'],
+  ['accentInk', 'night', 'dark.accent-ink'],
+  ['link', 'day', 'light.accent'],
+  ['link', 'night', 'dark.accent'],
+  ['signal', 'day', 'light.gold'],
+  ['signal', 'night', 'dark.gold'],
+];
+
+/**
  * A TypeScript string literal in the repository's quote style, with every
  * control character escaped so the committed file carries no raw escape byte.
  *
@@ -61,22 +81,20 @@ function quote(text) {
 /** @returns {{ source: string, problems: string[] }} */
 function generate() {
   const tokens = JSON.parse(readFileSync(TOKENS, 'utf8'));
-  const accent = {
-    day: tokens.color.light.accent.value,
-    night: tokens.color.dark.accent.value,
-  };
-
   const family = terminalIdentity(lorekeeper, 'night');
-  const brand = terminalPaint(accent.night);
+  const brand = terminalPaint(tokens.color.dark.accent.value);
   const problems = [];
 
-  // The foundation carries a copy of Lorekeeper's hue as the theme's `link`.
-  // A copy that drifts is two sources of truth, so disagreement fails here
-  // rather than surfacing as a second, unmeasured indigo somewhere else.
-  for (const env of ['day', 'night']) {
-    if (lorekeeper.link[env].toUpperCase() !== accent[env].toUpperCase()) {
+  // The foundation carries copies of Lorekeeper's colours in the theme. A copy
+  // that drifts is two sources of truth, so disagreement fails here rather
+  // than surfacing as a second, unmeasured indigo somewhere else.
+  for (const [field, env, token] of THEME_MAP) {
+    const [mode, name] = token.split('.');
+    const shipped = tokens.color[mode][name].value;
+    const copy = lorekeeper[field][env];
+    if (copy.toUpperCase() !== shipped.toUpperCase()) {
       problems.push(
-        `@wonder-wagon/themes lorekeeper.link.${env} is ${lorekeeper.link[env]} but tokens.json accent is ${accent[env]}`,
+        `@wonder-wagon/themes lorekeeper.${field}.${env} is ${copy} but tokens.json ${token} is ${shipped}`,
       );
     }
   }

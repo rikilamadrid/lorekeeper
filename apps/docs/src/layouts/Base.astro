@@ -1,0 +1,188 @@
+---
+/**
+ * The reading room: one column at the token measure, a plain index beside it,
+ * the lockup above, and the family plate below. Identity comes from
+ * `brand/tokens/tokens.css`; the only Wonder Wagon values are the family
+ * chrome (the environment lever and the plate), from the generated theme layer.
+ */
+import '../../../../brand/tokens/tokens.css';
+import '../styles/wonder-wagon-lorekeeper.css';
+import '../styles/site.css';
+import appleTouch from '../../../../brand/assets/apple-touch-icon.png?url';
+import faviconIco from '../../../../brand/assets/favicon.ico?url';
+import faviconSvg from '../../../../brand/assets/favicon.svg?url';
+import favicon32 from '../../../../brand/assets/favicon-32.png?url';
+import socialPreview from '../../../../brand/assets/social-preview.png?url';
+import Lockup from '../components/Lockup.astro';
+import { pageGrounds } from '../lib/brand';
+import {
+  FAMILY,
+  GROUPS,
+  OFFLINE,
+  PAGES,
+  pageFor,
+  REPOSITORY,
+} from '../lib/nav';
+
+interface Props {
+  href: string;
+  /** The page's own H1, when it differs from its index title. */
+  heading?: string;
+}
+const { href, heading } = Astro.props;
+const page = pageFor(href);
+const title =
+  href === '/'
+    ? 'Lorekeeper — plain Markdown you own, searchable by passage'
+    : `${page.title} — Lorekeeper`;
+const canonical =
+  Astro.site && href !== OFFLINE.href
+    ? new URL(href, Astro.site).href
+    : undefined;
+const ogImage = Astro.site
+  ? new URL(socialPreview, Astro.site).href
+  : undefined;
+const grounds = pageGrounds();
+const index = PAGES.findIndex((p) => p.href === href);
+const previous = index > 0 ? PAGES[index - 1] : undefined;
+const next =
+  index >= 0 && index < PAGES.length - 1 ? PAGES[index + 1] : undefined;
+const production = import.meta.env.PROD;
+/** Registers sw.js in production builds only; `astro dev` never caches. */
+const REGISTER_WORKER =
+  "if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));";
+---
+<!doctype html>
+<html lang="en" data-ww-env="auto">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={page.summary} />
+    {href === OFFLINE.href && <meta name="robots" content="noindex" />}
+    {canonical && <link rel="canonical" href={canonical} />}
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content={grounds.light} />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content={grounds.dark} />
+    <link rel="icon" href={faviconSvg} type="image/svg+xml" />
+    <link rel="icon" href={favicon32} sizes="32x32" type="image/png" />
+    <link rel="icon" href={faviconIco} sizes="any" />
+    <link rel="apple-touch-icon" href={appleTouch} />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Lorekeeper" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={page.summary} />
+    {canonical && <meta property="og:url" content={canonical} />}
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    {ogImage && <meta property="og:image:width" content="1280" />}
+    {ogImage && <meta property="og:image:height" content="640" />}
+    {ogImage && <meta property="og:image:alt" content="The Lorekeeper lockup: a ring and a four-point star beside the drawn wordmark." />}
+    <meta name="twitter:card" content="summary_large_image" />
+    <script is:inline>
+      // Before first paint: an explicit choice from the lever wins over the
+      // system. Storage can be unavailable; then the system decides.
+      (() => {
+        let env = null;
+        try { env = localStorage.getItem('lk-env'); } catch {}
+        if (env !== 'day' && env !== 'night') return;
+        const root = document.documentElement;
+        root.dataset.wwEnv = env;
+        root.dataset.lkTheme = env === 'night' ? 'dark' : 'light';
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to the text</a>
+    <header class="masthead">
+      <a class="home" href="/" aria-label="Lorekeeper, home">
+        <Lockup height={40} />
+      </a>
+      <fieldset class="lever">
+        <legend class="visually-hidden">Reading environment</legend>
+        <button type="button" data-env="day" aria-pressed="false">Day</button>
+        <button type="button" data-env="night" aria-pressed="false">Night</button>
+      </fieldset>
+    </header>
+
+    <div class="room">
+      <nav class="index" aria-label="Contents">
+        <details class="index-details">
+          <summary>Contents</summary>
+          {GROUPS.map((group) => (
+            <div class="index-group">
+              <p class="index-heading">{group}</p>
+              <ol>
+                {PAGES.filter((p) => p.group === group).map((p) => (
+                  <li>
+                    <a href={p.href} aria-current={p.href === href ? 'page' : undefined}>{p.title}</a>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ))}
+        </details>
+      </nav>
+
+      <main id="main" tabindex="-1">
+        <article>
+          {href !== '/' && <h1>{heading ?? page.title}</h1>}
+          <slot />
+        </article>
+        <nav class="pager" aria-label="Next and previous">
+          {previous ? <a rel="prev" href={previous.href}><span>Previous</span>{previous.title}</a> : <span />}
+          {next ? <a rel="next" href={next.href}><span>Next</span>{next.title}</a> : <span />}
+        </nav>
+      </main>
+    </div>
+
+    <footer class="colophon">
+      <p class="plate"><abbr title="Lorekeeper, maker 047">LK-047</abbr> · a <a href={FAMILY}>Wonder Wagon</a> tool</p>
+      <p class="colophon-links">
+        <a href={REPOSITORY}>GitHub</a>
+        <span aria-hidden="true">·</span>
+        <a href={`${REPOSITORY}/blob/main/LICENSE`}>MIT licence</a>
+        <span aria-hidden="true">·</span>
+        <span>Static. Reads no brain data. Makes no request for yours.</span>
+      </p>
+    </footer>
+
+    <script is:inline>
+      // The contents are a disclosure on a phone and always open beside the
+      // column on a wide screen.
+      (() => {
+        const details = document.querySelector('.index-details');
+        const wide = matchMedia('(min-width: 60rem)');
+        const sync = () => { if (details) details.open = wide.matches; };
+        wide.addEventListener('change', sync);
+        sync();
+      })();
+    </script>
+    <script is:inline>
+      (() => {
+        const root = document.documentElement;
+        const buttons = [...document.querySelectorAll('.lever button')];
+        const current = () => {
+          const explicit = root.dataset.wwEnv;
+          if (explicit === 'day' || explicit === 'night') return explicit;
+          return matchMedia('(prefers-color-scheme: dark)').matches ? 'night' : 'day';
+        };
+        const paint = () => {
+          const env = current();
+          for (const b of buttons) b.setAttribute('aria-pressed', String(b.dataset.env === env));
+        };
+        for (const b of buttons) {
+          b.addEventListener('click', () => {
+            const env = b.dataset.env;
+            root.dataset.wwEnv = env;
+            root.dataset.lkTheme = env === 'night' ? 'dark' : 'light';
+            try { localStorage.setItem('lk-env', env); } catch {}
+            paint();
+          });
+        }
+        matchMedia('(prefers-color-scheme: dark)').addEventListener('change', paint);
+        paint();
+      })();
+    </script>
+    {production && <script is:inline set:html={REGISTER_WORKER} />}
+  </body>
+</html>

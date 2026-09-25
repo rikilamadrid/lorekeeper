@@ -44,6 +44,27 @@ const themesVersion = require('@wonder-wagon/themes/package.json').version;
 const tokensVersion = require('@wonder-wagon/tokens/package.json').version;
 
 /**
+ * Every value the `lorekeeper` theme restates from tokens.json: theme field,
+ * environment, token. Night enamel is absent on purpose — the ecosystem
+ * assigned it and tokens.json has no equivalent. At night `accent` and `link`
+ * are both the periwinkle and `enamel` is not: the fill and the object are two
+ * roles, and this map keeps them from collapsing into one.
+ *
+ * @type {ReadonlyArray<readonly [string, 'day' | 'night', string]>}
+ */
+const FOUNDATION_COPIES = [
+  ['enamel', 'day', 'light.accent'],
+  ['accent', 'day', 'light.accent'],
+  ['accent', 'night', 'dark.accent'],
+  ['accentInk', 'day', 'light.accent-ink'],
+  ['accentInk', 'night', 'dark.accent-ink'],
+  ['link', 'day', 'light.accent'],
+  ['link', 'night', 'dark.accent'],
+  ['signal', 'day', 'light.gold'],
+  ['signal', 'night', 'dark.gold'],
+];
+
+/**
  * A TypeScript string literal in the repository's quote style, with every
  * control character escaped so the committed file carries no raw escape byte.
  *
@@ -70,13 +91,17 @@ function generate() {
   const brand = terminalPaint(accent.night);
   const problems = [];
 
-  // The foundation carries a copy of Lorekeeper's hue as the theme's `link`.
-  // A copy that drifts is two sources of truth, so disagreement fails here
-  // rather than surfacing as a second, unmeasured indigo somewhere else.
-  for (const env of ['day', 'night']) {
-    if (lorekeeper.link[env].toUpperCase() !== accent[env].toUpperCase()) {
+  // The foundation carries copies of Lorekeeper's values in the `lorekeeper`
+  // theme. A copy that drifts is two sources of truth, so any disagreement
+  // fails here rather than surfacing as a second, unmeasured colour somewhere
+  // else. Wonder Wagon's proof/lorekeeper.ts runs the same map the other way.
+  for (const [field, env, token] of FOUNDATION_COPIES) {
+    const [scheme, name] = token.split('.');
+    const expected = tokens.color[scheme][name].value;
+    const copied = lorekeeper[field][env];
+    if (copied.toUpperCase() !== expected.toUpperCase()) {
       problems.push(
-        `@wonder-wagon/themes lorekeeper.link.${env} is ${lorekeeper.link[env]} but tokens.json accent is ${accent[env]}`,
+        `@wonder-wagon/themes lorekeeper.${field}.${env} is ${copied} but tokens.json ${token} is ${expected}`,
       );
     }
   }
@@ -147,7 +172,9 @@ function main() {
     process.exitCode = 1;
     return;
   }
-  console.log(`brand terminal check clean: ${where} is current.`);
+  console.log(
+    `brand terminal check clean: ${where} is current; ${FOUNDATION_COPIES.length} foundation copies match tokens.json.`,
+  );
 }
 
 main();

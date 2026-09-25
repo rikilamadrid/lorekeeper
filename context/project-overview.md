@@ -144,7 +144,7 @@ actually has.
 | --- | --- | --- |
 | Platform/runtime | Node.js LTS | `npx` distribution, zero install friction |
 | Language(s) | TypeScript | One language across CLI, schema, and web surface |
-| UI/presentation | Static docs site as installable PWA; framework `TBD` | First-class docs surface; no private data |
+| UI/presentation | Static docs site as installable PWA; plain Astro (static, no Starlight, no React) in `apps/docs` | First-class docs surface; no private data. Framework ruled by the human 2026-09-25 (Atelier Feature 08, decision W) |
 | Backend/application | `None` | v0.1 has no server |
 | Data storage and access | Plain Markdown files with YAML frontmatter on local disk | Durability and user ownership |
 | Auth | `None` | No accounts, no server |
@@ -182,8 +182,8 @@ build/package: npm run build
 | Area | Choice | Notes |
 | --- | --- | --- |
 | Local development | Node LTS, npm workspaces | No services required |
-| Preview/staging | `TBD` | Docs site preview deploys expected |
-| Production | `TBD` | Docs site hosting and npm registry |
+| Preview/staging | Vercel preview deploys for `apps/docs`, one per PR | Ruled 2026-09-25 (decision W). The Vercel project is created by the human only after the site's visual acceptance |
+| Production | Docs site: Vercel, root directory `apps/docs`, generated URL until a custom domain is decided. npm: `TBD` | Docs hosting ruled 2026-09-25 (decision W); the registry side belongs to the release decision |
 | Configuration and secrets | `None` in v0.1 | CLI takes no credentials by design |
 | External services/APIs | `None` in v0.1 | Deliberate; see Requirements |
 

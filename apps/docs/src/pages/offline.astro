@@ -1,0 +1,16 @@
+---
+/**
+ * What the service worker serves for a page this device never saved. It says
+ * so plainly; it is not in the index.
+ */
+import Base from '../layouts/Base.astro';
+import { PAGES } from '../lib/nav';
+---
+<Base href="/offline/">
+  <p class="lede">There is no connection, and this page was not saved on this device.</p>
+  <p>Every page in the contents is saved for offline reading the first time this site loads with a connection. Those pages still work:</p>
+  <ul>
+    {PAGES.map((p) => <li><a href={p.href}>{p.title}</a></li>)}
+  </ul>
+  <p>Anything else — the GitHub repository, links to other sites — needs a connection.</p>
+</Base>

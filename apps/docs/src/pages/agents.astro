@@ -1,0 +1,29 @@
+---
+/**
+ * Agent integration. Authored here: the integration file itself, read back
+ * from a real `lore init`. Consumed: the demo, from `brand/agent-integration.md`.
+ */
+import BrandSection from '../components/BrandSection.astro';
+import Prov from '../components/Prov.astro';
+import Base from '../layouts/Base.astro';
+import { starter } from '../lib/lore';
+
+const { agents } = starter();
+---
+<Base href="/agents/">
+  <p class="lede"><code>lore init</code> writes an <code>AGENTS.md</code> at the root of the brain. That one file is the whole integration: a coding agent that reads it searches your notes before it asks you to explain your own work.</p>
+
+  <h2 id="the-file">The file</h2>
+  <p>This is the exact file a fresh <code>lore init</code> writes:</p>
+  <!-- biome-ignore lint/a11y/noNoninteractiveTabindex: scrolls sideways when a line is long; WCAG 2.1.1 needs it reachable by keyboard -->
+  <pre tabindex="0"><code>{agents}</code></pre>
+  <Prov from="packages/cli/src/starter.ts" section="read back from a real lore init" />
+  <p><code>AGENTS.md</code> is a convention many agent environments read, not one vendor's. That is why it sits at the root, where an agent looks without being told. No plugin, server or API key is involved.</p>
+
+  <h2 id="demo">The demo</h2>
+  <BrandSection id="agent-integration/run-it" level={3} />
+  <BrandSection id="agent-integration/the-vault-it-searches" level={3} />
+  <BrandSection id="agent-integration/the-transcript" level={3} />
+  <BrandSection id="agent-integration/what-that-shows" level={3} />
+  <BrandSection id="agent-integration/what-the-demo-is-not" level={3} />
+</Base>

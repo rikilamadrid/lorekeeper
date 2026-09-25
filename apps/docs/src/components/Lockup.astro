@@ -1,0 +1,16 @@
+---
+/**
+ * The shipped horizontal lockup, inlined so its token custom properties take
+ * the page's environment. Drawn, never re-set; the size is the only input.
+ */
+import { inlineSvg } from '../lib/brand';
+
+interface Props {
+  height: number;
+}
+const { height } = Astro.props;
+const svg = inlineSvg('logo/lockup-horizontal.svg')
+  .replace(/ width="[^"]*"/, '')
+  .replace(/ height="[^"]*"/, ` height="${height}"`);
+---
+<span class="lockup" set:html={svg} />

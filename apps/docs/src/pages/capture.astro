@@ -1,0 +1,78 @@
+---
+/**
+ * Capture. Authored here, from the shipped product: every command, its
+ * output and the file it wrote come from the built binary at build time.
+ */
+import { URL_RULE_SET_VERSION } from '@lorekeeper/core';
+import Terminal from '../components/Terminal.astro';
+import Base from '../layouts/Base.astro';
+import { at, capturedPath, explore } from '../lib/lore';
+
+const THOUGHT =
+  'A lease is not a property: a consumer can lose its partition mid-batch';
+
+const thought = explore(
+  [
+    ['init', 'brain'],
+    ['capture', 'brain', THOUGHT],
+  ],
+  {
+    inspect: (read, runs) => read(capturedPath(at(runs, 1))),
+  },
+);
+
+const urls = explore(
+  [
+    ['init', 'brain'],
+    ['capture', 'brain', 'https://example.com/queue-semantics-talk'],
+    ['capture', 'brain', 'https://example.com/queue-semantics-talk/'],
+    ['capture', 'brain', 'https://example.com/queue-semantics-talk#questions'],
+    [
+      'capture',
+      'brain',
+      'https://example.com/queue-semantics-talk?utm_source=newsletter',
+    ],
+  ],
+  { inspect: (read, runs) => read(capturedPath(at(runs, 1))) },
+);
+
+const youtube = explore([
+  ['init', 'brain'],
+  ['capture', 'brain', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'],
+  ['capture', 'brain', 'https://youtu.be/dQw4w9WgXcQ'],
+]);
+
+const refused = explore([
+  ['init', 'brain'],
+  ['capture', 'brain', 'ftp://example.com/talk'],
+]);
+---
+<Base href="/capture/">
+  <p class="lede"><code>lore capture</code> files one thing — a thought or a URL — with enough context that it is still worth finding if you never come back to it.</p>
+
+  <h2 id="thought">A thought</h2>
+  <Terminal runs={thought.runs.slice(1)} />
+  <p>The file lands in <code>inbox/</code>. Its name is its id: the local time it arrived, then a short slug of the text. The file holds exactly this:</p>
+  <!-- biome-ignore lint/a11y/noNoninteractiveTabindex: scrolls sideways when a line is long; WCAG 2.1.1 needs it reachable by keyboard -->
+  <pre tabindex="0"><code>{thought.found}</code></pre>
+  <p>It needs no processing to be useful. It says what it is and when it came, and <code>lore search</code> finds it as it is. Two captures in the same second do not collide: the second takes the next free <code>-2</code>, <code>-3</code> suffix.</p>
+  <p>Text is never refused. Anything that is not a URL is a thought.</p>
+
+  <h2 id="url">A URL</h2>
+  <Terminal runs={urls.runs.slice(1)} />
+  <p>A URL lands in <code>sources/</code>, named for a stable source id computed from the URL. The URL is identified, never visited. <code>lore</code> makes no network call. The file:</p>
+  <!-- biome-ignore lint/a11y/noNoninteractiveTabindex: scrolls sideways when a line is long; WCAG 2.1.1 needs it reachable by keyboard -->
+  <pre tabindex="0"><code>{urls.found}</code></pre>
+  <p>Addresses that name the same thing are one source. A trailing slash or a <code>#section</code> anchor does not make a new page, so the second and third captures above report the file that already holds it and write nothing.</p>
+  <p>A tracking parameter <em>does</em> make a new source. Stripping query parameters by guesswork would merge two of your sources into one without telling you, and v0.1 will not risk that for any site it has no rule for.</p>
+
+  <h3 id="youtube">The one site rule</h3>
+  <p>YouTube is the only site with its own rule in v0.1 (rule set version {URL_RULE_SET_VERSION}). Every form of a video's address resolves to the video itself:</p>
+  <Terminal runs={youtube.runs.slice(1)} />
+  <p>The id prefix says which rule minted it: <code>yt-</code> for YouTube, <code>url-</code> for every other address.</p>
+
+  <h2 id="refusals">What capture refuses</h2>
+  <p>A source must be an <code>http</code> or <code>https</code> URL. Anything else that parses as a URL is refused, and the refusal says what to do instead:</p>
+  <Terminal runs={refused.runs.slice(1)} showCode />
+  <p>Capture also refuses a directory that is not a brain, and a brain whose manifest it cannot trust. Nothing is written when it refuses. <a href="/troubleshooting/">Troubleshooting</a> lists each refusal.</p>
+</Base>

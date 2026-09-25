@@ -1,0 +1,70 @@
+---
+/**
+ * Existing vaults. Authored here, from the shipped product: each run adopts a
+ * small invented vault with the built binary at build time.
+ */
+import Terminal from '../components/Terminal.astro';
+import Base from '../layouts/Base.astro';
+import { at, explore, seed } from '../lib/lore';
+
+const VAULT = {
+  'vault/notes/retry-budget.md':
+    '# Retry budget\n\nThree retries, then the dead-letter queue.\n',
+  'vault/Projects/harbour.md':
+    '---\ntags: [harbour]\n---\n\n# Harbour\n\nThe export pipeline.\n',
+  'vault/AGENTS.md': '# My own agent instructions\n',
+};
+
+const adopted = explore(
+  [
+    ['init', 'vault'],
+    ['init', 'vault'],
+    ['search', 'vault', 'retry budget', '--limit', '1'],
+  ],
+  {
+    prepare: seed(VAULT),
+    inspect: (read) => ({
+      agents: read('vault/AGENTS.md'),
+      note: read('vault/notes/retry-budget.md'),
+    }),
+  },
+);
+if (
+  adopted.found.agents !== VAULT['vault/AGENTS.md'] ||
+  adopted.found.note !== VAULT['vault/notes/retry-budget.md']
+) {
+  throw new Error(
+    'adoption: lore init changed a file it does not own; this page would be lying.',
+  );
+}
+const first = at(adopted.runs, 0);
+const again = at(adopted.runs, 1);
+const search = at(adopted.runs, 2);
+---
+<Base href="/adoption/" heading="Adopting an existing vault">
+  <p class="lede">Point <code>lore init</code> at a Markdown or Obsidian vault you already have. It is adoption, not migration: nothing of yours is rewritten to suit the tool.</p>
+
+  <h2 id="adopt">Adopt it</h2>
+  <p>This vault already holds two notes, a folder of its own, and its own <code>AGENTS.md</code>:</p>
+  <Terminal runs={[first]} />
+  <p>What happened, and what did not:</p>
+  <ul>
+    <li>The starter folders and READMEs were added beside what was there. Your <code>Projects/</code> folder, and every other folder, is left where it is.</li>
+    <li>A starter path that already exists is skipped, left unchanged, and not claimed. Here that was <code>AGENTS.md</code>: the file is still exactly the one you wrote. The build that made this page checked that byte for byte.</li>
+    <li>Only files <code>lore</code> actually wrote go into the manifest. Every note that was here before is yours, and stays yours.</li>
+  </ul>
+
+  <h2 id="search">Search it at once</h2>
+  <p>Your notes need no frontmatter and no conversion to be searchable. <code>lore search</code> reads any directory of Markdown, adopted or not:</p>
+  <Terminal runs={[search]} />
+
+  <h2 id="rerun">Run it again</h2>
+  <p>A second <code>init</code> is safe. It reports what it owns and changes nothing:</p>
+  <Terminal runs={[again]} />
+
+  <h2 id="agents">If your vault had its own <code>AGENTS.md</code></h2>
+  <p>Merging instructions into a file the toolkit does not own is not something <code>init</code> may do. So when you adopt a vault that already has an <code>AGENTS.md</code>, automatic agent discovery is not set up. If you want it, copy the instructions from <a href="/agents/">Agent integration</a> into your own file.</p>
+
+  <h2 id="obsidian">Obsidian</h2>
+  <p>Obsidian is an optional viewer, not the architecture. A vault stays a vault: open it in Obsidian before or after adoption. The starter folders carry no numeric prefixes to force a sidebar order, and <code>lore</code> reads the frontmatter you already use.</p>
+</Base>

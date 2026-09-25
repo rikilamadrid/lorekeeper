@@ -1,0 +1,34 @@
+^D[38;2;153;162;240mLorekeeper[0m 0.0.0
+Pathfinder finds the way; Lorekeeper remembers the journey.
+
+Usage:
+  lore init <dir>              Create a brain, or adopt an existing vault
+  lore capture <brain> <item>  Write a thought or a URL into that brain
+  lore search <brain> <query>  Rank the spans of that brain against a query
+  lore --help                  Show this message
+  lore --version               Print the version
+
+A captured thought lands in inbox/ as YYYYMMDD-HHMMSS-subject.md, with the
+same name as its id. Two captures in one second never collide: the second
+one takes the next free -2, -3 suffix.
+
+A captured URL lands in sources/ instead, named for the stable source id it
+carries. URLs that name the same thing are one source, so capturing one you
+already have reports the file that holds it and writes nothing. The URL is
+identified, never visited.
+
+Search ranks spans, not files: each result names a path, the heading it sits
+under, its line range, and its score, and prints the lines themselves. Add
+--json for that same result shape as JSON, or --limit to change how many
+come back. A score ranks; it never proves an answer is absent.
+
+Give several wordings of one question, each in its own quotes, and search
+fuses their rankings into one list. Three wordings find what one misses,
+so ask in other words rather than trusting a single phrasing. Spans that
+repeat the same text in several files are reported once.
+
+Search reads. It writes nothing, builds no index file, and works on any
+directory of Markdown, whether or not lore init has run there.
+Lorekeeper runs offline and takes no credentials.
+
+[2mLK-047[0m

@@ -87,7 +87,7 @@ const CASES: Case[] = [
   </nav>
 
   <h2 id="not-found"><code>lore: command not found</code></h2>
-  <p>The shell cannot find <code>lore</code> on your <code>PATH</code>. Follow <a href="/install/">Installation</a> again, then check with <code>lore --version</code>. Without <code>PATH</code>, run <code>node /path/to/lorekeeper/packages/cli/dist/cli.js</code> with the same arguments.</p>
+  <p>The shell cannot find <code>lore</code> on your <code>PATH</code>. Install it globally with <code>npm install -g create-lorekeeper</code> (see <a href="/install/">Installation</a>), then check with <code>lore --version</code>. If npm's global bin directory is not on your <code>PATH</code>, <code>npm prefix -g</code> prints where it is; add its <code>bin</code> folder. Without a global install, <code>npx create-lorekeeper</code> runs the same program with the same arguments.</p>
 
   {CASES.map((c) => (
     <Fragment>

@@ -195,16 +195,34 @@ jobs:
           VERSION: ${{ steps.plan.outputs.version }}
         run: |
           set -euo pipefail
-          for attempt in $(seq 1 12); do
-            if curl -fsS "https://registry.npmjs.org/create-lorekeeper/$VERSION" -o packument.json; then
+          # A fresh version can take minutes to appear: npm caches the 404s a
+          # version URL answered before the publish reached it. Poll every 10
+          # seconds for at most 10 minutes and stop as soon as it answers. A
+          # 404 here is expected, so it is logged rather than shown as a curl
+          # error.
+          url="https://registry.npmjs.org/create-lorekeeper/$VERSION"
+          interval=10
+          attempts=60
+          limit=600
+          start=$SECONDS
+          rm -f packument.json
+          for attempt in $(seq 1 "$attempts"); do
+            status="$(curl -s --max-time 10 -o packument.json -w '%{http_code}' "$url" || true)"
+            elapsed=$((SECONDS - start))
+            if [ "$status" = "200" ] && [ -s packument.json ]; then
+              echo "attempt $attempt/$attempts: visible after ${elapsed}s"
               break
             fi
-            echo "attempt $attempt: not visible yet, waiting"
-            sleep 10
+            rm -f packument.json
+            echo "attempt $attempt/$attempts: HTTP ${status:-000}, not visible yet (${elapsed}s of ${limit}s)"
+            if [ "$attempt" -eq "$attempts" ] || [ $((elapsed + interval)) -gt "$limit" ]; then
+              break
+            fi
+            sleep "$interval"
           done
           if [ ! -s packument.json ]; then
-            echo "::error::create-lorekeeper@$VERSION never appeared on the registry." \
-                 "Nothing was tagged or released. Investigate, then re-dispatch."
+            echo "::error::create-lorekeeper@$VERSION never appeared on the registry" \
+                 "within ${limit}s. Nothing was tagged or released. Investigate, then re-dispatch."
             exit 1
           fi
 

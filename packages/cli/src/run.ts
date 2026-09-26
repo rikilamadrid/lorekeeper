@@ -63,9 +63,12 @@ export function run(
       if (err !== '') streams.err(err);
       return code;
     }
-    streams.out(identity);
+    // A narrow terminal gets the one-line form, which carries no newline of
+    // its own; the bookend must still sit on its own line.
+    const bookend = identity.endsWith('\n') ? identity : `${identity}\n`;
+    streams.out(bookend);
     if (out !== '') streams.out(out);
-    streams.out(identity);
+    streams.out(bookend);
     return code;
   }
 

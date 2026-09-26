@@ -10,6 +10,15 @@ the release workflow refuses to run if they disagree. See `RELEASING.md`.
 
 ## [Unreleased]
 
+### Added
+
+- The 0.2.0-facing terminal identity: interactive help uses the shared Wonder
+  Wagon line grammar, and successful interactive `lore init` runs are
+  bookended by Lorekeeper's five-row periwinkle ring and gilt star. Pipes,
+  JSON, `--version`, machine-readable output, and failed init keep their
+  existing bytes. `NO_COLOR`, `WW_ASCII=1`, and narrow terminals degrade
+  explicitly.
+
 ## [0.1.0] - 2026-09-25
 
 The first published release. It installs one command, `lore`.

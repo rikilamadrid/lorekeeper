@@ -1,4 +1,4 @@
-^D[38;2;153;162;240mLorekeeper[0m 0.1.0
+[38;2;153;162;240mL O R E K E E P E R[0m  [2mv0.1.0 · LK-047[0m
 Pathfinder finds the way; Lorekeeper remembers the journey.
 
 Usage:
@@ -30,5 +30,3 @@ repeat the same text in several files are reported once.
 Search reads. It writes nothing, builds no index file, and works on any
 directory of Markdown, whether or not lore init has run there.
 Lorekeeper runs offline and takes no credentials.
-
-[2mLK-047[0m

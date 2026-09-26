@@ -1,171 +1,87 @@
 #!/usr/bin/env node
 /**
- * Generate the CLI's terminal identity, `packages/cli/src/identity.ts`, from
- * the Lorekeeper tokens and the Wonder Wagon foundation.
+ * Generate the committed, dependency-free Lorekeeper terminal identity.
  *
- *   node brand/terminal/build.mjs           write the generated module
- *   node brand/terminal/build.mjs --check   fail if it is stale, or if the
- *                                           two sources disagree
- *
- * Two sources, each owning what it owns. The colour is Lorekeeper's: the dark
- * `accent` from `brand/tokens/tokens.json`, because that file is the source of
- * truth for the palette and nothing downstream hard-codes a value it defines.
- * Everything else is the family's: the serial and the maker from the
- * `lorekeeper` theme in `@wonder-wagon/themes`, the severity mapping from its
- * terminal adapter, and the arithmetic that turns a hex value into the three
- * alphabets a terminal speaks from `@wonder-wagon/tokens/terminal`.
- *
- * The adapter's own choice of colour is deliberately not taken. It paints a
- * theme's `signal`, which for Lorekeeper is the gilt of the star — the second
- * voice, not the mark. Gilt also falls to yellow in sixteen colours, which is
- * both Forge's floor and the `warn` severity. The accent falls to bright blue,
- * which is neither a sibling's colour nor a severity's, and the check below
- * keeps it that way.
- *
- * The result is committed, so the CLI keeps no runtime dependency and its bytes
- * stay deterministic. Nothing here reaches the network or reads a clock.
+ * Lorekeeper owns the geometry and palette below. wonder-wagon-ui/cli owns
+ * capability detection, degradation, spacing, and emitted module structure.
  */
 
 import { readFileSync, writeFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { terminalIdentity } from '@wonder-wagon/themes/adapters/terminal';
-import { lorekeeper } from '@wonder-wagon/themes/lorekeeper';
-import { terminalPaint } from '@wonder-wagon/tokens/terminal';
+import { renderCliIdentityModule } from 'wonder-wagon-ui/cli';
 
-const require = createRequire(import.meta.url);
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
 const TOKENS = join(HERE, '..', 'tokens', 'tokens.json');
 const OUT = join(ROOT, 'packages', 'cli', 'src', 'identity.ts');
 
-const themesVersion = require('@wonder-wagon/themes/package.json').version;
-const tokensVersion = require('@wonder-wagon/tokens/package.json').version;
+const tokens = JSON.parse(readFileSync(TOKENS, 'utf8'));
+const accent = tokens.color.dark.accent.value;
+const gilt = tokens.color.dark.gold.value;
 
-/**
- * Every value the `lorekeeper` theme restates from tokens.json: theme field,
- * environment, and the token it copies. The same map as the foundation's
- * `proof/lorekeeper.ts`, which checks it from the other side. Night enamel is
- * absent on purpose: Atelier Feature 02 assigned it and no token here holds it.
- *
- * @type {ReadonlyArray<readonly [string, 'day' | 'night', string]>}
- */
-const THEME_MAP = [
-  ['enamel', 'day', 'light.accent'],
-  ['accent', 'day', 'light.accent'],
-  ['accent', 'night', 'dark.accent'],
-  ['accentInk', 'day', 'light.accent-ink'],
-  ['accentInk', 'night', 'dark.accent-ink'],
-  ['link', 'day', 'light.accent'],
-  ['link', 'night', 'dark.accent'],
-  ['signal', 'day', 'light.gold'],
-  ['signal', 'night', 'dark.gold'],
-];
+const product = {
+  name: 'Lorekeeper',
+  serial: 'LK-047',
+  tagline: 'Pathfinder finds the way; Lorekeeper remembers the journey.',
+  accent,
+  secondary: gilt,
+  ansi16: {
+    accent: { name: 'blue', bright: true },
+    secondary: { name: 'yellow', bright: false },
+  },
+  mark: {
+    width: 8,
+    nameRow: 2,
+    rows: [
+      {
+        expressive: [{ text: '  ╭───╮', role: 'accent' }],
+        plain: '  .---.',
+      },
+      {
+        expressive: [{ text: ' ╭╯   ╰╮', role: 'accent' }],
+        plain: ' /     \\',
+      },
+      {
+        expressive: [
+          { text: ' │  ', role: 'accent' },
+          { text: '✦', role: 'secondary' },
+          { text: '  │', role: 'accent' },
+        ],
+        plain: ' |  *  |',
+      },
+      {
+        expressive: [{ text: ' ╰╮   ╭╯', role: 'accent' }],
+        plain: ' \\     /',
+      },
+      {
+        expressive: [{ text: '  ╰───╯', role: 'accent' }],
+        plain: "  '---'",
+      },
+    ],
+  },
+};
 
-/**
- * A TypeScript string literal in the repository's quote style, with every
- * control character escaped so the committed file carries no raw escape byte.
- *
- * @param {string} text
- * @returns {string}
- */
-function quote(text) {
-  const escaped = text
-    .replaceAll('\\', '\\\\')
-    .replaceAll("'", "\\'")
-    .replaceAll('\u001B', '\\u001B');
-  return `'${escaped}'`;
-}
+const next = renderCliIdentityModule(product, { language: 'ts' });
+const check = process.argv.includes('--check');
+const where = relative(ROOT, OUT);
 
-/** @returns {{ source: string, problems: string[] }} */
-function generate() {
-  const tokens = JSON.parse(readFileSync(TOKENS, 'utf8'));
-  const family = terminalIdentity(lorekeeper, 'night');
-  const brand = terminalPaint(tokens.color.dark.accent.value);
-  const problems = [];
-
-  // The foundation carries copies of Lorekeeper's colours in the theme. A copy
-  // that drifts is two sources of truth, so disagreement fails here rather
-  // than surfacing as a second, unmeasured indigo somewhere else.
-  for (const [field, env, token] of THEME_MAP) {
-    const [mode, name] = token.split('.');
-    const shipped = tokens.color[mode][name].value;
-    const copy = lorekeeper[field][env];
-    if (copy.toUpperCase() !== shipped.toUpperCase()) {
-      problems.push(
-        `@wonder-wagon/themes lorekeeper.${field}.${env} is ${copy} but tokens.json ${token} is ${shipped}`,
-      );
-    }
-  }
-  // Colour never carries meaning here, but it must not look like it does:
-  // at the sixteen-colour floor the identity may not share a severity's hue.
-  if (Object.values(family.severity).includes(brand.ansi16Name)) {
-    problems.push(
-      `the accent falls to ${brand.ansi16Name} in sixteen colours, which is a severity colour`,
-    );
-  }
-
-  const source = [
-    '// GENERATED by brand/terminal/build.mjs — do not edit.',
-    `// Colour: brand/tokens/tokens.json ${tokens.version}, dark accent ${brand.hex}.`,
-    `// Serial, severity and terminal arithmetic: @wonder-wagon/themes@${themesVersion}, @wonder-wagon/tokens@${tokensVersion}, theme '${lorekeeper.id}'.`,
-    '// Regenerate with `npm run brand:terminal`; verify with `npm run brand:terminal:check`.',
-    '',
-    "/** The product's serial and the family maker's mark: stated once, printed small. */",
-    `export const SERIAL = ${quote(family.serial)};`,
-    '',
-    '/** The accent, in every alphabet a terminal speaks. Severity never uses it. */',
-    'export const BRAND = Object.freeze({',
-    `  hex: ${quote(brand.hex)},`,
-    `  truecolor: ${quote(brand.truecolor)},`,
-    `  ansi256: ${quote(brand.ansi256)},`,
-    `  ansi16: ${quote(brand.ansi16)},`,
-    '});',
-    '',
-    "/** Severity maps to the terminal's own colours, which render the same everywhere. */",
-    'export const SEVERITY = Object.freeze({',
-    ...Object.entries(family.severity).map(([k, v]) => `  ${k}: ${quote(v)},`),
-    '});',
-    '',
-  ].join('\n');
-
-  return { source, problems };
-}
-
-function main() {
-  const check = process.argv.includes('--check');
-  const { source, problems } = generate();
-  const where = relative(ROOT, OUT);
-
-  for (const problem of problems) {
-    console.error(`brand terminal: ${problem}`);
-  }
-  if (problems.length > 0) {
-    process.exitCode = 1;
-    return;
-  }
-
-  if (!check) {
-    writeFileSync(OUT, source);
-    console.log(`wrote ${where}`);
-    return;
-  }
-
+if (check) {
   let current = '';
   try {
     current = readFileSync(OUT, 'utf8');
   } catch {
     current = '';
   }
-  if (current !== source) {
+  if (current !== next) {
     console.error(
       `brand terminal: ${where} is stale; run \`npm run brand:terminal\`.`,
     );
     process.exitCode = 1;
-    return;
+  } else {
+    console.log(`brand terminal check clean: ${where} is current.`);
   }
-  console.log(`brand terminal check clean: ${where} is current.`);
+} else {
+  writeFileSync(OUT, next);
+  console.log(`wrote ${where} from wonder-wagon-ui/cli`);
 }
-
-main();

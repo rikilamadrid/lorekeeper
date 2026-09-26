@@ -9,8 +9,8 @@
  * Three sources, and only three. `brand/logo/lockup-horizontal.svg` supplies
  * the lockup, carried across unchanged and scaled 1.5x. `brand/tokens/tokens.json`
  * supplies every colour and every type stack. `brand/readme/lore-help.pty` is
- * the byte stream `lore --help` wrote to a real truecolour pseudo-terminal, as
- * `script` recorded it; the specimen is drawn from those bytes, not retyped.
+ * the normalized byte stream `lore --help` wrote to a real truecolour
+ * pseudo-terminal; the specimen is drawn from those bytes, not retyped.
  * No hex value is typed into this file, and every colour in the output is
  * audited against the token source.
  *
@@ -18,17 +18,24 @@
  * shipped (`brand/IDENTITY.md`). The wordmark is the drawn one from the lockup.
  *
  * `--check` also proves the recording is still true: it runs the built binary
- * with `FORCE_COLOR=3`, which writes the same bytes the pty received less the
- * terminal's carriage returns, and fails if the help text or its colour has
- * changed since the recording. Build first (`npm run build`). `--capture`
- * needs a real `script` and re-records the fixture; run it, then the build.
+ * through a fresh truecolour pty, removes only the pty's carriage returns, and
+ * fails if the help text or its colour has changed since the recording. Build
+ * first (`npm run build`). `--capture` needs a real `script` and re-records the
+ * fixture; run it, then the build.
  *
  * Nothing here reaches the network, reads a credential, or imports a
  * dependency.
  */
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -74,6 +81,7 @@ const SGR = new RegExp(`^${ESC}\\[([0-9;]*)m$`);
 const TERMINAL_ENV = {
   TERM: 'xterm-256color',
   COLORTERM: 'truecolor',
+  LANG: 'en_US.UTF-8',
 };
 
 /**
@@ -373,16 +381,26 @@ function generate() {
   return files;
 }
 
-function capture() {
+/** Record the real binary through a pty so the terminal contract is exercised. */
+function record(target) {
   const command = ['node', CLI, '--help'];
   const args =
     process.platform === 'darwin'
-      ? ['-q', FIXTURE, ...command]
-      : ['-q', '-e', '-c', command.join(' '), FIXTURE];
+      ? ['-q', target, ...command]
+      : ['-q', '-e', '-c', command.join(' '), target];
   execFileSync('script', args, {
     env: { PATH: process.env.PATH, HOME: process.env.HOME, ...TERMINAL_ENV },
     stdio: 'ignore',
   });
+}
+
+function capture() {
+  record(FIXTURE);
+  writeFileSync(
+    FIXTURE,
+    programBytes(readFileSync(FIXTURE, 'latin1')),
+    'latin1',
+  );
   process.stdout.write('recorded lore --help to brand/readme/lore-help.pty\n');
 }
 
@@ -391,23 +409,22 @@ function recordingDrift() {
   if (!existsSync(CLI)) {
     return ['packages/cli/dist/lore.js is missing: run npm run build first'];
   }
-  const live = execFileSync(process.execPath, [CLI, '--help'], {
-    env: {
-      PATH: process.env.PATH,
-      HOME: process.env.HOME,
-      ...TERMINAL_ENV,
-      FORCE_COLOR: '3',
-    },
-    encoding: 'latin1',
-  });
-  const recorded = programBytes(readFileSync(FIXTURE, 'latin1'));
-  return live === recorded
-    ? []
-    : [
-        'brand/readme/lore-help.pty no longer matches lore --help: ' +
-          'run npm run build, then node brand/readme/build.mjs --capture, ' +
-          'then npm run brand:readme',
-      ];
+  const temporary = mkdtempSync(join(tmpdir(), 'lore-readme-'));
+  const livePath = join(temporary, 'lore-help.pty');
+  try {
+    record(livePath);
+    const live = programBytes(readFileSync(livePath, 'latin1'));
+    const recorded = programBytes(readFileSync(FIXTURE, 'latin1'));
+    return live === recorded
+      ? []
+      : [
+          'brand/readme/lore-help.pty no longer matches lore --help: ' +
+            'run npm run build, then node brand/readme/build.mjs --capture, ' +
+            'then npm run brand:readme',
+        ];
+  } finally {
+    rmSync(temporary, { recursive: true, force: true });
+  }
 }
 
 function main() {

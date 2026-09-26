@@ -8,8 +8,8 @@
 Pathfinder finds the way; Lorekeeper remembers the journey.
 
 `LK-047` · a [Wonder Wagon](https://github.com/rikilamadrid/wonder-wagon-ui) tool.
-Its terminal identity is generated from `@wonder-wagon/themes` and checked for
-drift.
+Its terminal identity is generated from the React-free `wonder-wagon-ui/cli`
+foundation and checked for drift.
 
 [Quickstart](brand/quickstart.md) ·
 [How it works](#how-it-works) ·

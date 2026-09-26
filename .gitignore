@@ -23,3 +23,5 @@ context/handoff.md
 
 # Editor and OS
 .DS_Store
+.vercel
+.env*

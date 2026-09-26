@@ -10,20 +10,39 @@ the release workflow refuses to run if they disagree. See `RELEASING.md`.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-26
+
+Lorekeeper now carries the Wonder Wagon family's terminal identity, and the npm
+page points to the website. Commands, flags, files written and machine output
+are unchanged.
+
 ### Added
 
-- The 0.2.0-facing terminal identity: interactive help uses the shared Wonder
-  Wagon line grammar, and successful interactive `lore init` runs are
-  bookended by Lorekeeper's five-row periwinkle ring and gilt star. Pipes,
-  JSON, `--version`, machine-readable output, and failed init keep their
-  existing bytes. `NO_COLOR`, `WW_ASCII=1`, and narrow terminals degrade
-  explicitly.
+- A terminal mark. In an interactive terminal, a successful `lore init` opens and
+  closes with Lorekeeper's five-row mark: a periwinkle ring holding a gilt star,
+  beside `L O R E K E E P E R  v0.2.0 · LK-047` and the tagline.
 
-### Fixed
+### Changed
 
-- Website discovery: the repository and npm READMEs lead with the public site,
-  npm homepage metadata points to it, and the site footer links to GitHub and
-  `create-lorekeeper` on npm. Included in the next planned release.
+- In an interactive terminal, `lore --help` opens with the family's one-line
+  identity, `L O R E K E E P E R  v0.2.0 · LK-047`. The serial moves from the
+  foot of the help into that line.
+- The npm README opens with links to the
+  [website](https://lorekeeper-bay.vercel.app), Quickstart, How it works, Proof,
+  Identity and GitHub. The package `homepage` is now the website instead of the
+  GitHub README.
+
+### Unchanged
+
+- Piped and redirected output, `--json`, `--version`, `capture` and `search`
+  results, and a refused `init` produce the same bytes as 0.1.0, apart from the
+  version number.
+- `NO_COLOR`, `FORCE_COLOR=0` and `TERM=dumb` remove every colour code.
+  `WW_ASCII=1` swaps in an ASCII mark for terminals that draw box characters
+  double-width. A narrow terminal gets the one-line form instead of the mark.
+- The identity code is generated at build time and compiled into `dist/lore.js`,
+  so `yaml` is still the only runtime dependency. Lorekeeper still runs offline,
+  takes no credentials and calls no language model.
 
 ## [0.1.0] - 2026-09-25
 

@@ -39,6 +39,6 @@
     "@wonder-wagon/tokens": "file:../wonder-wagon-ui/packages/tokens",
     "typescript": "7.0.2",
     "vitest": "4.1.11",
-    "wonder-wagon-ui": "file:../wonder-wagon-ui/packages/foundation"
+    "wonder-wagon-ui": "0.1.0"
   }
 }

@@ -18,6 +18,7 @@ import { pageGrounds } from '../lib/brand';
 import {
   FAMILY,
   GROUPS,
+  NPM_PACKAGE,
   OFFLINE,
   PAGES,
   pageFor,
@@ -139,6 +140,8 @@ const REGISTER_WORKER =
       <p class="plate"><abbr title="Lorekeeper, maker 047">LK-047</abbr> · a <a href={FAMILY}>Wonder Wagon</a> tool</p>
       <p class="colophon-links">
         <a href={REPOSITORY}>GitHub</a>
+        <span aria-hidden="true">·</span>
+        <a href={NPM_PACKAGE}>npm create-lorekeeper</a>
         <span aria-hidden="true">·</span>
         <a href={`${REPOSITORY}/blob/main/LICENSE`}>MIT licence</a>
         <span aria-hidden="true">·</span>

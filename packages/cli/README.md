@@ -5,6 +5,13 @@ Pathfinder finds the way; Lorekeeper remembers the journey.
 
 `LK-047` · a [Wonder Wagon](https://github.com/rikilamadrid/wonder-wagon-ui) tool.
 
+[Website](https://lorekeeper-bay.vercel.app) ·
+[Quickstart](https://github.com/rikilamadrid/lorekeeper/blob/main/brand/quickstart.md) ·
+[How it works](https://github.com/rikilamadrid/lorekeeper#how-it-works) ·
+[Proof](https://github.com/rikilamadrid/lorekeeper/blob/main/brand/proof.md) ·
+[Identity](https://github.com/rikilamadrid/lorekeeper/blob/main/brand/IDENTITY.md) ·
+[GitHub](https://github.com/rikilamadrid/lorekeeper)
+
 This package installs one command, `lore`: a deterministic, offline CLI that
 creates a brain, captures into it, and ranks the passages that answer a
 question. It takes no credentials, makes no network call, and calls no language

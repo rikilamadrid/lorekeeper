@@ -223,7 +223,14 @@ function programBytes(recorded) {
     eof > 0 && recorded.slice(eof, eof + 2) === '\b\b'
       ? recorded.slice(eof + 2)
       : recorded;
-  return body.replaceAll('\r', '');
+  return (
+    body
+      .replaceAll('\r', '')
+      // util-linux records timestamped wrapper lines in its output file even in
+      // quiet mode; BSD script does not. They are the recorder, not CLI bytes.
+      .replace(/^Script started on [^\n]*\n(?:\n)?/, '')
+      .replace(/\n(?:\n)?Script done on [^\n]*\n?$/, '\n')
+  );
 }
 
 /**

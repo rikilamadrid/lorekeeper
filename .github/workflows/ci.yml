@@ -32,12 +32,13 @@ jobs:
           node-version: 24
           cache: npm
 
-      # The Wonder Wagon foundations are `file:` devDependencies on a sibling
-      # checkout until they publish, so CI recreates that sibling at a pinned
-      # commit and builds the packages the docs and terminal generators read.
-      # Nothing at runtime depends on them. Bump the ref together with
-      # `npm run brand:terminal`.
-      - name: Check out the Wonder Wagon foundations beside this repository
+      # wonder-wagon-ui (the CLI foundation) installs from npm. The unpublished
+      # @wonder-wagon/tokens and @wonder-wagon/themes are still `file:`
+      # devDependencies on a sibling checkout, so CI recreates that sibling at
+      # a pinned commit and builds only those two packages, which the docs
+      # theme bridge and the terminal generator read. Nothing at runtime
+      # depends on them.
+      - name: Check out wonder-wagon-ui for the unpublished tokens and themes
         env:
           WONDER_WAGON_UI_REF: 2381be9fdfe2e2e84132134cf8335485d9b95967
         run: |
@@ -48,13 +49,12 @@ jobs:
         with:
           bun-version-file: ../wonder-wagon-ui/package.json
 
-      - name: Build the Wonder Wagon foundations
+      - name: Build @wonder-wagon/tokens and @wonder-wagon/themes
         working-directory: ../wonder-wagon-ui
         run: |
           bun install --frozen-lockfile
           bun run --filter '@wonder-wagon/tokens' build
           bun run --filter '@wonder-wagon/themes' build
-          bun run --filter wonder-wagon-ui build
 
       # This also runs the prepare script in packages/cli, which builds and
       # links the lore binary.

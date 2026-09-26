@@ -132,5 +132,6 @@ export function pageFor(href: string): Page {
   return page;
 }
 
+export const NPM_PACKAGE = 'https://www.npmjs.com/package/create-lorekeeper';
 export const REPOSITORY = 'https://github.com/rikilamadrid/lorekeeper';
 export const FAMILY = 'https://github.com/rikilamadrid/wonder-wagon-ui';

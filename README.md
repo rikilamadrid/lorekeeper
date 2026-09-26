@@ -11,6 +11,7 @@ Pathfinder finds the way; Lorekeeper remembers the journey.
 Its terminal identity is generated from the React-free `wonder-wagon-ui/cli`
 foundation and checked for drift.
 
+[Website](https://lorekeeper-bay.vercel.app) ·
 [Quickstart](brand/quickstart.md) ·
 [How it works](#how-it-works) ·
 [Proof](brand/proof.md) ·

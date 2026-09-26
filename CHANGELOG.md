@@ -19,6 +19,12 @@ the release workflow refuses to run if they disagree. See `RELEASING.md`.
   existing bytes. `NO_COLOR`, `WW_ASCII=1`, and narrow terminals degrade
   explicitly.
 
+### Fixed
+
+- Website discovery: the repository and npm READMEs lead with the public site,
+  npm homepage metadata points to it, and the site footer links to GitHub and
+  `create-lorekeeper` on npm. Included in the next planned release.
+
 ## [0.1.0] - 2026-09-25
 
 The first published release. It installs one command, `lore`.

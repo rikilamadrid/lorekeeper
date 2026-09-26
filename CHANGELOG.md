@@ -10,6 +10,16 @@ the release workflow refuses to run if they disagree. See `RELEASING.md`.
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-09-26
+
+### Fixed
+
+- `lore` no longer crashes when whatever reads its output stops early, as in
+  `lore init brain | head -1`. It used to print an `EPIPE` stack trace and
+  exit 1 even though the command had finished. It now exits with the command's
+  own status: 0 for a successful `init`, 1 for a refused one, 2 for a usage
+  error. Output to a reader that reads everything is unchanged.
+
 ## [0.2.0] - 2026-09-26
 
 Lorekeeper now carries the Wonder Wagon family's terminal identity, and the npm

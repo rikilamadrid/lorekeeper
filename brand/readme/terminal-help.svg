@@ -9,7 +9,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 690" width="720" height="690" role="img" aria-labelledby="lk-help-title lk-help-desc">
   <title id="lk-help-title">lore --help in a truecolour terminal</title>
   <desc id="lk-help-desc">The output of lore --help on a dark terminal. The product name Lorekeeper is in periwinkle and the closing serial LK-047 is dimmed; every other line is the terminal's plain text. The full output reads:
-L O R E K E E P E R  v0.2.0 · LK-047
+L O R E K E E P E R  v0.2.1 · LK-047
 Pathfinder finds the way; Lorekeeper remembers the journey.
 
 Usage:
@@ -48,7 +48,7 @@ Lorekeeper runs offline and takes no credentials.</desc>
     .muted { fill: #aba7b8; }
   </style>
   <rect class="ground" x="0.5" y="0.5" width="719" height="689" rx="10"/>
-  <text x="28" y="39" xml:space="preserve"><tspan class="accent">L O R E K E E P E R</tspan>  <tspan class="muted">v0.2.0 · LK-047</tspan></text>
+  <text x="28" y="39" xml:space="preserve"><tspan class="accent">L O R E K E E P E R</tspan>  <tspan class="muted">v0.2.1 · LK-047</tspan></text>
   <text x="28" y="59" xml:space="preserve">Pathfinder finds the way; Lorekeeper remembers the journey.</text>
   <text x="28" y="79" xml:space="preserve"></text>
   <text x="28" y="99" xml:space="preserve">Usage:</text>

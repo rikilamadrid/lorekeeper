@@ -1,6 +1,6 @@
 {
   "name": "create-lorekeeper",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Lorekeeper — an AI-native second brain made of plain Markdown files you own. `lore` is a deterministic, offline CLI that ranks the passages answering a question.",
   "keywords": [
     "lorekeeper",

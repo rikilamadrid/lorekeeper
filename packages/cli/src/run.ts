@@ -43,7 +43,30 @@ export function run(
   }
 
   if (first === 'init') {
-    return init(argv.slice(1), streams);
+    const identity = paint.identity(version);
+    if (identity === '') return init(argv.slice(1), streams);
+
+    // Buffer init so a refusal keeps its exact historical stdout/stderr. Only a
+    // successful human run earns the new identity bookends.
+    let out = '';
+    let err = '';
+    const code = init(argv.slice(1), {
+      out: (text) => {
+        out += text;
+      },
+      err: (text) => {
+        err += text;
+      },
+    });
+    if (code !== 0) {
+      if (out !== '') streams.out(out);
+      if (err !== '') streams.err(err);
+      return code;
+    }
+    streams.out(identity);
+    if (out !== '') streams.out(out);
+    streams.out(identity);
+    return code;
   }
 
   if (first === 'capture') {

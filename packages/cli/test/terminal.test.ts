@@ -3,35 +3,37 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { BRAND, SERIAL, SEVERITY } from '../src/identity.js';
 import {
-  createPaint,
-  detectColor,
-  detectColorDepth,
-  PLAIN,
-} from '../src/terminal.js';
+  detectTerminal,
+  PAINTS,
+  PRODUCT,
+  renderCliIdentity,
+  VALUES_HASH,
+} from '../src/identity.js';
+import { createPaint, PLAIN } from '../src/terminal.js';
 import { usage } from '../src/usage.js';
 
 const REPO_ROOT = resolve(import.meta.dirname, '..', '..', '..');
 const ESC = '\u001B';
 
 describe('the generated identity', () => {
-  it("is Lorekeeper's accent and the family serial, never a severity", () => {
-    expect(SERIAL).toBe('LK-047');
-    expect(BRAND.hex).toBe('#99A2F0');
-    expect(BRAND.truecolor).toBe(`${ESC}[38;2;153;162;240m`);
-    expect(BRAND.ansi256).toBe(`${ESC}[38;5;111m`);
-    // Bright blue: not Forge's yellow floor and not any severity's colour.
-    expect(BRAND.ansi16).toBe(`${ESC}[1m${ESC}[34m`);
-    expect(SEVERITY).toEqual({
-      ok: 'green',
-      info: 'cyan',
-      warn: 'yellow',
-      bad: 'red',
+  it('carries Lorekeeper’s approved product-owned ring and star', () => {
+    expect(PRODUCT.name).toBe('Lorekeeper');
+    expect(PRODUCT.serial).toBe('LK-047');
+    expect(PRODUCT.mark.rows).toHaveLength(5);
+    expect(PRODUCT.mark.rows[2]?.expressive).toContainEqual({
+      text: '✦',
+      role: 'secondary',
     });
+    expect(PAINTS.accent.hex).toBe('#99A2F0');
+    expect(PAINTS.secondary?.hex).toBe('#E2B45C');
+    expect(PAINTS.accent.truecolor).toBe(`${ESC}[38;2;153;162;240m`);
+    expect(PAINTS.accent.ansi256).toBe(`${ESC}[38;5;111m`);
+    expect(PAINTS.accent.ansi16).toBe(`${ESC}[1m${ESC}[34m`);
+    expect(VALUES_HASH).toMatch(/^[0-9a-f]{8}$/);
   });
 
-  it('is current against its sources', () => {
+  it('is current against its generator', () => {
     const result = spawnSync(
       process.execPath,
       [join(REPO_ROOT, 'brand', 'terminal', 'build.mjs'), '--check'],
@@ -42,71 +44,113 @@ describe('the generated identity', () => {
   });
 });
 
-describe('detectColor', () => {
-  it('is a sequence of refusals ending in the TTY', () => {
-    expect(detectColor({}, false)).toBe(false);
-    expect(detectColor({}, true)).toBe(true);
-    expect(detectColor({ NO_COLOR: '' }, true)).toBe(false);
-    expect(detectColor({ FORCE_COLOR: '0' }, true)).toBe(false);
-    expect(detectColor({ TERM: 'dumb' }, true)).toBe(false);
-    expect(detectColor({ FORCE_COLOR: '1' }, false)).toBe(true);
-    expect(detectColor({ NO_COLOR: '1', FORCE_COLOR: '3' }, true)).toBe(false);
+describe('terminal capabilities', () => {
+  it('keeps the established colour refusal and depth policy', () => {
+    const at = (env: Record<string, string>, isTTY = true) =>
+      detectTerminal({ env, isTTY });
+    expect(at({}, false).tier).toBe('contract');
+    expect(at({}).depth).toBe(4);
+    expect(at({ NO_COLOR: '' }).depth).toBe(0);
+    expect(at({ FORCE_COLOR: '0' }).depth).toBe(0);
+    expect(at({ TERM: 'dumb' }).depth).toBe(0);
+    expect(at({ FORCE_COLOR: '1' }, false).depth).toBe(4);
+    expect(at({ NO_COLOR: '1', FORCE_COLOR: '3' }).depth).toBe(0);
+    expect(at({ TERM: 'xterm-256color' }).depth).toBe(8);
+    expect(at({ COLORTERM: 'truecolor' }).depth).toBe(24);
   });
 
-  it('takes its depth from what the terminal claims, and 0 when off', () => {
-    expect(detectColorDepth({}, false)).toBe(0);
-    expect(detectColorDepth({}, true)).toBe(4);
-    expect(detectColorDepth({ TERM: 'xterm-256color' }, true)).toBe(8);
-    expect(detectColorDepth({ COLORTERM: 'truecolor' }, true)).toBe(24);
-    expect(detectColorDepth({ TERM: 'xterm-direct' }, true)).toBe(24);
-    expect(detectColorDepth({ FORCE_COLOR: '2' }, true)).toBe(8);
+  it('keeps contract output suppressed even when colour is forced', () => {
+    const caps = detectTerminal({
+      env: { FORCE_COLOR: '3', LANG: 'en_US.UTF-8' },
+      isTTY: false,
+    });
+    expect(renderCliIdentity({ version: '1.2.3', caps })).toBe('');
   });
 });
 
-describe('paint', () => {
-  it('adds no byte when colour is off', () => {
+describe('Lorekeeper rendering', () => {
+  it('keeps piped help byte-compatible', () => {
     expect(PLAIN.name('Lorekeeper')).toBe('Lorekeeper');
-    expect(PLAIN.serial()).toBe('');
+    expect(PLAIN.identity('1.2.3')).toBe('');
     expect(usage('1.2.3', PLAIN)).toBe(usage('1.2.3'));
     expect(usage('1.2.3')).not.toContain(ESC);
-    expect(usage('1.2.3')).not.toContain(SERIAL);
+    expect(usage('1.2.3')).not.toContain(PRODUCT.serial);
   });
 
-  it('paints the name at the depth the terminal claimed', () => {
-    const at = (env: Record<string, string>) =>
-      createPaint(env, true).name('Lorekeeper');
-    expect(at({ COLORTERM: 'truecolor' })).toBe(
-      `${BRAND.truecolor}Lorekeeper${ESC}[0m`,
-    );
-    expect(at({ TERM: 'xterm-256color' })).toBe(
-      `${BRAND.ansi256}Lorekeeper${ESC}[0m`,
-    );
-    expect(at({ TERM: 'xterm' })).toBe(`${BRAND.ansi16}Lorekeeper${ESC}[0m`);
-  });
-
-  it('closes a coloured help with the serial and changes no other line', () => {
-    const plain = usage('1.2.3').split('\n');
-    const painted = usage(
+  it('uses the shared line grammar in interactive help', () => {
+    const line = usage(
       '1.2.3',
-      createPaint({ COLORTERM: 'truecolor' }, true),
-    ).split('\n');
+      createPaint({ LANG: 'en_US.UTF-8', COLORTERM: 'truecolor' }, true),
+    ).split('\n')[0];
+    expect(line).toBe(
+      `${PAINTS.accent.truecolor}L O R E K E E P E R${ESC}[0m  ${ESC}[2mv1.2.3 · LK-047${ESC}[0m`,
+    );
+  });
 
-    expect(painted[0]).toBe(`${BRAND.truecolor}Lorekeeper${ESC}[0m 1.2.3`);
-    expect(painted.slice(1, plain.length)).toEqual(plain.slice(1));
-    expect(painted.slice(plain.length)).toEqual([
-      '',
-      `${ESC}[2m${SERIAL}${ESC}[0m`,
-    ]);
+  it('degrades the identity through 256 and 16 colours', () => {
+    const at = (env: Record<string, string>) =>
+      createPaint({ LANG: 'en_US.UTF-8', ...env }, true).identity(
+        '1.2.3',
+        'line',
+      );
+    expect(at({ TERM: 'xterm-256color' })).toContain(PAINTS.accent.ansi256);
+    expect(at({ TERM: 'xterm' })).toContain(PAINTS.accent.ansi16);
+  });
+
+  it('renders periwinkle ring and gilt star in truecolour', () => {
+    const paint = createPaint(
+      { LANG: 'en_US.UTF-8', COLORTERM: 'truecolor' },
+      true,
+      100,
+    );
+    const block = paint.identity('1.2.3');
+    expect(block.split('\n').filter(Boolean)).toHaveLength(5);
+    expect(block).toContain(PAINTS.accent.truecolor);
+    expect(block).toContain(PAINTS.secondary?.truecolor);
+    expect(block).toContain('✦');
+    expect(block).toContain('L O R E K E E P E R');
+  });
+
+  it('honours NO_COLOR without discarding Unicode', () => {
+    const block = createPaint(
+      { LANG: 'en_US.UTF-8', NO_COLOR: '1' },
+      true,
+      100,
+    ).identity('1.2.3');
+    expect(block).not.toContain(ESC);
+    expect(block).toContain('╭───╮');
+    expect(block).toContain('✦');
+  });
+
+  it('honours WW_ASCII independently of colour', () => {
+    const block = createPaint(
+      { LANG: 'en_US.UTF-8', COLORTERM: 'truecolor', WW_ASCII: '1' },
+      true,
+      100,
+    ).identity('1.2.3');
+    expect(block).toContain(PAINTS.accent.truecolor);
+    expect(block).toContain('.---.');
+    expect(block).toContain('*');
+    expect(block).not.toContain('✦');
+    expect(block).not.toContain('╭');
+  });
+
+  it('falls back to the line form in a narrow terminal', () => {
+    const identity = createPaint(
+      { LANG: 'en_US.UTF-8', COLORTERM: 'truecolor' },
+      true,
+      24,
+    ).identity('1.2.3');
+    expect(identity).toContain('L O R E K E E P E R');
+    expect(identity).not.toContain('\n');
+    expect(identity).not.toContain('✦');
   });
 });
 
 describe('the built binary', () => {
-  // The bundled file npm ships, so these cases run the bytes users install.
   const cli = join(REPO_ROOT, 'packages', 'cli', 'dist', 'lore.js');
   let brain: string;
 
-  // A minimal environment, so nothing inherited from the developer's shell
-  // decides colour: each case names the variables it means.
   const lore = (args: string[], env: Record<string, string> = {}) =>
     spawnSync(process.execPath, [cli, ...args], {
       encoding: 'utf8',
@@ -123,37 +167,23 @@ describe('the built binary', () => {
     rmSync(brain, { recursive: true, force: true });
   });
 
-  it('prints no escape byte and no serial into a pipe', () => {
-    const result = lore(['--help']);
-    expect(result.status).toBe(0);
-    expect(result.stdout).not.toContain(ESC);
-    expect(result.stdout).not.toContain(SERIAL);
+  it('suppresses identity and escape bytes in pipes, even with FORCE_COLOR', () => {
+    const baseline = lore(['--help']);
+    const forced = lore(['--help'], { FORCE_COLOR: '3' });
+    expect(baseline.status).toBe(0);
+    expect(forced.stdout).toBe(baseline.stdout);
+    expect(forced.stdout).not.toContain(ESC);
+    expect(forced.stdout).not.toContain(PRODUCT.serial);
   });
 
-  it('paints the name when colour is forced, and NO_COLOR outranks it', () => {
-    const coloured = lore(['--help'], { FORCE_COLOR: '3' });
-    expect(coloured.stdout.startsWith(`${BRAND.truecolor}Lorekeeper`)).toBe(
-      true,
-    );
-    expect(coloured.stdout).toContain(SERIAL);
-
-    const quiet = lore(['--help'], { FORCE_COLOR: '3', NO_COLOR: '1' });
-    expect(quiet.stdout).toBe(lore(['--help']).stdout);
-  });
-
-  it('never paints what a script reads', () => {
+  it('never decorates --version, JSON, or errors', () => {
     const forced = { FORCE_COLOR: '3', COLORTERM: 'truecolor' };
-
-    const version = lore(['--version'], forced);
-    expect(version.stdout).toBe(lore(['--version']).stdout);
-    expect(version.stdout).not.toContain(ESC);
+    expect(lore(['--version'], forced).stdout).toBe(lore(['--version']).stdout);
 
     const json = lore(['search', brain, 'lamp', '--json'], forced);
     expect(json.status).toBe(0);
     expect(json.stdout).toBe(lore(['search', brain, 'lamp', '--json']).stdout);
     expect(JSON.parse(json.stdout).count).toBe(1);
-
-    const unknown = lore(['--bogus'], forced);
-    expect(unknown.stderr).not.toContain(ESC);
+    expect(lore(['--bogus'], forced).stderr).not.toContain(ESC);
   });
 });

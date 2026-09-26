@@ -8,5 +8,10 @@ process.exitCode = run(
     out: (text) => process.stdout.write(text),
     err: (text) => process.stderr.write(text),
   },
-  createPaint(process.env, process.stdout.isTTY === true),
+  createPaint(
+    process.env,
+    process.stdout.isTTY === true,
+    process.stdout.columns,
+    process.platform,
+  ),
 );

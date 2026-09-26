@@ -6,10 +6,10 @@
   and brand/tokens/tokens.json (0.1.0) for the ground and type.
   Regenerate with: npm run brand:readme
 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 730" width="720" height="730" role="img" aria-labelledby="lk-help-title lk-help-desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 690" width="720" height="690" role="img" aria-labelledby="lk-help-title lk-help-desc">
   <title id="lk-help-title">lore --help in a truecolour terminal</title>
   <desc id="lk-help-desc">The output of lore --help on a dark terminal. The product name Lorekeeper is in periwinkle and the closing serial LK-047 is dimmed; every other line is the terminal's plain text. The full output reads:
-Lorekeeper 0.1.0
+L O R E K E E P E R  v0.1.0 · LK-047
 Pathfinder finds the way; Lorekeeper remembers the journey.
 
 Usage:
@@ -40,17 +40,15 @@ repeat the same text in several files are reported once.
 
 Search reads. It writes nothing, builds no index file, and works on any
 directory of Markdown, whether or not lore init has run there.
-Lorekeeper runs offline and takes no credentials.
-
-LK-047</desc>
+Lorekeeper runs offline and takes no credentials.</desc>
   <style>
     .ground { fill: #141521; stroke: #30334a; }
     text { fill: #ede7db; font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; font-size: 14px; white-space: pre; }
     .accent { fill: #99a2f0; }
     .muted { fill: #aba7b8; }
   </style>
-  <rect class="ground" x="0.5" y="0.5" width="719" height="729" rx="10"/>
-  <text x="28" y="39" xml:space="preserve"><tspan class="accent">Lorekeeper</tspan> 0.1.0</text>
+  <rect class="ground" x="0.5" y="0.5" width="719" height="689" rx="10"/>
+  <text x="28" y="39" xml:space="preserve"><tspan class="accent">L O R E K E E P E R</tspan>  <tspan class="muted">v0.1.0 · LK-047</tspan></text>
   <text x="28" y="59" xml:space="preserve">Pathfinder finds the way; Lorekeeper remembers the journey.</text>
   <text x="28" y="79" xml:space="preserve"></text>
   <text x="28" y="99" xml:space="preserve">Usage:</text>
@@ -82,6 +80,4 @@ LK-047</desc>
   <text x="28" y="619" xml:space="preserve">Search reads. It writes nothing, builds no index file, and works on any</text>
   <text x="28" y="639" xml:space="preserve">directory of Markdown, whether or not lore init has run there.</text>
   <text x="28" y="659" xml:space="preserve">Lorekeeper runs offline and takes no credentials.</text>
-  <text x="28" y="679" xml:space="preserve"></text>
-  <text x="28" y="699" xml:space="preserve"><tspan class="muted">LK-047</tspan></text>
 </svg>

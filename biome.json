@@ -15,7 +15,8 @@
       "!skills/render-artifact/engine",
       "!.claude/hooks",
       "!brand/tokens/tokens.css",
-      "!apps/docs/src/styles/wonder-wagon-lorekeeper.css"
+      "!apps/docs/src/styles/wonder-wagon-lorekeeper.css",
+      "!packages/cli/src/identity.ts"
     ]
   },
   "formatter": {

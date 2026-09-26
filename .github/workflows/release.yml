@@ -170,27 +170,6 @@ jobs:
             echo "released=$released"
           } >> "$GITHUB_OUTPUT"
 
-      # wonder-wagon-ui (the CLI foundation) installs from npm. The unpublished
-      # @wonder-wagon/tokens and @wonder-wagon/themes are still `file:`
-      # devDependencies on a sibling checkout; the build needs them present.
-      - name: Check out wonder-wagon-ui for the unpublished tokens and themes
-        env:
-          WONDER_WAGON_UI_REF: ae940492ddce1419ba29f0d04b468a042004a06a
-        run: |
-          git clone --quiet --no-checkout https://github.com/rikilamadrid/wonder-wagon-ui.git ../wonder-wagon-ui
-          git -C ../wonder-wagon-ui checkout --quiet "$WONDER_WAGON_UI_REF"
-
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
-        with:
-          bun-version-file: ../wonder-wagon-ui/package.json
-
-      - name: Build @wonder-wagon/tokens and @wonder-wagon/themes
-        working-directory: ../wonder-wagon-ui
-        run: |
-          bun install --frozen-lockfile
-          bun run --filter '@wonder-wagon/tokens' build
-          bun run --filter '@wonder-wagon/themes' build
-
       - name: Install, test and verify the package
         run: |
           set -euo pipefail

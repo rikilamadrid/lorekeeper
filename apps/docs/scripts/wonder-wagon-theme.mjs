@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 /**
- * Generates src/styles/wonder-wagon-lorekeeper.css from @wonder-wagon/themes.
+ * Generates src/styles/wonder-wagon-lorekeeper.css from wonder-wagon-ui's
+ * static `themes/lorekeeper` files.
  *
  * The site is the Wonder Wagon `lorekeeper` theme's first web consumer, but
  * only for the family chrome — the environment lever and the family plate.
  * Everything else on the page reads Lorekeeper's own brand/tokens/tokens.css.
  *
- * The theme package is not published, and a Vercel build has no sibling
- * checkout of wonder-wagon-ui, so the site cannot import it at build time. The
- * generated file is committed instead, and `--check` fails when it no longer
- * matches the package at the pinned ref — the same generate-and-check shape as
- * brand/terminal/build.mjs.
+ * The generated file is committed, so the site build reads no Wonder Wagon
+ * package, and `--check` fails when it no longer matches the exact
+ * wonder-wagon-ui version this repository pins — the same generate-and-check
+ * shape as brand/terminal/build.mjs.
  *
  *   node scripts/wonder-wagon-theme.mjs          write the file
  *   node scripts/wonder-wagon-theme.mjs --check  exit 1 if it is stale
@@ -28,20 +28,20 @@ const OUT = join(APP, 'src', 'styles', 'wonder-wagon-lorekeeper.css');
 const require = createRequire(import.meta.url);
 
 function generate() {
-  const version = require('@wonder-wagon/themes/package.json').version;
+  const version = require('wonder-wagon-ui/package.json').version;
   const css = readFileSync(
-    require.resolve('@wonder-wagon/themes/lorekeeper.css'),
+    require.resolve('wonder-wagon-ui/themes/lorekeeper.css'),
     'utf8',
   );
   const { status } = JSON.parse(
     readFileSync(
-      require.resolve('@wonder-wagon/themes/lorekeeper.json'),
+      require.resolve('wonder-wagon-ui/themes/lorekeeper.json'),
       'utf8',
     ),
   );
   const header = [
     '/*',
-    ` * @wonder-wagon/themes ${version}, lorekeeper theme (${status}) — GENERATED, do not edit.`,
+    ` * wonder-wagon-ui ${version}, lorekeeper theme (${status}) — GENERATED, do not edit.`,
     ' *',
     ' * Regenerate: npm run theme -w @lorekeeper/docs',
     ' * Check:      npm run theme:check -w @lorekeeper/docs',
@@ -61,7 +61,7 @@ function main() {
     expected = generate();
   } catch (error) {
     console.error(
-      `wonder-wagon theme: cannot read @wonder-wagon/themes (${error.message}). Build wonder-wagon-ui's packages/themes next to this repository first.`,
+      `wonder-wagon theme: cannot read wonder-wagon-ui's lorekeeper theme (${error.message}). Run npm ci first.`,
     );
     process.exitCode = 1;
     return;

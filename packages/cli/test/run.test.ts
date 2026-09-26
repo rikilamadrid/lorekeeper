@@ -88,6 +88,27 @@ describe('run', () => {
     }
   });
 
+  it('puts the narrow one-line identity on its own lines around init', () => {
+    const root = mkdtempSync(join(tmpdir(), 'lore-identity-'));
+    const c = capture();
+    try {
+      const code = run(
+        ['init', join(root, 'brain')],
+        c.streams,
+        createPaint({ LANG: 'en_US.UTF-8', COLORTERM: 'truecolor' }, true, 40),
+      );
+      expect(code).toBe(0);
+      expect(c.out()).not.toContain('✦');
+      const lines = c.out().split('\n');
+      expect(lines[0]).toContain('L O R E K E E P E R');
+      expect(lines[1]).toMatch(/^Initialized a brain at /);
+      expect(lines.at(-2)).toContain('L O R E K E E P E R');
+      expect(lines.at(-1)).toBe('');
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it('keeps failed init output byte-identical at an interactive terminal', () => {
     const plain = capture();
     const painted = capture();

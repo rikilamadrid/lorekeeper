@@ -86,6 +86,8 @@ describe('run', () => {
       expect(c.out()).toContain(
         'You already wrote it down. Find the passage that answers.',
       );
+      // Exactly one blank line separates the identity from the result.
+      expect(c.out()).toMatch(/[^\n]\n\nInitialized a brain at /);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
@@ -102,7 +104,7 @@ describe('run', () => {
       );
       expect(code).toBe(0);
       expect(c.out().match(/L O R E K E E P E R/g)).toHaveLength(1);
-      expect(c.out()).toMatch(/\nInitialized a brain at /);
+      expect(c.out()).toMatch(/[^\n]\n\nInitialized a brain at /);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

@@ -63,8 +63,8 @@ export function run(
       if (err !== '') streams.err(err);
       return code;
     }
-    const header = identity.endsWith('\n') ? identity : `${identity}\n`;
-    streams.out(header);
+    // The family rhythm: the identity, one blank line, then the result.
+    streams.out(`${identity.trimEnd()}\n\n`);
     if (out !== '') streams.out(out);
     return code;
   }

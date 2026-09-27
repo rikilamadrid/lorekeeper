@@ -2,7 +2,7 @@
   "product": "Lorekeeper",
   "version": "0.2.1",
   "serial": "LK-047",
-  "source": "Real PTY running bundled dist/lore.js; CRLF normalized to LF only. init cwd is a disposable external directory.",
+  "source": "Real PTY running bundled dist/lore.js; PTY carriage returns removed only. init cwd is a disposable external directory.",
   "specimens": [
     {
       "name": "wide",
@@ -103,7 +103,7 @@
       "exit": 0,
       "stderr": "",
       "capture": "init.ansi",
-      "sha256": "402bffc8736385806e2a17a797c3b56a7a8d46ce0e26c2050fcfa10efc76c19f"
+      "sha256": "239884b0f678bb5af8d09f2c5f7abc318c1e386410912be59e9a0bdef5537f27"
     }
   ]
 }

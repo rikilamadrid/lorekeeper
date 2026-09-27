@@ -11,7 +11,6 @@ A deterministic, offline CLI that ranks the passages answering a question,
 so a coding agent searches what you already wrote.
 
 [![npm](https://img.shields.io/npm/v/create-lorekeeper?color=343A8C&label=create-lorekeeper)](https://www.npmjs.com/package/create-lorekeeper)
-[![CI](https://github.com/rikilamadrid/lorekeeper/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/rikilamadrid/lorekeeper/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-343A8C)](LICENSE)
 
 [Website](https://lorekeeper-bay.vercel.app) ·

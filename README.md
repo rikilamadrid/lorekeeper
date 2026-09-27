@@ -4,19 +4,28 @@
        alt="Lorekeeper: a four-point gold star held inside a ring, beside the wordmark LOREKEEPER, and the line: You already wrote it down. Find the passage that answers. LK-047, a Wonder Wagon tool.">
 </picture>
 
-**An AI-native second brain made of plain Markdown files you own.**<br>
-Pathfinder finds the way; Lorekeeper remembers the journey.
+<div align="center">
 
-`LK-047` · a [Wonder Wagon](https://github.com/rikilamadrid/wonder-wagon-ui) tool.
-Its terminal identity is generated from the React-free `wonder-wagon-ui/cli`
-foundation and checked for drift.
+**An AI-native second brain made of plain Markdown files you own.**<br>
+A deterministic, offline CLI that ranks the passages answering a question,
+so a coding agent searches what you already wrote.
+
+[![npm](https://img.shields.io/npm/v/create-lorekeeper?color=343A8C&label=create-lorekeeper)](https://www.npmjs.com/package/create-lorekeeper)
+[![CI](https://github.com/rikilamadrid/lorekeeper/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/rikilamadrid/lorekeeper/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-343A8C)](LICENSE)
 
 [Website](https://lorekeeper-bay.vercel.app) ·
+[npm](https://www.npmjs.com/package/create-lorekeeper) ·
 [Quickstart](brand/quickstart.md) ·
-[How it works](#how-it-works) ·
 [Proof](brand/proof.md) ·
-[Identity](brand/IDENTITY.md) ·
-[GitHub](https://github.com/rikilamadrid/lorekeeper)
+[Changelog](CHANGELOG.md) ·
+[Releases](https://github.com/rikilamadrid/lorekeeper/releases)
+
+<sub>by Lamadrid Labs</sub>
+
+<sub>Accession <code>LK-047</code> · a star held in a ring · a <a href="https://github.com/rikilamadrid/wonder-wagon-ui">Wonder Wagon</a> tool</sub>
+
+</div>
 
 ## Install
 
@@ -83,13 +92,14 @@ whatever agent you were already using.
 
 <p align="center">
   <img src="brand/readme/terminal-help.svg" width="720"
-       alt="The output of lore --help on a dark terminal: the product name Lorekeeper in periwinkle, the usage for lore init, capture and search, and the serial LK-047 dimmed at the end. The full text is inside the file.">
+       alt="The output of lore --help on a dark terminal: the five-row mark, a gold star inside a periwinkle ring, beside L O R E K E E P E R v0.3.0 · LK-047 and the tagline; then the usage for lore init, capture and search. The full text is inside the file.">
 </p>
 
 That is `lore --help` at a truecolour terminal, drawn from the bytes the built
-binary wrote — the name in the night accent, the serial dimmed, everything
-else the terminal's own text — and the mark, palette, and type rules behind it
-are in [`brand/IDENTITY.md`](brand/IDENTITY.md).
+binary wrote — the ring and name in the night accent, the star in gold, the
+version and serial dimmed beside the name, everything else the terminal's own
+text — and the mark, palette, and type rules behind it are in
+[`brand/IDENTITY.md`](brand/IDENTITY.md).
 
 ## Quickstart
 
@@ -207,7 +217,7 @@ survey of real vaults on real hardware.
 Every figure above, its measurement, and the rest of its caveats:
 [`brand/proof.md`](brand/proof.md).
 
-## Where v0.1 stops
+## Where it stops
 
 Stated plainly, because a presentation surface that omits the known limitation
 is not an honest one.
@@ -224,7 +234,7 @@ knowledge that is not there. A top result can be nothing more than the best of
 a bad field. That is exactly why there is no relevance threshold: a cutoff
 would turn an honest miss into false confidence.
 
-**And what v0.1 simply does not include yet:** no embeddings or semantic
+**And what 0.3.0 simply does not include yet:** no embeddings or semantic
 search, no MCP server, no mobile capture, no automated ingestion of web pages
 or video, no server component of any kind, and no Windows support.
 
@@ -239,6 +249,12 @@ or video, no server component of any kind, and no Windows support.
 | Shelved beside | Pathfinder (`PF-047`), Forge (`FG-047`) |
 | Licence | MIT |
 
+Lorekeeper is `LK-047` in the [Wonder Wagon](https://github.com/rikilamadrid/wonder-wagon-ui)
+family. It takes two generated pieces from it, each committed and checked for drift in CI:
+the terminal identity, from the React-free `wonder-wagon-ui/cli`, and the website's family
+chrome — the day/night toggle and the serial plate. The reading room itself keeps its own
+grounds, ink, type scale and layout.
+
 ## Where to go next
 
 | Document | What it covers |
@@ -250,6 +266,19 @@ or video, no server component of any kind, and no Windows support.
 | [`brand/diagrams.md`](brand/diagrams.md) | How a search works, provenance, and the three surfaces |
 | [`brand/IDENTITY.md`](brand/IDENTITY.md) | Mark, wordmark, palette, type, and usage rules |
 
-A documentation site is planned and not yet built.
+The same material, with concepts, capture, retrieval, agent integration and a CLI
+reference, is on the website:
+
+<p align="center">
+  <a href="https://lorekeeper-bay.vercel.app">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="brand/screenshots/site-night.png">
+      <img src="brand/screenshots/site-day.png" width="720"
+           alt="The Lorekeeper website's opening page: the ring-and-star logo and LOREKEEPER at the top left, a Day and Night toggle at the top right, a sidebar grouped into Begin, Use and Reference, and the heading You already wrote it down. Find the passage that answers.">
+    </picture>
+  </a>
+</p>
+
+<p align="center"><sub><a href="https://lorekeeper-bay.vercel.app">lorekeeper-bay.vercel.app</a> · captured 2026-09-27 at 1440×900</sub></p>
 
 Licensed [MIT](LICENSE).

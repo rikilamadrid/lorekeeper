@@ -10,6 +10,25 @@ the release workflow refuses to run if they disagree. See `RELEASING.md`.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-27
+
+Lorekeeper's full mark now greets people wherever they start. Commands, flags,
+files written, machine output and every failure path are unchanged.
+
+### Changed
+
+- In an interactive terminal, bare `lore` and `lore --help` open with the full
+  five-row mark (the periwinkle ring holding a gilt star), beside
+  `L O R E K E E P E R  v0.3.0 · LK-047` and the tagline "You already wrote it
+  down. Find the passage that answers." It replaces the one-line identity.
+- A successful interactive `lore init` shows the mark once, then one blank line,
+  then the result. It no longer repeats the mark after the result.
+- Narrow terminals stack the mark, then the name, version and serial, then the
+  wrapped tagline, instead of falling back to one line.
+- Piped, redirected and `--json` output, `--version`, errors, and failed or
+  refused `init` are byte-identical to 0.2.1. `NO_COLOR`, `TERM=dumb` and
+  `WW_ASCII=1` behave as before.
+
 ## [0.2.1] - 2026-09-26
 
 ### Fixed

@@ -12,7 +12,7 @@
 
     ╭───╮
    ╭╯   ╰╮
-   │  ✦  │    L O R E K E E P E R  v0.2.1 · LK-047
+   │  ✦  │    L O R E K E E P E R  v0.3.0 · LK-047
    ╰╮   ╭╯    You already wrote it down. Find the passage that answers.
     ╰───╯
 
@@ -56,7 +56,7 @@ Lorekeeper runs offline and takes no credentials.</desc>
   <text x="28" y="39" xml:space="preserve"></text>
   <text x="28" y="59" xml:space="preserve">  <tspan class="accent">  ╭───╮</tspan></text>
   <text x="28" y="79" xml:space="preserve">  <tspan class="accent"> ╭╯   ╰╮</tspan></text>
-  <text x="28" y="99" xml:space="preserve">  <tspan class="accent"> │  </tspan><tspan class="gold">✦</tspan><tspan class="accent">  │</tspan>    <tspan class="accent">L O R E K E E P E R</tspan>  <tspan class="muted">v0.2.1 · LK-047</tspan></text>
+  <text x="28" y="99" xml:space="preserve">  <tspan class="accent"> │  </tspan><tspan class="gold">✦</tspan><tspan class="accent">  │</tspan>    <tspan class="accent">L O R E K E E P E R</tspan>  <tspan class="muted">v0.3.0 · LK-047</tspan></text>
   <text x="28" y="119" xml:space="preserve">  <tspan class="accent"> ╰╮   ╭╯</tspan>    <tspan class="muted">You already wrote it down. Find the passage that answers.</tspan></text>
   <text x="28" y="139" xml:space="preserve">  <tspan class="accent">  ╰───╯</tspan></text>
   <text x="28" y="159" xml:space="preserve"></text>

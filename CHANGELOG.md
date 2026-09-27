@@ -10,6 +10,11 @@ the release workflow refuses to run if they disagree. See `RELEASING.md`.
 
 ## [Unreleased]
 
+### Changed
+
+- The npm README's second line is now the approved tagline, "You already wrote it down.
+  Find the passage that answers."
+
 ## [0.3.0] - 2026-09-27
 
 Lorekeeper's full mark now greets people wherever they start. Commands, flags,

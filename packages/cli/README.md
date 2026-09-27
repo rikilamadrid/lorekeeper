@@ -1,7 +1,7 @@
 # Lorekeeper
 
 **An AI-native second brain made of plain Markdown files you own.**
-Pathfinder finds the way; Lorekeeper remembers the journey.
+You already wrote it down. Find the passage that answers.
 
 `LK-047` · a [Wonder Wagon](https://github.com/rikilamadrid/wonder-wagon-ui) tool.
 

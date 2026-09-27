@@ -328,7 +328,7 @@ function terminal() {
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-labelledby="lk-help-title lk-help-desc">
   <title id="lk-help-title">lore --help in a truecolour terminal</title>
-  <desc id="lk-help-desc">The output of lore --help on a dark terminal. The product name Lorekeeper is in periwinkle and the closing serial LK-047 is dimmed; every other line is the terminal's plain text. The full output reads:
+  <desc id="lk-help-desc">The output of lore --help on a dark terminal. A five-row periwinkle ring holds a gold star beside Lorekeeper, its version and serial LK-047, and its tagline. The full output reads:
 ${escapeXml(plain)}</desc>
   <style>
     .ground { fill: ${color('dark', 'page')}; stroke: ${color('dark', 'line')}; }

@@ -1,9 +1,9 @@
 
-  [38;2;153;162;240m  ╭───╮[0m
-  [38;2;153;162;240m ╭╯   ╰╮[0m
-  [38;2;153;162;240m │  [0m[38;2;226;180;92m✦[0m[38;2;153;162;240m  │[0m    [38;2;153;162;240mL O R E K E E P E R[0m  [2mv0.2.1 · LK-047[0m
-  [38;2;153;162;240m ╰╮   ╭╯[0m    [2mYou already wrote it down. Find the passage that answers.[0m
-  [38;2;153;162;240m  ╰───╯[0m
+    .---.
+   /     \
+   |  *  |    L O R E K E E P E R  v0.2.1 - LK-047
+   \     /    You already wrote it down. Find the passage that answers.
+    '---'
 
 Usage:
   lore init <dir>              Create a brain, or adopt an existing vault

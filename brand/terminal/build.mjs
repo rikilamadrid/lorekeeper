@@ -9,7 +9,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { renderCliIdentityModule } from 'wonder-wagon-ui/cli';
+import { renderCliIdentityModule } from './family-cli.snapshot.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -23,7 +23,7 @@ const gilt = tokens.color.dark.gold.value;
 const product = {
   name: 'Lorekeeper',
   serial: 'LK-047',
-  tagline: 'Pathfinder finds the way; Lorekeeper remembers the journey.',
+  tagline: 'You already wrote it down. Find the passage that answers.',
   accent,
   secondary: gilt,
   ansi16: {
@@ -62,7 +62,10 @@ const product = {
   },
 };
 
-const next = renderCliIdentityModule(product, { language: 'ts' });
+const next = renderCliIdentityModule(product, {
+  language: 'ts',
+  layout: 'responsive',
+});
 const check = process.argv.includes('--check');
 const where = relative(ROOT, OUT);
 

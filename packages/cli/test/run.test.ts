@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -71,7 +71,7 @@ describe('run', () => {
     expect(c.err()).toContain('lore search');
   });
 
-  it('bookends a successful interactive init with the approved identity', () => {
+  it('introduces a successful interactive init with the approved identity once', () => {
     const root = mkdtempSync(join(tmpdir(), 'lore-identity-'));
     const c = capture();
     try {
@@ -81,14 +81,17 @@ describe('run', () => {
         createPaint({ LANG: 'en_US.UTF-8', COLORTERM: 'truecolor' }, true, 100),
       );
       expect(code).toBe(0);
-      expect(c.out().match(/L O R E K E E P E R/g)).toHaveLength(2);
+      expect(c.out().match(/L O R E K E E P E R/g)).toHaveLength(1);
       expect(c.out()).toContain('✦');
+      expect(c.out()).toContain(
+        'You already wrote it down. Find the passage that answers.',
+      );
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
   });
 
-  it('puts the narrow one-line identity on its own lines around init', () => {
+  it('keeps the narrow identity separate from the successful init result', () => {
     const root = mkdtempSync(join(tmpdir(), 'lore-identity-'));
     const c = capture();
     try {
@@ -98,12 +101,8 @@ describe('run', () => {
         createPaint({ LANG: 'en_US.UTF-8', COLORTERM: 'truecolor' }, true, 40),
       );
       expect(code).toBe(0);
-      expect(c.out()).not.toContain('✦');
-      const lines = c.out().split('\n');
-      expect(lines[0]).toContain('L O R E K E E P E R');
-      expect(lines[1]).toMatch(/^Initialized a brain at /);
-      expect(lines.at(-2)).toContain('L O R E K E E P E R');
-      expect(lines.at(-1)).toBe('');
+      expect(c.out().match(/L O R E K E E P E R/g)).toHaveLength(1);
+      expect(c.out()).toMatch(/\nInitialized a brain at /);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
@@ -122,5 +121,28 @@ describe('run', () => {
     expect(run(['init'], painted.streams, paint)).toBe(2);
     expect(painted.out()).toBe(plain.out());
     expect(painted.err()).toBe(plain.err());
+  });
+
+  it('keeps refused init output byte-identical at an interactive terminal', () => {
+    const root = mkdtempSync(join(tmpdir(), 'lore-refusal-'));
+    const plain = capture();
+    const painted = capture();
+    try {
+      const target = join(root, 'occupied-file');
+      writeFileSync(target, 'Synthetic refusal fixture.');
+      const args = ['init', target];
+      const paint = createPaint(
+        { LANG: 'en_US.UTF-8', COLORTERM: 'truecolor' },
+        true,
+        100,
+      );
+      const code = run(args, plain.streams);
+      expect(code).not.toBe(0);
+      expect(run(args, painted.streams, paint)).toBe(code);
+      expect(painted.out()).toBe(plain.out());
+      expect(painted.err()).toBe(plain.err());
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });

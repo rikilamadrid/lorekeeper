@@ -6,15 +6,16 @@ import { type Paint, PLAIN } from './terminal.js';
  * only what a Feature has actually delivered. Nothing is named here in
  * anticipation of shipping it.
  *
- * Interactive terminals get the shared one-line identity grammar. Contract
+ * Interactive terminals get the shared full identity grammar. Contract
  * output falls back to the pre-identity header byte for byte, which is what
  * `PLAIN` guarantees.
  */
 export function usage(version: string, paint: Paint = PLAIN): string {
-  const identity = paint.identity(version, 'line');
+  const identity = paint.identity(version);
   return [
-    identity || `${paint.name(PRODUCT_NAME)} ${version}`,
-    TAGLINE,
+    ...(identity
+      ? [identity.trimEnd()]
+      : [`${paint.name(PRODUCT_NAME)} ${version}`, TAGLINE]),
     '',
     'Usage:',
     '  lore init <dir>              Create a brain, or adopt an existing vault',

@@ -16,7 +16,8 @@
       "!.claude/hooks",
       "!brand/tokens/tokens.css",
       "!apps/docs/src/styles/wonder-wagon-lorekeeper.css",
-      "!packages/cli/src/identity.ts"
+      "!packages/cli/src/identity.ts",
+      "!brand/terminal/family-cli.snapshot.mjs"
     ]
   },
   "formatter": {

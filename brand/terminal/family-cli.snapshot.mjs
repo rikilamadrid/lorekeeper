@@ -248,6 +248,92 @@ function renderWithPaints(options, paints) {
     });
     return `\n${lines.join("\n")}\n`;
 }
+function wrapIdentity(text, width) {
+    if (cells(text) <= width)
+        return [text];
+    const lines = [];
+    let line = "";
+    for (const word of text.split(/ +/)) {
+        if (line && cells(`${line} ${word}`) <= width) {
+            line += ` ${word}`;
+            continue;
+        }
+        if (line) {
+            lines.push(line);
+            line = "";
+        }
+        const characters = [...word];
+        while (characters.length > width)
+            lines.push(characters.splice(0, width).join(""));
+        line = characters.join("");
+    }
+    if (line)
+        lines.push(line);
+    return lines;
+}
+function renderResponsive(options, paints) {
+    const { product, version, caps } = options;
+    if (options.machine === true || caps.tier === "contract")
+        return "";
+    const name = spacedName(product);
+    const metadata = `v${version} ${caps.unicode ? "·" : "-"} ${product.serial}`;
+    const textWidth = Math.max(cells(name) + 2 + cells(metadata), cells(product.tagline));
+    if (options.form !== "line" && caps.columns >= 2 + product.mark.width + 4 + textWidth) {
+        return renderWithPaints(options, paints);
+    }
+    if (options.form === "line" && cells(name) + 2 + cells(metadata) <= caps.columns) {
+        return renderWithPaints(options, paints);
+    }
+    const indent = caps.columns >= product.mark.width + 2 ? "  " : "";
+    const width = Math.max(1, caps.columns - indent.length);
+    const lines = [];
+    if (options.form !== "line") {
+        for (const row of product.mark.rows) {
+            const raw = caps.unicode ? row.expressive.map((segment) => segment.text).join("") : row.plain;
+            if (cells(raw) > width) {
+                for (const part of wrapIdentity(raw.trim(), width)) {
+                    lines.push(indent + paintAtDepth(part, paints.accent, caps));
+                }
+                continue;
+            }
+            const mark = caps.unicode
+                ? row.expressive
+                    .map((segment) => {
+                    if (segment.role === "dim")
+                        return dim(segment.text, caps);
+                    const paint = segment.role === "secondary" && paints.secondary !== undefined
+                        ? paints.secondary
+                        : paints.accent;
+                    return paintAtDepth(segment.text, paint, caps);
+                })
+                    .join("")
+                : paintAtDepth(row.plain, paints.accent, caps);
+            lines.push(indent + mark);
+        }
+        lines.push("");
+    }
+    for (const part of wrapIdentity(name, width)) {
+        lines.push(indent + paintAtDepth(part, paints.accent, caps));
+    }
+    for (const part of wrapIdentity(metadata, width))
+        lines.push(indent + dim(part, caps));
+    if (options.form !== "line") {
+        for (const part of wrapIdentity(product.tagline, width))
+            lines.push(indent + dim(part, caps));
+    }
+    return options.form === "line" ? lines.join("\n") : `\n${lines.join("\n")}\n`;
+}
+/**
+ * Paint one run of text in a product colour at the caps' depth, with the same
+ * 256- and 16-colour degradation the identity uses. Depth 0 returns it bare.
+ */
+export function paintCliText(text, hex, caps, ansi16) {
+    return paintAtDepth(text, terminalPaint(hex, ansi16), caps);
+}
+/** Dim one run of text, or return it bare at depth 0. */
+export function dimCliText(text, caps) {
+    return dim(text, caps);
+}
 /** Render one identity from authored product geometry and already-decided caps. */
 export function renderCliIdentity(options) {
     validateProduct(options.product);
@@ -259,60 +345,9 @@ export function renderCliIdentity(options) {
                 secondary: terminalPaint(options.product.secondary, options.product.ansi16?.secondary),
             }),
     };
-    if (options.layout === "responsive") {
-        const { product, version, caps } = options;
-        if (options.machine === true || caps.tier === "contract")
-            return "";
-        const name = spacedName(product);
-        const metadata = `v${version} ${caps.unicode ? "·" : "-"} ${product.serial}`;
-        const textWidth = Math.max(cells(name) + 2 + cells(metadata), cells(product.tagline));
-        if (options.form !== "line" && caps.columns >= 2 + product.mark.width + 4 + textWidth)
-            return renderWithPaints(options, paints);
-        if (options.form === "line" && cells(name) + 2 + cells(metadata) <= caps.columns)
-            return renderWithPaints(options, paints);
-        const indent = caps.columns >= product.mark.width + 2 ? "  " : "";
-        const width = Math.max(1, caps.columns - indent.length);
-        const wrap = (text) => {
-            const lines = [];
-            let line = "";
-            for (const word of text.split(/ +/)) {
-                if (line && cells(line + " " + word) <= width) {
-                    line += " " + word;
-                    continue;
-                }
-                if (line) {
-                    lines.push(line);
-                    line = "";
-                }
-                const chars = [...word];
-                while (chars.length > width)
-                    lines.push(chars.splice(0, width).join(""));
-                line = chars.join("");
-            }
-            if (line)
-                lines.push(line);
-            return lines;
-        };
-        const lines = [];
-        if (options.form !== "line") {
-            for (const row of product.mark.rows) {
-                const raw = caps.unicode ? row.expressive.map((segment) => segment.text).join("") : row.plain;
-                if (cells(raw) > width)
-                    lines.push(...wrap(raw.trim()).map((line) => indent + paintAtDepth(line, paints.accent, caps)));
-                else {
-                    const mark = caps.unicode ? row.expressive.map((segment) => segment.role === "dim" ? dim(segment.text, caps) : paintAtDepth(segment.text, segment.role === "secondary" && paints.secondary ? paints.secondary : paints.accent, caps)).join("") : paintAtDepth(row.plain, paints.accent, caps);
-                    lines.push(indent + mark);
-                }
-            }
-            lines.push("");
-        }
-        lines.push(...wrap(name).map((line) => indent + paintAtDepth(line, paints.accent, caps)));
-        lines.push(...wrap(metadata).map((line) => indent + dim(line, caps)));
-        if (options.form !== "line")
-            lines.push(...wrap(product.tagline).map((line) => indent + dim(line, caps)));
-        return options.form === "line" ? lines.join("\n") : "\n" + lines.join("\n") + "\n";
-    }
-    return renderWithPaints(options, paints);
+    return options.layout === "responsive"
+        ? renderResponsive(options, paints)
+        : renderWithPaints(options, paints);
 }
 function fnv1a(input) {
     let hash = 0x811c9dc5;
@@ -388,9 +423,10 @@ export function renderCliIdentity(${renderSignature}) {
 `;
 }
 function responsiveLayoutSource(language) {
-    const type = (value) => language === "ts" ? value : "";
+    const type = (value) => (language === "ts" ? value : "");
     return `
 function wrapIdentity(text${type(": string")}, width${type(": number")}) {
+  if ([...text].length <= width) return [text];
   const lines${type(": string[]")} = [];
   let line = "";
   for (const word of text.split(/ +/)) {
@@ -466,7 +502,9 @@ export function renderCliIdentityModule(product, options) {
         `export const PAINTS = Object.freeze(${JSON.stringify(paints, null, 2)}${suffix});`,
         `export const VALUES_HASH = ${JSON.stringify(hash)};`,
         options.layout === "responsive"
-            ? generatedRuntime(options.language).replace("export function renderCliIdentity(", "function renderLegacyIdentity(").trimStart() + responsiveLayoutSource(options.language)
+            ? generatedRuntime(options.language)
+                .replace("export function renderCliIdentity(", "function renderLegacyIdentity(")
+                .trimStart() + responsiveLayoutSource(options.language)
             : generatedRuntime(options.language).trimStart(),
     ].join("\n");
 }

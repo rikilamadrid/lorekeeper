@@ -156,6 +156,7 @@ function renderLegacyIdentity(options: { version: string; caps: { tier: "contrac
 }
 
 function wrapIdentity(text: string, width: number) {
+  if ([...text].length <= width) return [text];
   const lines: string[] = [];
   let line = "";
   for (const word of text.split(/ +/)) {

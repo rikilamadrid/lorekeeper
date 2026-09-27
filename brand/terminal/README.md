@@ -26,9 +26,11 @@ and all package versions remain unchanged. The generated runtime is committed as
 README, manifest, and licence. The snapshot is excluded from formatting so its
 upstream bytes remain auditable.
 
-Source: `rikilamadrid/wonder-wagon-ui`, `packages/foundation/dist/cli.js`, identity
-upgrade branch (upstream commit recorded when finalized).
-SHA-256: `8b985538461158673eeaf087e0b6745f310d09910196cd404d35a3e47594d6f5`.
+Source: `rikilamadrid/wonder-wagon-ui@323d9accce129640c6e31d1ac67ca4162913f26f`
+(PR #11), `packages/foundation/dist/cli.js`, copied verbatim.
+SHA-256: `b4f03d89b8abd5d8f060ee6448b592666c48b8f4e777f19accbe1b9c11608e7e`.
+To verify, check out that commit, run `bun install && bun run build`, and hash
+the built file.
 
 Run `npm run brand:terminal` to regenerate, or `npm run brand:terminal:check` to
 prove the committed module has no drift. Once Wonder Wagon publishes this

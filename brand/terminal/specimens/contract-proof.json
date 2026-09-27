@@ -1,0 +1,914 @@
+{
+  "baselineCommit": "d1ec6db5ad294e4be28da6cc3ec3af72c7ff7446",
+  "comparison": "Exit code, stdout bytes and stderr bytes match the baseline bundled binary for every row. Synthetic fixtures only.",
+  "comparisons": 101,
+  "results": [
+    {
+      "surface": "version",
+      "tty": false,
+      "environment": "default",
+      "exit": 0,
+      "stdoutBytes": 6,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "version-short",
+      "tty": false,
+      "environment": "default",
+      "exit": 0,
+      "stdoutBytes": 6,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "json",
+      "tty": false,
+      "environment": "default",
+      "exit": 0,
+      "stdoutBytes": 340,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "search",
+      "tty": false,
+      "environment": "default",
+      "exit": 0,
+      "stdoutBytes": 105,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "unknown",
+      "tty": false,
+      "environment": "default",
+      "exit": 1,
+      "stdoutBytes": 0,
+      "stderrBytes": 77,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "failed-init",
+      "tty": false,
+      "environment": "default",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 66,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "refused-init",
+      "tty": false,
+      "environment": "default",
+      "exit": 1,
+      "stdoutBytes": 0,
+      "stderrBytes": 74,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "capture-error",
+      "tty": false,
+      "environment": "default",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 80,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "search-error",
+      "tty": false,
+      "environment": "default",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 127,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "help",
+      "tty": false,
+      "environment": "default",
+      "exit": 0,
+      "stdoutBytes": 1602,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "no-arg",
+      "tty": false,
+      "environment": "default",
+      "exit": 0,
+      "stdoutBytes": 1602,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "version",
+      "tty": false,
+      "environment": "forced",
+      "exit": 0,
+      "stdoutBytes": 6,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "version-short",
+      "tty": false,
+      "environment": "forced",
+      "exit": 0,
+      "stdoutBytes": 6,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "json",
+      "tty": false,
+      "environment": "forced",
+      "exit": 0,
+      "stdoutBytes": 340,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "search",
+      "tty": false,
+      "environment": "forced",
+      "exit": 0,
+      "stdoutBytes": 105,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "unknown",
+      "tty": false,
+      "environment": "forced",
+      "exit": 1,
+      "stdoutBytes": 0,
+      "stderrBytes": 77,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "failed-init",
+      "tty": false,
+      "environment": "forced",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 66,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "refused-init",
+      "tty": false,
+      "environment": "forced",
+      "exit": 1,
+      "stdoutBytes": 0,
+      "stderrBytes": 74,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "capture-error",
+      "tty": false,
+      "environment": "forced",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 80,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "search-error",
+      "tty": false,
+      "environment": "forced",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 127,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "help",
+      "tty": false,
+      "environment": "forced",
+      "exit": 0,
+      "stdoutBytes": 1602,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "no-arg",
+      "tty": false,
+      "environment": "forced",
+      "exit": 0,
+      "stdoutBytes": 1602,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "version",
+      "tty": false,
+      "environment": "no-color",
+      "exit": 0,
+      "stdoutBytes": 6,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "version-short",
+      "tty": false,
+      "environment": "no-color",
+      "exit": 0,
+      "stdoutBytes": 6,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "json",
+      "tty": false,
+      "environment": "no-color",
+      "exit": 0,
+      "stdoutBytes": 340,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "search",
+      "tty": false,
+      "environment": "no-color",
+      "exit": 0,
+      "stdoutBytes": 105,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "unknown",
+      "tty": false,
+      "environment": "no-color",
+      "exit": 1,
+      "stdoutBytes": 0,
+      "stderrBytes": 77,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "failed-init",
+      "tty": false,
+      "environment": "no-color",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 66,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "refused-init",
+      "tty": false,
+      "environment": "no-color",
+      "exit": 1,
+      "stdoutBytes": 0,
+      "stderrBytes": 74,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "capture-error",
+      "tty": false,
+      "environment": "no-color",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 80,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "search-error",
+      "tty": false,
+      "environment": "no-color",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 127,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "help",
+      "tty": false,
+      "environment": "no-color",
+      "exit": 0,
+      "stdoutBytes": 1602,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "no-arg",
+      "tty": false,
+      "environment": "no-color",
+      "exit": 0,
+      "stdoutBytes": 1602,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "version",
+      "tty": false,
+      "environment": "ascii",
+      "exit": 0,
+      "stdoutBytes": 6,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "version-short",
+      "tty": false,
+      "environment": "ascii",
+      "exit": 0,
+      "stdoutBytes": 6,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "json",
+      "tty": false,
+      "environment": "ascii",
+      "exit": 0,
+      "stdoutBytes": 340,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "search",
+      "tty": false,
+      "environment": "ascii",
+      "exit": 0,
+      "stdoutBytes": 105,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "unknown",
+      "tty": false,
+      "environment": "ascii",
+      "exit": 1,
+      "stdoutBytes": 0,
+      "stderrBytes": 77,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "failed-init",
+      "tty": false,
+      "environment": "ascii",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 66,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "refused-init",
+      "tty": false,
+      "environment": "ascii",
+      "exit": 1,
+      "stdoutBytes": 0,
+      "stderrBytes": 74,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "capture-error",
+      "tty": false,
+      "environment": "ascii",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 80,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "search-error",
+      "tty": false,
+      "environment": "ascii",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 127,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "help",
+      "tty": false,
+      "environment": "ascii",
+      "exit": 0,
+      "stdoutBytes": 1602,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "no-arg",
+      "tty": false,
+      "environment": "ascii",
+      "exit": 0,
+      "stdoutBytes": 1602,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "version",
+      "tty": false,
+      "environment": "dumb",
+      "exit": 0,
+      "stdoutBytes": 6,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "version-short",
+      "tty": false,
+      "environment": "dumb",
+      "exit": 0,
+      "stdoutBytes": 6,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "json",
+      "tty": false,
+      "environment": "dumb",
+      "exit": 0,
+      "stdoutBytes": 340,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "search",
+      "tty": false,
+      "environment": "dumb",
+      "exit": 0,
+      "stdoutBytes": 105,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "unknown",
+      "tty": false,
+      "environment": "dumb",
+      "exit": 1,
+      "stdoutBytes": 0,
+      "stderrBytes": 77,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "failed-init",
+      "tty": false,
+      "environment": "dumb",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 66,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "refused-init",
+      "tty": false,
+      "environment": "dumb",
+      "exit": 1,
+      "stdoutBytes": 0,
+      "stderrBytes": 74,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "capture-error",
+      "tty": false,
+      "environment": "dumb",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 80,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "search-error",
+      "tty": false,
+      "environment": "dumb",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 127,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "help",
+      "tty": false,
+      "environment": "dumb",
+      "exit": 0,
+      "stdoutBytes": 1602,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "no-arg",
+      "tty": false,
+      "environment": "dumb",
+      "exit": 0,
+      "stdoutBytes": 1602,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "version",
+      "tty": true,
+      "environment": "default",
+      "exit": 0,
+      "stdoutBytes": 6,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "version-short",
+      "tty": true,
+      "environment": "default",
+      "exit": 0,
+      "stdoutBytes": 6,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "json",
+      "tty": true,
+      "environment": "default",
+      "exit": 0,
+      "stdoutBytes": 340,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "search",
+      "tty": true,
+      "environment": "default",
+      "exit": 0,
+      "stdoutBytes": 105,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "unknown",
+      "tty": true,
+      "environment": "default",
+      "exit": 1,
+      "stdoutBytes": 0,
+      "stderrBytes": 77,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "failed-init",
+      "tty": true,
+      "environment": "default",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 66,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "refused-init",
+      "tty": true,
+      "environment": "default",
+      "exit": 1,
+      "stdoutBytes": 0,
+      "stderrBytes": 74,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "capture-error",
+      "tty": true,
+      "environment": "default",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 80,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "search-error",
+      "tty": true,
+      "environment": "default",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 127,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "version",
+      "tty": true,
+      "environment": "forced",
+      "exit": 0,
+      "stdoutBytes": 6,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "version-short",
+      "tty": true,
+      "environment": "forced",
+      "exit": 0,
+      "stdoutBytes": 6,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "json",
+      "tty": true,
+      "environment": "forced",
+      "exit": 0,
+      "stdoutBytes": 340,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "search",
+      "tty": true,
+      "environment": "forced",
+      "exit": 0,
+      "stdoutBytes": 105,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "unknown",
+      "tty": true,
+      "environment": "forced",
+      "exit": 1,
+      "stdoutBytes": 0,
+      "stderrBytes": 77,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "failed-init",
+      "tty": true,
+      "environment": "forced",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 66,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "refused-init",
+      "tty": true,
+      "environment": "forced",
+      "exit": 1,
+      "stdoutBytes": 0,
+      "stderrBytes": 74,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "capture-error",
+      "tty": true,
+      "environment": "forced",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 80,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "search-error",
+      "tty": true,
+      "environment": "forced",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 127,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "version",
+      "tty": true,
+      "environment": "no-color",
+      "exit": 0,
+      "stdoutBytes": 6,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "version-short",
+      "tty": true,
+      "environment": "no-color",
+      "exit": 0,
+      "stdoutBytes": 6,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "json",
+      "tty": true,
+      "environment": "no-color",
+      "exit": 0,
+      "stdoutBytes": 340,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "search",
+      "tty": true,
+      "environment": "no-color",
+      "exit": 0,
+      "stdoutBytes": 105,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "unknown",
+      "tty": true,
+      "environment": "no-color",
+      "exit": 1,
+      "stdoutBytes": 0,
+      "stderrBytes": 77,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "failed-init",
+      "tty": true,
+      "environment": "no-color",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 66,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "refused-init",
+      "tty": true,
+      "environment": "no-color",
+      "exit": 1,
+      "stdoutBytes": 0,
+      "stderrBytes": 74,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "capture-error",
+      "tty": true,
+      "environment": "no-color",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 80,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "search-error",
+      "tty": true,
+      "environment": "no-color",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 127,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "version",
+      "tty": true,
+      "environment": "ascii",
+      "exit": 0,
+      "stdoutBytes": 6,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "version-short",
+      "tty": true,
+      "environment": "ascii",
+      "exit": 0,
+      "stdoutBytes": 6,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "json",
+      "tty": true,
+      "environment": "ascii",
+      "exit": 0,
+      "stdoutBytes": 340,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "search",
+      "tty": true,
+      "environment": "ascii",
+      "exit": 0,
+      "stdoutBytes": 105,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "unknown",
+      "tty": true,
+      "environment": "ascii",
+      "exit": 1,
+      "stdoutBytes": 0,
+      "stderrBytes": 77,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "failed-init",
+      "tty": true,
+      "environment": "ascii",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 66,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "refused-init",
+      "tty": true,
+      "environment": "ascii",
+      "exit": 1,
+      "stdoutBytes": 0,
+      "stderrBytes": 74,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "capture-error",
+      "tty": true,
+      "environment": "ascii",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 80,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "search-error",
+      "tty": true,
+      "environment": "ascii",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 127,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "version",
+      "tty": true,
+      "environment": "dumb",
+      "exit": 0,
+      "stdoutBytes": 6,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "version-short",
+      "tty": true,
+      "environment": "dumb",
+      "exit": 0,
+      "stdoutBytes": 6,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "json",
+      "tty": true,
+      "environment": "dumb",
+      "exit": 0,
+      "stdoutBytes": 340,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "search",
+      "tty": true,
+      "environment": "dumb",
+      "exit": 0,
+      "stdoutBytes": 105,
+      "stderrBytes": 0,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "unknown",
+      "tty": true,
+      "environment": "dumb",
+      "exit": 1,
+      "stdoutBytes": 0,
+      "stderrBytes": 77,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "failed-init",
+      "tty": true,
+      "environment": "dumb",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 66,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "refused-init",
+      "tty": true,
+      "environment": "dumb",
+      "exit": 1,
+      "stdoutBytes": 0,
+      "stderrBytes": 74,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "capture-error",
+      "tty": true,
+      "environment": "dumb",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 80,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "search-error",
+      "tty": true,
+      "environment": "dumb",
+      "exit": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 127,
+      "byteEquivalent": true
+    },
+    {
+      "surface": "successful-piped-init",
+      "tty": false,
+      "environment": "default",
+      "exit": 0,
+      "byteEquivalent": true
+    }
+  ]
+}

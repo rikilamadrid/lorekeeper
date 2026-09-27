@@ -1,0 +1,19 @@
+
+    ╭───╮
+   ╭╯   ╰╮
+   │  ✦  │    L O R E K E E P E R  v0.2.1 · LK-047
+   ╰╮   ╭╯    You already wrote it down. Find the passage that answers.
+    ╰───╯
+
+Initialized a brain at /private/tmp/lore-family-apuw0lw7/brain
+
+  inbox/
+  daily/
+  notes/
+  sources/
+  entities/
+
+7 starter files, recorded in .lorekeeper/manifest.json.
+Everything else in that directory is yours.
+
+Start by reading /private/tmp/lore-family-apuw0lw7/brain/README.md

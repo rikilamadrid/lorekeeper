@@ -1,0 +1,109 @@
+{
+  "product": "Lorekeeper",
+  "version": "0.2.1",
+  "serial": "LK-047",
+  "source": "Real PTY running bundled dist/lore.js; PTY carriage returns removed only. init cwd is a disposable external directory.",
+  "specimens": [
+    {
+      "name": "wide",
+      "command": "lore --help",
+      "columns": 100,
+      "env": {},
+      "exit": 0,
+      "stderr": "",
+      "capture": "wide.ansi",
+      "sha256": "ed97ef892baf3918bf3d3c203570c7ec5cce2c1a95b406192af8304da2b8f037"
+    },
+    {
+      "name": "narrow",
+      "command": "lore --help",
+      "columns": 32,
+      "env": {},
+      "exit": 0,
+      "stderr": "",
+      "capture": "narrow.ansi",
+      "sha256": "2e4cdf6c19b3cde3ac24203d7caacecc5862e0c3aad35386400c5e04957e1cbf"
+    },
+    {
+      "name": "no-color",
+      "command": "lore --help",
+      "columns": 100,
+      "env": {
+        "NO_COLOR": "1"
+      },
+      "exit": 0,
+      "stderr": "",
+      "capture": "no-color.ansi",
+      "sha256": "6f081c3dc6a64f129bfa18d9648ee956d08ba2c969bd30b8ba455a1daf254d8b"
+    },
+    {
+      "name": "ascii",
+      "command": "lore --help",
+      "columns": 100,
+      "env": {
+        "WW_ASCII": "1"
+      },
+      "exit": 0,
+      "stderr": "",
+      "capture": "ascii.ansi",
+      "sha256": "c29a8d5dda6feffc64b0a05ed8e5a1486164672cbcff1bb38c0a6f939ae8f555"
+    },
+    {
+      "name": "ansi256",
+      "command": "lore --help",
+      "columns": 100,
+      "env": {
+        "COLORTERM": ""
+      },
+      "exit": 0,
+      "stderr": "",
+      "capture": "ansi256.ansi",
+      "sha256": "15aa6fb8f7245c72e6cb3e9f3511af86c6e3e4fac7f429e0fa520eb04c827a44"
+    },
+    {
+      "name": "ansi16",
+      "command": "lore --help",
+      "columns": 100,
+      "env": {
+        "COLORTERM": "",
+        "TERM": "xterm"
+      },
+      "exit": 0,
+      "stderr": "",
+      "capture": "ansi16.ansi",
+      "sha256": "6d410167b653a97c236e9e105d4e9bc8f45c573f5a80b93b92c9fc966a58029d"
+    },
+    {
+      "name": "dumb",
+      "command": "lore --help",
+      "columns": 80,
+      "env": {
+        "TERM": "dumb"
+      },
+      "exit": 0,
+      "stderr": "",
+      "capture": "dumb.ansi",
+      "sha256": "6f081c3dc6a64f129bfa18d9648ee956d08ba2c969bd30b8ba455a1daf254d8b"
+    },
+    {
+      "name": "no-arg",
+      "command": "lore ",
+      "columns": 100,
+      "env": {},
+      "exit": 0,
+      "stderr": "",
+      "capture": "no-arg.ansi",
+      "sha256": "ed97ef892baf3918bf3d3c203570c7ec5cce2c1a95b406192af8304da2b8f037"
+    },
+    {
+      "name": "init",
+      "command": "lore init brain",
+      "columns": 100,
+      "env": {},
+      "exit": 0,
+      "stderr": "",
+      "capture": "init.ansi",
+      "sha256": "239884b0f678bb5af8d09f2c5f7abc318c1e386410912be59e9a0bdef5537f27"
+    }
+  ]
+}

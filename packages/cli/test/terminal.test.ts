@@ -77,14 +77,18 @@ describe('Lorekeeper rendering', () => {
     expect(usage('1.2.3')).not.toContain(PRODUCT.serial);
   });
 
-  it('uses the shared line grammar in interactive help', () => {
-    const line = usage(
+  it('shows the approved full identity once in interactive help', () => {
+    const help = usage(
       '1.2.3',
       createPaint({ LANG: 'en_US.UTF-8', COLORTERM: 'truecolor' }, true),
-    ).split('\n')[0];
-    expect(line).toBe(
-      `${PAINTS.accent.truecolor}L O R E K E E P E R${ESC}[0m  ${ESC}[2mv1.2.3 · LK-047${ESC}[0m`,
     );
+    expect(help).toContain('╭───╮');
+    expect(help).toContain('✦');
+    expect(help).toContain(
+      'You already wrote it down. Find the passage that answers.',
+    );
+    expect(help.match(/LK-047/g)).toHaveLength(1);
+    expect(help).toContain('v1.2.3 · LK-047');
   });
 
   it('degrades the identity through 256 and 16 colours', () => {
@@ -135,15 +139,20 @@ describe('Lorekeeper rendering', () => {
     expect(block).not.toContain('╭');
   });
 
-  it('falls back to the line form in a narrow terminal', () => {
+  it('stacks the full identity within a narrow terminal', () => {
     const identity = createPaint(
       { LANG: 'en_US.UTF-8', COLORTERM: 'truecolor' },
       true,
       24,
     ).identity('1.2.3');
     expect(identity).toContain('L O R E K E E P E R');
-    expect(identity).not.toContain('\n');
-    expect(identity).not.toContain('✦');
+    expect(identity).toContain('\n');
+    expect(identity).toContain('✦');
+    const plain = identity.replace(new RegExp(`${ESC}\\[[0-9;]*m`, 'g'), '');
+    expect(plain.split('\n').every((line) => [...line].length <= 24)).toBe(
+      true,
+    );
+    expect(plain).toContain('LK-047');
   });
 });
 

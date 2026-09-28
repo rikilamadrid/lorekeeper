@@ -2,6 +2,7 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { TAGLINE } from '@lorekeeper/core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   detectTerminal,
@@ -75,6 +76,11 @@ describe('Lorekeeper rendering', () => {
     expect(usage('1.2.3', PLAIN)).toBe(usage('1.2.3'));
     expect(usage('1.2.3')).not.toContain(ESC);
     expect(usage('1.2.3')).not.toContain(PRODUCT.serial);
+  });
+
+  it('says the same tagline in piped help and the interactive identity', () => {
+    expect(PRODUCT.tagline).toBe(TAGLINE);
+    expect(usage('1.2.3').split('\n')[1]).toBe(TAGLINE);
   });
 
   it('shows the approved full identity once in interactive help', () => {

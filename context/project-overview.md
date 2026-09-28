@@ -14,7 +14,7 @@ Leave nothing blank. A blank field is indistinguishable from an abandoned one.
 
 ## Project
 
-- Name: `Lorekeeper` — companion product to `Pathfinder`. Pathfinder finds the way; Lorekeeper remembers the journey. The CLI binary name is `lore`, resolved 2026-08-21.
+- Name: `Lorekeeper` — companion product to `Pathfinder`. Tagline: "You already wrote it down. Find the passage that answers." The CLI binary name is `lore`, resolved 2026-08-21.
 - Stage: `idea`
 - Repo type: `monorepo` — smallest sensible shape: `apps/docs`, `packages/cli`, `packages/core`. Split further only when a real boundary requires it
 - Primary goal: A person's durable knowledge, and the AI capabilities they work with, live in plain Markdown files they own, and both a human and their coding agents can retrieve exactly the relevant part on demand.

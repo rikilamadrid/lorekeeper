@@ -62,7 +62,7 @@ pages side by side and they are recognisably built by the same hand.
    roughly 235°, with a bronze gilt second voice. Dawn and dusk.
 2. **Geometry.** Pathfinder's colour is a trail blaze: directional, out ahead of
    you. Lorekeeper's mark is a closed ring: enclosing, held, already arrived.
-   Pathfinder finds the way; Lorekeeper remembers the journey.
+   Pathfinder finds the way; Lorekeeper finds the passage that answers.
 3. **Letterform voice.** Pathfinder speaks in the system sans throughout.
    Lorekeeper adds an old-style serif for headings and an inscriptional drawn
    capital for the wordmark — the archive's voice against the field's.

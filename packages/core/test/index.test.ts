@@ -14,4 +14,10 @@ describe('core identity exports', () => {
     expect(TAGLINE.length).toBeGreaterThan(0);
     expect(TAGLINE).not.toContain('\n');
   });
+
+  it('exports the approved tagline exactly', () => {
+    expect(TAGLINE).toBe(
+      'You already wrote it down. Find the passage that answers.',
+    );
+  });
 });

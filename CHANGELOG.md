@@ -14,6 +14,9 @@ the release workflow refuses to run if they disagree. See `RELEASING.md`.
 
 - The npm README's second line is now the approved tagline, "You already wrote it down.
   Find the passage that answers."
+- Piped, redirected, `NO_COLOR` and `TERM=dumb` `lore --help` now print that same tagline
+  under the name, instead of "Pathfinder finds the way; Lorekeeper remembers the journey."
+  It now matches the interactive identity. Nothing else in that output changes.
 
 ## [0.3.0] - 2026-09-27
 

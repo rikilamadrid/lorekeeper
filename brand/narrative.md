@@ -95,13 +95,13 @@ improved. `proof.md` has the table, the machine, and the rest of the caveats.
 
 ## Lorekeeper and Pathfinder
 
-Pathfinder finds the way. Lorekeeper remembers the journey.
+Pathfinder finds the way. Lorekeeper finds the passage that answers.
 
 They come from the same maker and are built to read as siblings, not as one
 product split in two. Pathfinder is movement, direction, and execution: it
-takes a project from intent to delivered work. Lorekeeper is memory,
-provenance, and connection: it keeps what was learned along the way and hands
-it back when it is next needed.
+takes a project from intent to delivered work. Lorekeeper is retrieval,
+provenance, and connection: it ranks what you already wrote down against a
+question and hands back the passages that answer, each with where it came from.
 
 You can use either without the other. Neither imports the other. Lorekeeper is
 not a Pathfinder plugin and does not require a Pathfinder project to be useful.

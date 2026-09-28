@@ -14,9 +14,11 @@ Node/TypeScript CLI over a directory of plain Markdown files with validated
 frontmatter, plus a documentation PWA. See `context/project-overview.md` for
 scope, stack, and durable decisions.
 
-Lorekeeper is the companion product to Pathfinder. Pathfinder finds the way;
-Lorekeeper remembers the journey. Pathfinder is movement, direction, and
-execution; Lorekeeper is memory, provenance, and connection.
+Lorekeeper is the companion product to Pathfinder. Its tagline is "You already
+wrote it down. Find the passage that answers." Pathfinder is movement,
+direction, and execution; Lorekeeper is retrieval, provenance, and connection
+over Markdown the user already wrote. It ranks passages; it does not remember,
+and a score never proves absence.
 
 The CLI binary name is `lore`, resolved 2026-08-21. The command vocabulary
 below it is not settled, and domain vocabulary does not adopt lore terminology

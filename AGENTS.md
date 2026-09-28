@@ -1,6 +1,6 @@
 # Agent Entry Point
 
-This project is **Lorekeeper**, companion to Pathfinder. Pathfinder finds the way; Lorekeeper remembers the journey.
+This project is **Lorekeeper**, companion to Pathfinder. You already wrote it down. Find the passage that answers.
 
 Read `CLAUDE.md` first.
 

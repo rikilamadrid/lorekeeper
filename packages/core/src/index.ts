@@ -30,7 +30,7 @@
 export const PRODUCT_NAME = 'Lorekeeper';
 
 export const TAGLINE =
-  'Pathfinder finds the way; Lorekeeper remembers the journey.';
+  'You already wrote it down. Find the passage that answers.';
 
 export { type LoreDocument, readDocument } from './document.js';
 
